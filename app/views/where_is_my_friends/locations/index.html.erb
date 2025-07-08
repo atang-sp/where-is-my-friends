@@ -1,0 +1,38 @@
+<% content_for :title do %>
+  <%= I18n.t('where_is_my_friends.title') %>
+<% end %>
+
+<div class="where-is-my-friends-container">
+  <div class="nearby-users-header">
+    <h1><%= I18n.t('where_is_my_friends.title') %></h1>
+    <p><%= I18n.t('where_is_my_friends.description') %></p>
+  </div>
+
+  <div class="location-controls">
+    <button class="btn btn-primary" id="share-location">
+      <%= I18n.t('where_is_my_friends.share_location') %>
+    </button>
+    <button class="btn btn-danger" id="remove-location">
+      <%= I18n.t('where_is_my_friends.remove_location') %>
+    </button>
+  </div>
+
+  <div class="nearby-users-content">
+    <div class="distance-selector">
+      <label for="distance"><%= I18n.t('where_is_my_friends.search_distance') %>:</label>
+      <select id="distance">
+        <option value="1">1 km</option>
+        <option value="5" selected>5 km</option>
+        <option value="10">10 km</option>
+        <option value="25">25 km</option>
+        <option value="50">50 km</option>
+      </select>
+    </div>
+
+    <div id="nearby-users-list">
+      <div class="loading">
+        <%= I18n.t('where_is_my_friends.click_to_search') %>
+      </div>
+    </div>
+  </div>
+</div> 

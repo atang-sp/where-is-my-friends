@@ -1,0 +1,184 @@
+.where-is-my-friends-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+
+  .nearby-users-header {
+    text-align: center;
+    margin-bottom: 30px;
+
+    h1 {
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: var(--secondary);
+      font-size: 16px;
+    }
+  }
+
+  .location-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 30px;
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+
+      &.btn-primary {
+        background-color: var(--primary);
+        color: white;
+
+        &:hover {
+          background-color: var(--primary-hover);
+        }
+      }
+
+      &.btn-danger {
+        background-color: var(--danger);
+        color: white;
+
+        &:hover {
+          background-color: var(--danger-hover);
+        }
+      }
+    }
+  }
+
+  .nearby-users-content {
+    .distance-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+
+      label {
+        font-weight: bold;
+        color: var(--primary);
+      }
+
+      select {
+        padding: 8px 12px;
+        border: 1px solid var(--primary-low);
+        border-radius: 4px;
+        background-color: var(--secondary);
+        color: var(--primary);
+        font-size: 14px;
+      }
+    }
+
+    #nearby-users-list {
+      .loading {
+        text-align: center;
+        color: var(--secondary);
+        font-style: italic;
+        padding: 40px;
+      }
+
+      .user-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border: 1px solid var(--primary-low);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        background-color: var(--highlight-low);
+        transition: all 0.3s ease;
+
+        &:hover {
+          background-color: var(--highlight-medium);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-avatar {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          margin-right: 15px;
+          object-fit: cover;
+        }
+
+        .user-info {
+          flex: 1;
+
+          .username {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 16px;
+            margin-bottom: 5px;
+          }
+
+          .name {
+            color: var(--secondary);
+            font-size: 14px;
+            margin-bottom: 5px;
+          }
+
+          .distance {
+            color: var(--tertiary);
+            font-size: 12px;
+            font-weight: bold;
+          }
+        }
+
+        .last-seen {
+          color: var(--secondary);
+          font-size: 12px;
+          text-align: right;
+        }
+      }
+
+      .no-users {
+        text-align: center;
+        color: var(--secondary);
+        font-style: italic;
+        padding: 40px;
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .where-is-my-friends-container {
+    padding: 10px;
+
+    .location-controls {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nearby-users-content {
+      .distance-selector {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      #nearby-users-list {
+        .user-item {
+          flex-direction: column;
+          text-align: center;
+
+          .user-avatar {
+            margin-right: 0;
+            margin-bottom: 10px;
+          }
+
+          .last-seen {
+            text-align: center;
+            margin-top: 10px;
+          }
+        }
+      }
+    }
+  }
+} 

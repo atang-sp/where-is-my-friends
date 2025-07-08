@@ -1,0 +1,8 @@
+plugins:
+  where_is_my_friends_enabled:
+    default: true
+    client: true
+    type: bool
+    description: "启用附近的朋友插件"
+    category: "where_is_my_friends"
+    translated: true 
