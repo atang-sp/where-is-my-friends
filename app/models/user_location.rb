@@ -27,9 +27,11 @@ class UserLocation < ActiveRecord::Base
     enabled.joins(:user).where("
       (
         6371 * acos(
-          cos(radians(?)) * cos(radians(latitude)) * 
-          cos(radians(longitude) - radians(?)) + 
-          sin(radians(?)) * sin(radians(latitude))
+          GREATEST(LEAST(
+            cos(radians(?)) * cos(radians(latitude)) *
+            cos(radians(longitude) - radians(?)) +
+            sin(radians(?)) * sin(radians(latitude))
+          , 1), -1)
         )
       ) <= ?
     ", lat, lng, lat, distance_km)
@@ -45,9 +47,11 @@ class UserLocation < ActiveRecord::Base
     lat_rad_other = latitude * rad_per_deg
     lng_rad_other = longitude * rad_per_deg
 
-    a = Math.sin(lat_rad) * Math.sin(lat_rad_other) +
-        Math.cos(lat_rad) * Math.cos(lat_rad_other) * Math.cos(lng_rad - lng_rad_other)
-    c = Math.acos([a, 1].min)
+    a_raw = Math.sin(lat_rad) * Math.sin(lat_rad_other) +
+            Math.cos(lat_rad) * Math.cos(lat_rad_other) * Math.cos(lng_rad - lng_rad_other)
+    # Clamp to [-1, 1] to avoid domain errors due to floating point overflows
+    a = [[a_raw, 1.0].min, -1.0].max
+    c = Math.acos(a)
     earth_radius * c
   end
 end 

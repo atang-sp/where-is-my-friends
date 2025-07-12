@@ -43,6 +43,7 @@ after_initialize do
     post "/api/where-is-my-friends/locations" => "where_is_my_friends/locations#create"
     get "/api/where-is-my-friends/locations/nearby" => "where_is_my_friends/locations#nearby"
     delete "/api/where-is-my-friends/locations" => "where_is_my_friends/locations#destroy"
+    get "/api/where-is-my-friends/ip-location" => "where_is_my_friends/locations#ip_location"
   end
 
   # Navigation menu items are now handled by the frontend initializer

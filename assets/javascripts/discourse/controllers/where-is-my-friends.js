@@ -1,6 +1,7 @@
 import Controller from "@ember/controller";
 import { action } from "@ember/object";
 import { ajax } from "discourse/lib/ajax";
+import { getCurrentPositionAsync } from "discourse/plugins/where-is-my-friends/discourse/lib/where-is-my-friends-geolocation";
 
 export default class WhereIsMyFriendsController extends Controller {
   @action
@@ -17,32 +18,49 @@ export default class WhereIsMyFriendsController extends Controller {
     this.set("error", null);
     this.set("debugInfo", null);
 
+    let latitude, longitude;
+
+    // 1) 尝试浏览器原生定位
     try {
-      // 尝试获取位置
-      const position = await this.getCurrentPosition();
-      const { latitude, longitude } = position.coords;
-      
+      const position = await getCurrentPositionAsync({ enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 });
+      ({ latitude, longitude } = position.coords);
+    } catch (geoError) {
+      console.warn("HTML5 geolocation failed, fallback to IP geolocation", geoError);
+      // 2) 尝试 ip-api.com 定位
+      try {
+        const loc = await this.getLocationViaIp();
+        ({ latitude, longitude } = loc);
+      } catch (fallbackError) {
+        const errorMsg = fallbackError.message || fallbackError;
+        this.set("error", `IP 定位失败: ${errorMsg}`);
+        this.set("debugInfo", { error: errorMsg });
+        this.set("loading", false);
+        return;
+      }
+    }
+
+    try {
       // 保存位置信息
       await ajax("/api/where-is-my-friends/locations", {
         type: "POST",
         data: { latitude, longitude }
       });
-      
+
       this.set("locationShared", true);
       this.set("error", null);
       this.set("locationStatus", null);
-      
+
       // 更新当前用户的位置信息
       this.set("currentUser.location", { latitude, longitude });
-      
+
       console.log('✅ 位置信息已保存');
-      
+
       // 清除附近用户列表（因为位置已更新）
       this.set("nearbyUsers", null);
-      
+
       // 刷新模型数据
       this.send("refreshModel");
-      
+
     } catch (error) {
       const errorInfo = this.handleGeolocationError(error);
       this.set("error", errorInfo.message);
@@ -76,7 +94,11 @@ export default class WhereIsMyFriendsController extends Controller {
       this.set("error", null);
     } catch (error) {
       console.error('❌ 查找附近用户失败:', error);
-      this.set("error", "查找附近用户失败: " + (error.message || error));
+      let errMsg = error?.errors?.[0] || error?.message || (error.jqXHR && error.jqXHR.responseJSON?.errors?.[0]);
+      if (!errMsg && typeof error === "string") {
+        errMsg = error;
+      }
+      this.set("error", `查找附近用户失败: ${errMsg || '未知错误'}`);
     } finally {
       this.set("loading", false);
     }
@@ -243,72 +265,20 @@ export default class WhereIsMyFriendsController extends Controller {
     `;
   }
 
+  // getCurrentPosition() 方法已抽离到 discourse/lib/where-is-my-friends-geolocation.js
+  // 保留空实现以防其它代码引用
   getCurrentPosition() {
-    return new Promise((resolve, reject) => {
-      // 使用更快的定位策略
-      const fastOptions = {
-        enableHighAccuracy: false, // 使用低精度但更快的定位
-        timeout: 8000, // 减少超时时间到8秒
-        maximumAge: 600000 // 使用10分钟内的缓存位置
-      };
+    return getCurrentPositionAsync();
+  }
 
-      console.log('🌍 开始获取位置...');
-      const startTime = Date.now();
+  async getLocationViaIp() {
+    const data = await ajax("/api/where-is-my-friends/ip-location");
+    const parsed = typeof data === "string" ? JSON.parse(data) : data;
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const endTime = Date.now();
-          console.log(`✅ 位置获取成功，耗时: ${endTime - startTime}ms`);
-          resolve(position);
-        },
-        (error) => {
-          const endTime = Date.now();
-          console.log(`❌ 快速定位失败，耗时: ${endTime - startTime}ms，错误: ${error.code}`);
-          
-          // 如果快速定位失败，尝试使用缓存的位置
-          if (error.code === error.TIMEOUT) {
-            console.log('🔄 尝试使用缓存位置...');
-            const cacheOptions = {
-              enableHighAccuracy: false,
-              timeout: 5000,
-              maximumAge: 3600000 // 使用1小时内的缓存
-            };
-            
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                console.log('✅ 使用缓存位置成功');
-                resolve(position);
-              },
-              (cacheError) => {
-                console.log('❌ 缓存位置也失败，尝试高精度定位...');
-                
-                // 最后尝试高精度定位
-                const accurateOptions = {
-                  enableHighAccuracy: true,
-                  timeout: 15000,
-                  maximumAge: 0
-                };
-                
-                navigator.geolocation.getCurrentPosition(
-                  (position) => {
-                    console.log('✅ 高精度定位成功');
-                    resolve(position);
-                  },
-                  (accurateError) => {
-                    console.log('❌ 所有定位方法都失败');
-                    reject(accurateError);
-                  },
-                  accurateOptions
-                );
-              },
-              cacheOptions
-            );
-          } else {
-            reject(error);
-          }
-        },
-        fastOptions
-      );
-    });
+    if (parsed && parsed.lat !== undefined && parsed.lon !== undefined) {
+      return { latitude: parsed.lat, longitude: parsed.lon };
+    }
+
+    throw new Error(parsed.message || "IP 位置服务返回错误");
   }
 } 

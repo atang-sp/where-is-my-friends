@@ -98,7 +98,9 @@
           {{#each nearbyUsers as |userData|}}
             <div class="user-card {{if userData.isCurrentUser 'current-user'}}">
               <div class="user-avatar">
-                {{avatar userData.user imageSize="large"}}
+                <a href="/u/{{userData.username}}">
+                  {{avatar userData imageSize="large"}}
+                </a>
                 {{#if userData.isCurrentUser}}
                   <div class="current-user-badge">
                     <i class="fa fa-user"></i>
@@ -107,19 +109,19 @@
               </div>
               <div class="user-info">
                 <div class="username">
-                  <a href="{{userData.user.path}}">{{userData.user.username}}</a>
+                  <a href="/u/{{userData.username}}">{{userData.username}}</a>
                   {{#if userData.isCurrentUser}}
                     <span class="current-user-label">(您)</span>
                   {{/if}}
                 </div>
                 <div class="distance">
                   <i class="fa fa-map-marker-alt"></i>
-                  {{userData.distance}} km away
+                  {{userData.distance}} km
                 </div>
-                {{#if userData.user.last_seen_at}}
+                {{#if userData.last_seen_at}}
                   <div class="last-seen">
                     <i class="fa fa-clock-o"></i>
-                    最后在线: {{format-date userData.user.last_seen_at}}
+                    最后在线: {{format-date userData.last_seen_at}}
                   </div>
                 {{/if}}
               </div>

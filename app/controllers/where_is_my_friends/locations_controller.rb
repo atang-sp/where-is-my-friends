@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+require 'net/http'
+require 'uri'
 
 module WhereIsMyFriends
   class LocationsController < ::ApplicationController
@@ -100,6 +102,18 @@ module WhereIsMyFriends
         Rails.logger.error "WhereIsMyFriends: Error finding nearby users: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
         render_json_error("查找附近用户时发生错误: #{e.message}")
+      end
+    end
+
+    def ip_location
+      uri = URI("http://ip-api.com/json/")
+
+      begin
+        response = Net::HTTP.get_response(uri)
+        render json: response.body
+      rescue => e
+        Rails.logger.error "WhereIsMyFriends: IP location request failed - #{e.message}"
+        render_json_error("IP 定位请求失败: #{e.message}")
       end
     end
 
