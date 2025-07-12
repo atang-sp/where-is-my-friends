@@ -17,4 +17,7 @@ zh_CN:
       no_nearby_users: "在指定距离内没有找到其他朋友"
       distance_km: "%{distance} 公里"
       last_seen: "最后在线"
-      privacy_notice: "注意：你的位置信息会被模糊化处理以保护隐私" 
+      privacy_notice: "注意：你的位置信息会被模糊化处理以保护隐私"
+      find_nearby: "查找附近的朋友"
+      share_location_prompt: "分享你的位置以开始查找附近的朋友"
+      nearby_users: "附近的朋友" 

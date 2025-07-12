@@ -23,39 +23,29 @@ after_initialize do
   # Load the controller
   load File.expand_path('../app/controllers/where_is_my_friends/locations_controller.rb', __FILE__)
   
+  # Add list controller extension for frontend route
+  reloadable_patch do |plugin|
+    ListController.class_eval do
+      def where_is_my_friends
+        # Render HTML for Ember app
+        render html: '<div id="main-outlet" class="wrap"></div>'.html_safe, layout: 'application'
+      end
+    end
+  end
+
   # Add routes
   Discourse::Application.routes.append do
-    get '/where-is-my-friends' => 'where_is_my_friends/locations#index'
-    post '/where-is-my-friends/locations' => 'where_is_my_friends/locations#create'
-    get '/where-is-my-friends/locations/nearby' => 'where_is_my_friends/locations#nearby'
-    delete '/where-is-my-friends/locations' => 'where_is_my_friends/locations#destroy'
+    # Frontend route - renders Ember app
+    get "/where-is-my-friends" => "list#where_is_my_friends"
+    
+    # API routes - return JSON data
+    get "/api/where-is-my-friends" => "where_is_my_friends/locations#index"
+    post "/api/where-is-my-friends/locations" => "where_is_my_friends/locations#create"
+    get "/api/where-is-my-friends/locations/nearby" => "where_is_my_friends/locations#nearby"
+    delete "/api/where-is-my-friends/locations" => "where_is_my_friends/locations#destroy"
   end
 
-  # Add navigation menu item
-  add_to_serializer(:site, :menu_items) do
-    [
-      {
-        name: 'where-is-my-friends',
-        text: I18n.t('where_is_my_friends.title'),
-        href: '/where-is-my-friends',
-        title: I18n.t('where_is_my_friends.description'),
-        icon: 'map-marker-alt'
-      }
-    ]
-  end
-
-  # Add user menu item
-  add_to_serializer(:current_user, :user_menu_items) do
-    [
-      {
-        name: 'where-is-my-friends',
-        text: I18n.t('where_is_my_friends.title'),
-        href: '/where-is-my-friends',
-        title: I18n.t('where_is_my_friends.description'),
-        icon: 'map-marker-alt'
-      }
-    ]
-  end
+  # Navigation menu items are now handled by the frontend initializer
 
   # Add admin route
   add_admin_route 'where_is_my_friends.title', 'where-is-my-friends'

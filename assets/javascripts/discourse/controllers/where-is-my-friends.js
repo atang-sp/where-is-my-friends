@@ -1,100 +1,78 @@
 import Controller from "@ember/controller";
 import { action } from "@ember/object";
 import { ajax } from "discourse/lib/ajax";
-import { popupAjaxError } from "discourse/lib/ajax-error";
 
-export default Controller.extend({
-  nearbyUsers: [],
-  loading: false,
-  currentLocation: null,
-
-  shareLocation: action(async function() {
+export default class WhereIsMyFriendsController extends Controller {
+  @action
+  async shareLocation() {
     if (!navigator.geolocation) {
-      this.showError("Geolocation is not supported by this browser.");
+      this.set("error", "Geolocation is not supported by this browser.");
       return;
     }
-
-    this.set("loading", true);
 
     try {
       const position = await this.getCurrentPosition();
       const { latitude, longitude } = position.coords;
-
-      await ajax("/where-is-my-friends/locations", {
+      
+      await ajax("/api/where-is-my-friends/locations", {
         type: "POST",
         data: { latitude, longitude }
       });
-
-      this.set("currentLocation", { latitude, longitude });
-      this.showSuccess("Location shared successfully!");
-      this.searchNearbyUsers();
+      
+      this.set("locationShared", true);
+      this.set("error", null);
+      
+      // Refresh the model to get updated data
+      this.send("refreshModel");
     } catch (error) {
-      if (error.code === 1) {
-        this.showError("Location access denied. Please allow location access to use this feature.");
-      } else {
-        popupAjaxError(error);
-      }
-    } finally {
-      this.set("loading", false);
+      this.set("error", "Failed to get location: " + error.message);
     }
-  }),
+  }
 
-  removeLocation: action(async function() {
-    try {
-      await ajax("/where-is-my-friends/locations", {
-        type: "DELETE"
-      });
-
-      this.set("currentLocation", null);
-      this.set("nearbyUsers", []);
-      this.showSuccess("Location removed successfully!");
-    } catch (error) {
-      popupAjaxError(error);
-    }
-  }),
-
-  searchNearbyUsers: action(async function() {
-    if (!this.currentLocation) {
-      this.showError("Please share your location first.");
+  @action
+  async findNearbyUsers() {
+    if (!this.currentUser?.location) {
+      this.set("error", "Please share your location first.");
       return;
     }
 
-    this.set("loading", true);
-
     try {
-      const distance = document.getElementById("distance")?.value || 5;
-      const result = await ajax("/where-is-my-friends/locations/nearby", {
-        data: {
-          latitude: this.currentLocation.latitude,
-          longitude: this.currentLocation.longitude,
-          distance: distance
-        }
+      const { latitude, longitude } = this.currentUser.location;
+      const result = await ajax("/api/where-is-my-friends/locations/nearby", {
+        data: { latitude, longitude, distance: 10 }
       });
-
-      this.set("nearbyUsers", result.users || []);
+      
+      this.set("nearbyUsers", result.users);
+      this.set("error", null);
     } catch (error) {
-      popupAjaxError(error);
-    } finally {
-      this.set("loading", false);
+      this.set("error", "Failed to find nearby users: " + error.message);
     }
-  }),
+  }
+
+  @action
+  async removeLocation() {
+    try {
+      await ajax("/api/where-is-my-friends/locations", {
+        type: "DELETE"
+      });
+      
+      this.set("locationShared", false);
+      this.set("error", null);
+      
+      // Refresh the model
+      this.send("refreshModel");
+    } catch (error) {
+      this.set("error", "Failed to remove location: " + error.message);
+    }
+  }
 
   getCurrentPosition() {
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: false,
+        enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 300000 // 5 minutes
+        maximumAge: 60000
       });
     });
-  },
-
-  showSuccess(message) {
-    // You can implement a proper notification system here
-    console.log("Success:", message);
-  },
-
-  showError(message) {
-    console.error("Error:", message);
   }
-}); 
+} 

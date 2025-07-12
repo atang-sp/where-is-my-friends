@@ -1,52 +1,72 @@
 <div class="where-is-my-friends-container">
-  <h1>附近的朋友</h1>
-  <p>这是一个测试页面，如果你看到这个内容，说明路由工作正常！</p>
-  
-  <div class="location-controls">
-    <button class="btn btn-primary" {{action "shareLocation"}}>
-      分享我的位置
-    </button>
-    <button class="btn btn-danger" {{action "removeLocation"}}>
-      移除我的位置
-    </button>
+  <div class="where-is-my-friends-header">
+    <h1>{{i18n "where_is_my_friends.title"}}</h1>
+    <p>{{i18n "where_is_my_friends.description"}}</p>
   </div>
 
-  <div class="nearby-users-content">
-    <div class="distance-selector">
-      <label for="distance">搜索距离:</label>
-      <select id="distance" {{action "searchNearbyUsers" on="change"}}>
-        <option value="1">1 km</option>
-        <option value="5" selected>5 km</option>
-        <option value="10">10 km</option>
-        <option value="25">25 km</option>
-        <option value="50">50 km</option>
-      </select>
+  {{#if error}}
+    <div class="alert alert-error">
+      {{error}}
     </div>
+  {{/if}}
 
-    <div id="nearby-users-list">
-      {{#if loading}}
-        <div class="loading">
-          加载中...
+  <div class="where-is-my-friends-content">
+    {{#if currentUser.location}}
+      <div class="location-status">
+        <div class="alert alert-success">
+          <i class="fa fa-map-marker-alt"></i>
+          {{i18n "where_is_my_friends.location_shared"}}
         </div>
-      {{else if nearbyUsers.length}}
-        {{#each nearbyUsers as |user|}}
-          <div class="user-item">
-            <img class="user-avatar" src="{{user.avatar_template}}" alt="{{user.username}}">
-            <div class="user-info">
-              <div class="username">{{user.username}}</div>
-              <div class="name">{{user.name}}</div>
-              <div class="distance">{{user.distance}} 公里</div>
-            </div>
-            <div class="last-seen">
-              最后在线: {{format-date user.last_seen_at}}
-            </div>
-          </div>
-        {{/each}}
-      {{else}}
-        <div class="no-users">
-          点击"分享我的位置"开始搜索附近的朋友
+        
+        <div class="location-actions">
+          <button class="btn btn-primary" {{action "findNearbyUsers"}}>
+            <i class="fa fa-search"></i>
+            {{i18n "where_is_my_friends.find_nearby"}}
+          </button>
+          
+          <button class="btn btn-danger" {{action "removeLocation"}}>
+            <i class="fa fa-trash"></i>
+            {{i18n "where_is_my_friends.remove_location"}}
+          </button>
         </div>
-      {{/if}}
-    </div>
+      </div>
+    {{else}}
+      <div class="location-setup">
+        <div class="alert alert-info">
+          <i class="fa fa-info-circle"></i>
+          {{i18n "where_is_my_friends.share_location_prompt"}}
+        </div>
+        
+        <button class="btn btn-primary btn-large" {{action "shareLocation"}}>
+          <i class="fa fa-map-marker-alt"></i>
+          {{i18n "where_is_my_friends.share_location"}}
+        </button>
+      </div>
+    {{/if}}
+
+    {{#if nearbyUsers}}
+      <div class="nearby-users">
+        <h3>{{i18n "where_is_my_friends.nearby_users"}} ({{nearbyUsers.length}})</h3>
+        
+        <div class="users-list">
+          {{#each nearbyUsers as |userData|}}
+            <div class="user-card">
+              <div class="user-avatar">
+                {{avatar userData.user imageSize="large"}}
+              </div>
+              <div class="user-info">
+                <div class="username">
+                  <a href="{{userData.user.path}}">{{userData.user.username}}</a>
+                </div>
+                <div class="distance">
+                  <i class="fa fa-map-marker-alt"></i>
+                  {{userData.distance}} km away
+                </div>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    {{/if}}
   </div>
 </div> 
