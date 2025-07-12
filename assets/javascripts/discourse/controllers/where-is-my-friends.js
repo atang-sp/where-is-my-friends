@@ -5,19 +5,24 @@ import { ajax } from "discourse/lib/ajax";
 export default class WhereIsMyFriendsController extends Controller {
   @action
   async shareLocation() {
-    if (!navigator.geolocation) {
-      this.set("error", "Geolocation is not supported by this browser.");
+    // 首先检查基本环境
+    const environmentCheck = this.checkEnvironment();
+    if (!environmentCheck.supported) {
+      this.set("error", environmentCheck.message);
       return;
     }
 
     // Set loading state
     this.set("loading", true);
     this.set("error", null);
+    this.set("debugInfo", null);
 
     try {
+      // 尝试获取位置
       const position = await this.getCurrentPosition();
       const { latitude, longitude } = position.coords;
       
+      // 保存位置信息
       await ajax("/api/where-is-my-friends/locations", {
         type: "POST",
         data: { latitude, longitude }
@@ -25,28 +30,23 @@ export default class WhereIsMyFriendsController extends Controller {
       
       this.set("locationShared", true);
       this.set("error", null);
+      this.set("locationStatus", null);
       
-      // Refresh the model to get updated data
+      // 更新当前用户的位置信息
+      this.set("currentUser.location", { latitude, longitude });
+      
+      console.log('✅ 位置信息已保存');
+      
+      // 清除附近用户列表（因为位置已更新）
+      this.set("nearbyUsers", null);
+      
+      // 刷新模型数据
       this.send("refreshModel");
+      
     } catch (error) {
-      let errorMessage = "Failed to get location: ";
-      
-      // Handle specific geolocation errors
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          errorMessage = "Location access denied. Please allow location access in your browser settings and try again.";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          errorMessage = "Location information is unavailable. Please check your device's location services.";
-          break;
-        case error.TIMEOUT:
-          errorMessage = "Location request timed out. Please try again or check your internet connection.";
-          break;
-        default:
-          errorMessage += error.message;
-      }
-      
-      this.set("error", errorMessage);
+      const errorInfo = this.handleGeolocationError(error);
+      this.set("error", errorInfo.message);
+      this.set("debugInfo", errorInfo.debug);
     } finally {
       this.set("loading", false);
     }
@@ -54,21 +54,31 @@ export default class WhereIsMyFriendsController extends Controller {
 
   @action
   async findNearbyUsers() {
+    // 首先检查用户是否已经分享了位置
     if (!this.currentUser?.location) {
-      this.set("error", "Please share your location first.");
+      this.set("error", "请先分享您的位置信息。");
       return;
     }
 
+    this.set("loading", true);
+    this.set("error", null);
+
     try {
       const { latitude, longitude } = this.currentUser.location;
+      console.log('🔍 查找附近用户，位置:', { latitude, longitude });
+      
       const result = await ajax("/api/where-is-my-friends/locations/nearby", {
-        data: { latitude, longitude, distance: 10 }
+        data: { latitude, longitude, distance: 50 } // 改为50公里
       });
       
-      this.set("nearbyUsers", result.users);
+      console.log('✅ 找到附近用户:', result.users?.length || 0, '个');
+      this.set("nearbyUsers", result.users || []);
       this.set("error", null);
     } catch (error) {
-      this.set("error", "Failed to find nearby users: " + error.message);
+      console.error('❌ 查找附近用户失败:', error);
+      this.set("error", "查找附近用户失败: " + (error.message || error));
+    } finally {
+      this.set("loading", false);
     }
   }
 
@@ -81,21 +91,224 @@ export default class WhereIsMyFriendsController extends Controller {
       
       this.set("locationShared", false);
       this.set("error", null);
+      this.set("nearbyUsers", null); // 清除附近用户列表
       
-      // Refresh the model
+      // 刷新当前用户的位置信息
+      this.set("currentUser.location", null);
+      
+      console.log('✅ 位置信息已移除');
+      
+      // 刷新模型数据
       this.send("refreshModel");
     } catch (error) {
-      this.set("error", "Failed to remove location: " + error.message);
+      console.error('❌ 移除位置失败:', error);
+      this.set("error", "移除位置失败: " + (error.message || error));
     }
+  }
+
+  @action
+  async checkPermissions() {
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        const permission = await navigator.permissions.query({ name: 'geolocation' });
+        this.set("permissionStatus", permission.state);
+        return permission.state;
+      }
+    } catch (error) {
+      console.log("无法检查权限状态:", error);
+    }
+    return "unknown";
+  }
+
+  checkEnvironment() {
+    // 检查浏览器支持
+    if (!navigator.geolocation) {
+      return {
+        supported: false,
+        message: "此浏览器不支持地理位置功能。请使用Chrome、Firefox、Safari或Edge浏览器。"
+      };
+    }
+
+    // 检查HTTPS（Chrome要求）
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      return {
+        supported: false,
+        message: "地理位置功能需要HTTPS连接。请使用HTTPS访问此网站。"
+      };
+    }
+
+    // 检查是否在Chrome中
+    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    
+    return {
+      supported: true,
+      isChrome: isChrome,
+      message: null
+    };
+  }
+
+  handleGeolocationError(error) {
+    let message = "";
+    let debug = {
+      errorCode: error.code,
+      errorMessage: error.message,
+      userAgent: navigator.userAgent,
+      protocol: location.protocol,
+      hostname: location.hostname
+    };
+
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        message = this.getPermissionDeniedMessage();
+        debug.errorType = "PERMISSION_DENIED";
+        break;
+      case error.POSITION_UNAVAILABLE:
+        message = this.getPositionUnavailableMessage();
+        debug.errorType = "POSITION_UNAVAILABLE";
+        break;
+      case error.TIMEOUT:
+        message = this.getTimeoutMessage();
+        debug.errorType = "TIMEOUT";
+        break;
+      default:
+        message = `获取位置时发生未知错误: ${error.message}`;
+        debug.errorType = "UNKNOWN";
+    }
+
+    return { message, debug };
+  }
+
+  getPermissionDeniedMessage() {
+    const isChrome = /Chrome/.test(navigator.userAgent);
+    
+    if (isChrome) {
+      return `
+        <strong>位置访问被拒绝</strong><br><br>
+        <strong>Chrome浏览器解决方案：</strong><br>
+        1. 点击地址栏左侧的锁定图标 🔒<br>
+        2. 将"位置"设置为"允许"<br>
+        3. 刷新页面后重试<br><br>
+        <strong>如果问题持续：</strong><br>
+        1. 打开Chrome设置 → 隐私设置和安全性 → 网站设置 → 位置信息<br>
+        2. 确保此网站没有被阻止<br>
+        3. 清除浏览器缓存和Cookie<br>
+        4. 重启Chrome浏览器
+      `;
+    } else {
+      return `
+        <strong>位置访问被拒绝</strong><br><br>
+        请在浏览器设置中允许位置访问，然后重试。
+      `;
+    }
+  }
+
+  getPositionUnavailableMessage() {
+    return `
+      <strong>位置信息不可用</strong><br><br>
+      <strong>可能的原因：</strong><br>
+      1. 设备的位置服务被禁用<br>
+      2. GPS信号弱或无信号<br>
+      3. 网络连接问题<br><br>
+      <strong>解决方案：</strong><br>
+      1. 检查设备的位置服务设置<br>
+      2. 确保GPS已开启<br>
+      3. 尝试在室外或靠近窗户的地方使用<br>
+      4. 检查网络连接
+    `;
+  }
+
+  getTimeoutMessage() {
+    return `
+      <strong>位置请求超时</strong><br><br>
+      <strong>可能的原因：</strong><br>
+      1. 网络连接慢<br>
+      2. GPS信号弱<br>
+      3. 位置服务响应慢<br>
+      4. 设备位置服务设置问题<br><br>
+      <strong>立即解决方案：</strong><br>
+      1. <strong>检查网络连接</strong> - 确保网络稳定<br>
+      2. <strong>尝试在室外使用</strong> - GPS信号在室内较弱<br>
+      3. <strong>等待几秒钟后重试</strong> - 位置服务可能需要时间<br>
+      4. <strong>重启设备的位置服务</strong><br><br>
+      <strong>Chrome特定解决方案：</strong><br>
+      1. 打开Chrome设置 → 隐私设置和安全性 → 网站设置 → 位置信息<br>
+      2. 确保此网站设置为"允许"<br>
+      3. 清除浏览器缓存（Ctrl+Shift+Delete）<br>
+      4. 重启Chrome浏览器<br><br>
+      <strong>如果问题持续：</strong><br>
+      1. 尝试使用无痕模式（Ctrl+Shift+N）<br>
+      2. 禁用Chrome扩展程序<br>
+      3. 更新Chrome到最新版本<br>
+      4. 尝试其他浏览器（Firefox、Safari、Edge）
+    `;
   }
 
   getCurrentPosition() {
     return new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: false, // Use false for faster response
-        timeout: 30000, // Increase timeout to 30 seconds
-        maximumAge: 300000 // Cache for 5 minutes
-      });
+      // 使用更快的定位策略
+      const fastOptions = {
+        enableHighAccuracy: false, // 使用低精度但更快的定位
+        timeout: 8000, // 减少超时时间到8秒
+        maximumAge: 600000 // 使用10分钟内的缓存位置
+      };
+
+      console.log('🌍 开始获取位置...');
+      const startTime = Date.now();
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const endTime = Date.now();
+          console.log(`✅ 位置获取成功，耗时: ${endTime - startTime}ms`);
+          resolve(position);
+        },
+        (error) => {
+          const endTime = Date.now();
+          console.log(`❌ 快速定位失败，耗时: ${endTime - startTime}ms，错误: ${error.code}`);
+          
+          // 如果快速定位失败，尝试使用缓存的位置
+          if (error.code === error.TIMEOUT) {
+            console.log('🔄 尝试使用缓存位置...');
+            const cacheOptions = {
+              enableHighAccuracy: false,
+              timeout: 5000,
+              maximumAge: 3600000 // 使用1小时内的缓存
+            };
+            
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                console.log('✅ 使用缓存位置成功');
+                resolve(position);
+              },
+              (cacheError) => {
+                console.log('❌ 缓存位置也失败，尝试高精度定位...');
+                
+                // 最后尝试高精度定位
+                const accurateOptions = {
+                  enableHighAccuracy: true,
+                  timeout: 15000,
+                  maximumAge: 0
+                };
+                
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    console.log('✅ 高精度定位成功');
+                    resolve(position);
+                  },
+                  (accurateError) => {
+                    console.log('❌ 所有定位方法都失败');
+                    reject(accurateError);
+                  },
+                  accurateOptions
+                );
+              },
+              cacheOptions
+            );
+          } else {
+            reject(error);
+          }
+        },
+        fastOptions
+      );
     });
   }
 } 

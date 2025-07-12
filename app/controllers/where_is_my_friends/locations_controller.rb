@@ -48,28 +48,59 @@ module WhereIsMyFriends
       longitude = params[:longitude].to_f
       distance = [params[:distance].to_f, 50].min # Max 50km
 
+      Rails.logger.info "WhereIsMyFriends: Searching for users near (#{latitude}, #{longitude}) within #{distance}km"
+
       if latitude.abs > 90 || longitude.abs > 180
+        Rails.logger.error "WhereIsMyFriends: Invalid coordinates (#{latitude}, #{longitude})"
         return render_json_error(I18n.t('where_is_my_friends.invalid_coordinates'))
       end
 
-      nearby_users = UserLocation.nearby(latitude, longitude, distance)
-        .where.not(user_id: current_user.id)
-        .limit(50)
+      begin
+        # 查找所有启用的位置，包括当前用户
+        nearby_users = UserLocation.nearby(latitude, longitude, distance)
+          .where(enabled: true)
+          .limit(50)
 
-      # Calculate distances
-      users_with_distance = nearby_users.map do |location|
-        distance_km = location.distance_to(latitude, longitude)
-        {
-          user: location.user,
-          distance: distance_km.round(1),
-          location: location
+        Rails.logger.info "WhereIsMyFriends: Found #{nearby_users.count} users within #{distance}km"
+
+        # Calculate distances and include current user
+        users_with_distance = nearby_users.map do |location|
+          distance_km = location.distance_to(latitude, longitude)
+          {
+            user: location.user,
+            distance: distance_km.round(1),
+            location: location,
+            isCurrentUser: location.user_id == current_user.id
+          }
+        end.sort_by { |u| u[:distance] }
+
+        # 确保当前用户也在结果中（如果他们有位置）
+        current_user_location = UserLocation.find_by(user_id: current_user.id, enabled: true)
+        if current_user_location && !users_with_distance.any? { |u| u[:isCurrentUser] }
+          current_distance = current_user_location.distance_to(latitude, longitude)
+          if current_distance <= distance
+            users_with_distance.unshift({
+              user: current_user,
+              distance: current_distance.round(1),
+              location: current_user_location,
+              isCurrentUser: true
+            })
+          end
+        end
+
+        Rails.logger.info "WhereIsMyFriends: Returning #{users_with_distance.count} users (including current user)"
+
+        render json: {
+          users: users_with_distance.map { |u| UserLocationSerializer.new(u, root: false) },
+          total: users_with_distance.count,
+          searchLocation: { latitude: latitude, longitude: longitude },
+          searchDistance: distance
         }
-      end.sort_by { |u| u[:distance] }
-
-      render json: {
-        users: users_with_distance.map { |u| UserLocationSerializer.new(u, root: false) },
-        total: users_with_distance.count
-      }
+      rescue => e
+        Rails.logger.error "WhereIsMyFriends: Error finding nearby users: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
+        render_json_error("查找附近用户时发生错误: #{e.message}")
+      end
     end
 
     def destroy

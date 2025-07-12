@@ -7,7 +7,16 @@
   {{#if error}}
     <div class="alert alert-error">
       <i class="fa fa-exclamation-triangle"></i>
-      {{error}}
+      {{{error}}}
+    </div>
+  {{/if}}
+
+  {{#if debugInfo}}
+    <div class="alert alert-info">
+      <details>
+        <summary><i class="fa fa-bug"></i> 调试信息（点击展开）</summary>
+        <pre>{{debugInfo}}</pre>
+      </details>
     </div>
   {{/if}}
 
@@ -27,9 +36,13 @@
         </div>
         
         <div class="location-actions">
-          <button class="btn btn-primary" {{action "findNearbyUsers"}}>
+          <button class="btn btn-primary" {{action "findNearbyUsers"}} disabled={{loading}}>
             <i class="fa fa-search"></i>
-            {{i18n "where_is_my_friends.find_nearby"}}
+            {{#if loading}}
+              正在查找...
+            {{else}}
+              {{i18n "where_is_my_friends.find_nearby"}}
+            {{/if}}
           </button>
           
           <button class="btn btn-danger" {{action "removeLocation"}}>
@@ -53,6 +66,27 @@
             {{i18n "where_is_my_friends.share_location"}}
           {{/if}}
         </button>
+        
+        <button class="btn btn-secondary" {{action "checkPermissions"}}>
+          <i class="fa fa-shield-alt"></i>
+          检查权限状态
+        </button>
+        
+        {{#if permissionStatus}}
+          <div class="permission-status">
+            <p><strong>权限状态：</strong> {{permissionStatus}}</p>
+          </div>
+        {{/if}}
+        
+        <div class="location-tips">
+          <h4><i class="fa fa-lightbulb"></i> 使用提示</h4>
+          <ul>
+            <li>确保浏览器允许位置访问权限</li>
+            <li>如果在室内遇到问题，请尝试到室外或靠近窗户的地方</li>
+            <li>确保设备的位置服务已开启</li>
+            <li>如果使用Chrome，请检查地址栏左侧的锁定图标设置</li>
+          </ul>
+        </div>
       </div>
     {{/if}}
 
@@ -62,22 +96,42 @@
         
         <div class="users-list">
           {{#each nearbyUsers as |userData|}}
-            <div class="user-card">
+            <div class="user-card {{if userData.isCurrentUser 'current-user'}}">
               <div class="user-avatar">
                 {{avatar userData.user imageSize="large"}}
+                {{#if userData.isCurrentUser}}
+                  <div class="current-user-badge">
+                    <i class="fa fa-user"></i>
+                  </div>
+                {{/if}}
               </div>
               <div class="user-info">
                 <div class="username">
                   <a href="{{userData.user.path}}">{{userData.user.username}}</a>
+                  {{#if userData.isCurrentUser}}
+                    <span class="current-user-label">(您)</span>
+                  {{/if}}
                 </div>
                 <div class="distance">
                   <i class="fa fa-map-marker-alt"></i>
                   {{userData.distance}} km away
                 </div>
+                {{#if userData.user.last_seen_at}}
+                  <div class="last-seen">
+                    <i class="fa fa-clock-o"></i>
+                    最后在线: {{format-date userData.user.last_seen_at}}
+                  </div>
+                {{/if}}
               </div>
             </div>
           {{/each}}
         </div>
+        
+        {{#unless nearbyUsers.length}}
+          <div class="no-users-found">
+            <p><i class="fa fa-info-circle"></i> 在50公里范围内没有找到其他用户</p>
+          </div>
+        {{/unless}}
       </div>
     {{/if}}
   </div>

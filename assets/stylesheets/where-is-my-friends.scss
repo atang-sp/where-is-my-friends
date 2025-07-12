@@ -3,7 +3,7 @@
   margin: 0 auto;
   padding: 20px;
 
-  .nearby-users-header {
+  .where-is-my-friends-header {
     text-align: center;
     margin-bottom: 30px;
 
@@ -39,6 +39,11 @@
         &:hover {
           background-color: var(--primary-hover);
         }
+
+        &:disabled {
+          background-color: var(--primary-low);
+          cursor: not-allowed;
+        }
       }
 
       &.btn-danger {
@@ -50,6 +55,149 @@
         }
       }
     }
+  }
+
+  .location-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+
+  .location-tips {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: var(--highlight-low);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+
+    h4 {
+      margin-top: 0;
+      color: var(--primary);
+    }
+
+    ul {
+      margin-bottom: 0;
+      padding-left: 20px;
+    }
+  }
+
+  .nearby-users {
+    margin-top: 30px;
+
+    h3 {
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .users-list {
+      .user-card {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border: 1px solid var(--primary-low);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        background-color: var(--highlight-low);
+        transition: all 0.3s ease;
+        position: relative;
+
+        &:hover {
+          background-color: var(--highlight-medium);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        &.current-user {
+          border-color: var(--primary);
+          background-color: var(--primary-low);
+          
+          .current-user-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+          }
+        }
+
+        .user-avatar {
+          position: relative;
+          margin-right: 15px;
+        }
+
+        .user-info {
+          flex: 1;
+
+          .username {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 16px;
+            margin-bottom: 5px;
+
+            a {
+              color: var(--primary);
+              text-decoration: none;
+
+              &:hover {
+                text-decoration: underline;
+              }
+            }
+
+            .current-user-label {
+              color: var(--primary);
+              font-weight: normal;
+              font-size: 14px;
+            }
+          }
+
+          .distance {
+            color: var(--tertiary);
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+
+            i {
+              margin-right: 5px;
+            }
+          }
+
+          .last-seen {
+            color: var(--secondary);
+            font-size: 12px;
+
+            i {
+              margin-right: 5px;
+            }
+          }
+        }
+      }
+    }
+
+    .no-users-found {
+      text-align: center;
+      color: var(--secondary);
+      font-style: italic;
+      padding: 40px;
+      background-color: var(--highlight-low);
+      border-radius: 8px;
+    }
+  }
+
+  .permission-status {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: var(--highlight-low);
+    border-radius: 5px;
+    text-align: center;
   }
 
   .nearby-users-content {
@@ -155,6 +303,29 @@
     .location-controls {
       flex-direction: column;
       align-items: center;
+    }
+
+    .location-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nearby-users {
+      .users-list {
+        .user-card {
+          flex-direction: column;
+          text-align: center;
+
+          .user-avatar {
+            margin-right: 0;
+            margin-bottom: 10px;
+          }
+
+          .user-info {
+            text-align: center;
+          }
+        }
+      }
     }
 
     .nearby-users-content {
