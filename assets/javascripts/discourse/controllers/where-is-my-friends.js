@@ -10,6 +10,10 @@ export default class WhereIsMyFriendsController extends Controller {
       return;
     }
 
+    // Set loading state
+    this.set("loading", true);
+    this.set("error", null);
+
     try {
       const position = await this.getCurrentPosition();
       const { latitude, longitude } = position.coords;
@@ -25,7 +29,26 @@ export default class WhereIsMyFriendsController extends Controller {
       // Refresh the model to get updated data
       this.send("refreshModel");
     } catch (error) {
-      this.set("error", "Failed to get location: " + error.message);
+      let errorMessage = "Failed to get location: ";
+      
+      // Handle specific geolocation errors
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          errorMessage = "Location access denied. Please allow location access in your browser settings and try again.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          errorMessage = "Location information is unavailable. Please check your device's location services.";
+          break;
+        case error.TIMEOUT:
+          errorMessage = "Location request timed out. Please try again or check your internet connection.";
+          break;
+        default:
+          errorMessage += error.message;
+      }
+      
+      this.set("error", errorMessage);
+    } finally {
+      this.set("loading", false);
     }
   }
 
@@ -69,9 +92,9 @@ export default class WhereIsMyFriendsController extends Controller {
   getCurrentPosition() {
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000
+        enableHighAccuracy: false, // Use false for faster response
+        timeout: 30000, // Increase timeout to 30 seconds
+        maximumAge: 300000 // Cache for 5 minutes
       });
     });
   }

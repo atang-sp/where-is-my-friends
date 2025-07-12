@@ -6,7 +6,15 @@
 
   {{#if error}}
     <div class="alert alert-error">
+      <i class="fa fa-exclamation-triangle"></i>
       {{error}}
+    </div>
+  {{/if}}
+
+  {{#if loading}}
+    <div class="alert alert-info">
+      <i class="fa fa-spinner fa-spin"></i>
+      {{i18n "where_is_my_friends.getting_location"}}
     </div>
   {{/if}}
 
@@ -37,9 +45,13 @@
           {{i18n "where_is_my_friends.share_location_prompt"}}
         </div>
         
-        <button class="btn btn-primary btn-large" {{action "shareLocation"}}>
+        <button class="btn btn-primary btn-large" {{action "shareLocation"}} disabled={{loading}}>
           <i class="fa fa-map-marker-alt"></i>
-          {{i18n "where_is_my_friends.share_location"}}
+          {{#if loading}}
+            {{i18n "where_is_my_friends.getting_location"}}
+          {{else}}
+            {{i18n "where_is_my_friends.share_location"}}
+          {{/if}}
         </button>
       </div>
     {{/if}}

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocation API 测试</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            max-width: 800px;
+        }
+        .result { 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+            border: 1px solid #ddd;
+        }
+        .success { 
+            background-color: #d4edda; 
+            color: #155724; 
+            border-color: #c3e6cb; 
+        }
+        .error { 
+            background-color: #f8d7da; 
+            color: #721c24; 
+            border-color: #f5c6cb; 
+        }
+        .info { 
+            background-color: #d1ecf1; 
+            color: #0c5460; 
+            border-color: #bee5eb; 
+        }
+        button { 
+            padding: 12px 24px; 
+            margin: 10px 5px; 
+            cursor: pointer; 
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { 
+            background-color: #6c757d; 
+            cursor: not-allowed; 
+        }
+        pre { 
+            background-color: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 5px; 
+            overflow-x: auto;
+        }
+        .loading { 
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>🌍 浏览器 Geolocation API 测试</h1>
+    
+    <div id="status" class="result info">
+        <strong>状态：</strong>正在检查浏览器支持...
+    </div>
+    
+    <div>
+        <button onclick="testBasicGeolocation()" id="basicBtn">
+            基础地理位置测试
+        </button>
+        <button onclick="testHighAccuracyGeolocation()" id="highAccuracyBtn">
+            高精度地理位置测试
+        </button>
+        <button onclick="testWithOptions()" id="optionsBtn">
+            自定义选项测试
+        </button>
+        <button onclick="clearResults()">清除结果</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script>
+        let isSupported = false;
+        
+        function log(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.innerHTML = `<strong>状态：</strong>${message}`;
+            status.className = `result ${type}`;
+        }
+        
+        function addResult(title, content, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `
+                <h3>${title}</h3>
+                <pre>${JSON.stringify(content, null, 2)}</pre>
+            `;
+            results.appendChild(div);
+        }
+        
+        function setButtonLoading(buttonId, loading) {
+            const btn = document.getElementById(buttonId);
+            if (loading) {
+                btn.innerHTML = '<span class="loading"></span> 获取中...';
+                btn.disabled = true;
+            } else {
+                btn.innerHTML = btn.getAttribute('data-original-text') || '测试';
+                btn.disabled = false;
+            }
+        }
+        
+        function testBasicGeolocation() {
+            if (!isSupported) {
+                log('浏览器不支持 Geolocation API', 'error');
+                return;
+            }
+            
+            setButtonLoading('basicBtn', true);
+            log('正在获取基础地理位置...', 'info');
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    log('基础地理位置获取成功！', 'success');
+                    addResult('基础地理位置结果', {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy + ' 米',
+                        timestamp: new Date(position.timestamp).toLocaleString(),
+                        altitude: position.coords.altitude,
+                        altitudeAccuracy: position.coords.altitudeAccuracy,
+                        heading: position.coords.heading,
+                        speed: position.coords.speed
+                    }, 'success');
+                    setButtonLoading('basicBtn', false);
+                },
+                function(error) {
+                    const errorInfo = getErrorInfo(error);
+                    log(`基础地理位置获取失败: ${errorInfo.message}`, 'error');
+                    addResult('基础地理位置错误', errorInfo, 'error');
+                    setButtonLoading('basicBtn', false);
+                }
+            );
+        }
+        
+        function testHighAccuracyGeolocation() {
+            if (!isSupported) {
+                log('浏览器不支持 Geolocation API', 'error');
+                return;
+            }
+            
+            setButtonLoading('highAccuracyBtn', true);
+            log('正在获取高精度地理位置...', 'info');
+            
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 0
+            };
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    log('高精度地理位置获取成功！', 'success');
+                    addResult('高精度地理位置结果', {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy + ' 米',
+                        timestamp: new Date(position.timestamp).toLocaleString(),
+                        altitude: position.coords.altitude,
+                        altitudeAccuracy: position.coords.altitudeAccuracy,
+                        heading: position.coords.heading,
+                        speed: position.coords.speed
+                    }, 'success');
+                    setButtonLoading('highAccuracyBtn', false);
+                },
+                function(error) {
+                    const errorInfo = getErrorInfo(error);
+                    log(`高精度地理位置获取失败: ${errorInfo.message}`, 'error');
+                    addResult('高精度地理位置错误', errorInfo, 'error');
+                    setButtonLoading('highAccuracyBtn', false);
+                },
+                options
+            );
+        }
+        
+        function testWithOptions() {
+            if (!isSupported) {
+                log('浏览器不支持 Geolocation API', 'error');
+                return;
+            }
+            
+            setButtonLoading('optionsBtn', true);
+            log('正在使用自定义选项获取地理位置...', 'info');
+            
+            const options = {
+                enableHighAccuracy: false,
+                timeout: 30000,
+                maximumAge: 300000 // 5分钟缓存
+            };
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    log('自定义选项地理位置获取成功！', 'success');
+                    addResult('自定义选项地理位置结果', {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy + ' 米',
+                        timestamp: new Date(position.timestamp).toLocaleString(),
+                        options: options
+                    }, 'success');
+                    setButtonLoading('optionsBtn', false);
+                },
+                function(error) {
+                    const errorInfo = getErrorInfo(error);
+                    log(`自定义选项地理位置获取失败: ${errorInfo.message}`, 'error');
+                    addResult('自定义选项地理位置错误', errorInfo, 'error');
+                    setButtonLoading('optionsBtn', false);
+                },
+                options
+            );
+        }
+        
+        function getErrorInfo(error) {
+            let message = '';
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    message = '位置访问被拒绝';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = '位置信息不可用';
+                    break;
+                case error.TIMEOUT:
+                    message = '位置请求超时';
+                    break;
+                default:
+                    message = '未知错误';
+            }
+            
+            return {
+                code: error.code,
+                message: message,
+                details: error.message,
+                timestamp: new Date().toLocaleString()
+            };
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            log('结果已清除', 'info');
+        }
+        
+        // 保存按钮原始文本
+        function saveButtonTexts() {
+            document.getElementById('basicBtn').setAttribute('data-original-text', '基础地理位置测试');
+            document.getElementById('highAccuracyBtn').setAttribute('data-original-text', '高精度地理位置测试');
+            document.getElementById('optionsBtn').setAttribute('data-original-text', '自定义选项测试');
+        }
+        
+        // 页面加载时检查支持
+        window.onload = function() {
+            saveButtonTexts();
+            
+            if (navigator.geolocation) {
+                isSupported = true;
+                log('✅ 浏览器支持 Geolocation API', 'success');
+                addResult('浏览器信息', {
+                    userAgent: navigator.userAgent,
+                    geolocation: 'supported',
+                    timestamp: new Date().toLocaleString()
+                }, 'info');
+            } else {
+                isSupported = false;
+                log('❌ 浏览器不支持 Geolocation API', 'error');
+                addResult('浏览器信息', {
+                    userAgent: navigator.userAgent,
+                    geolocation: 'not supported',
+                    timestamp: new Date().toLocaleString()
+                }, 'error');
+            }
+        };
+    </script>
+</body>
+</html> 
