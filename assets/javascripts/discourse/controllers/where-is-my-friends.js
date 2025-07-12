@@ -2,8 +2,10 @@ import Controller from "@ember/controller";
 import { action } from "@ember/object";
 import { ajax } from "discourse/lib/ajax";
 import { getCurrentPositionAsync } from "discourse/plugins/where-is-my-friends/discourse/lib/where-is-my-friends-geolocation";
+import { service } from "@ember/service";
 
 export default class WhereIsMyFriendsController extends Controller {
+  @service siteSettings;
   @action
   async shareLocation() {
     // 首先检查基本环境
@@ -85,8 +87,9 @@ export default class WhereIsMyFriendsController extends Controller {
       const { latitude, longitude } = this.currentUser.location;
       console.log('🔍 查找附近用户，位置:', { latitude, longitude });
       
+      const distance = this.siteSettings.where_is_my_friends_default_distance_km;
       const result = await ajax("/api/where-is-my-friends/locations/nearby", {
-        data: { latitude, longitude, distance: 50 } // 改为50公里
+        data: { latitude, longitude, distance }
       });
       
       console.log('✅ 找到附近用户:', result.users?.length || 0, '个');

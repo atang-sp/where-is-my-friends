@@ -21,7 +21,7 @@ class UserLocation < ActiveRecord::Base
     location
   end
 
-  def self.nearby(lat, lng, distance_km = 5)
+  def self.nearby(lat, lng, distance_km = SiteSetting.where_is_my_friends_default_distance_km)
     # Simple distance calculation using Haversine formula
     # This is a simplified version - for production, consider using PostGIS
     enabled.joins(:user).where("

@@ -48,7 +48,10 @@ module WhereIsMyFriends
       # Get nearby users
       latitude = params[:latitude].to_f
       longitude = params[:longitude].to_f
-      distance = [params[:distance].to_f, 50].min # Max 50km
+      # Determine search distance based on site settings
+      requested_distance = params[:distance].present? ? params[:distance].to_f : SiteSetting.where_is_my_friends_default_distance_km
+      max_distance = SiteSetting.where_is_my_friends_max_distance_km
+      distance = [requested_distance, max_distance].min
 
       Rails.logger.info "WhereIsMyFriends: Searching for users near (#{latitude}, #{longitude}) within #{distance}km"
 

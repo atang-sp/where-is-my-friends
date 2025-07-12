@@ -5,4 +5,23 @@ plugins:
     type: bool
     description: "启用附近的朋友插件"
     category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_default_distance_km:
+    default: 50
+    min: 1
+    max: 5000
+    client: true
+    type: integer
+    description: "默认搜索距离（千米）"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_max_distance_km:
+    default: 50
+    min: 1
+    max: 5000
+    type: integer
+    description: "允许的最大搜索距离（千米）"
+    category: "where_is_my_friends"
     translated: true 
