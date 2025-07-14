@@ -5,17 +5,38 @@ class UserLocation < ActiveRecord::Base
 
   validates :latitude, presence: true, numericality: { greater_than_or_equal_to: -90, less_than_or_equal_to: 90 }
   validates :longitude, presence: true, numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }
+  validates :location_type, inclusion: { in: %w[real virtual] }
 
   scope :enabled, -> { where(enabled: true) }
+  scope :real_locations, -> { where(location_type: 'real') }
+  scope :virtual_locations, -> { where(location_type: 'virtual') }
 
-  def self.upsert_location(user_id, lat, lng)
-    # Add some noise to protect privacy (roughly ±500m)
+  def self.upsert_location(user_id, lat, lng, options = {})
+    is_virtual = options[:is_virtual] || false
+    virtual_address = options[:virtual_address]
+    location_type = is_virtual ? 'virtual' : 'real'
+
+    location = find_or_initialize_by(user_id: user_id)
+    
+    if is_virtual
+      # 虚拟位置不需要添加噪声，直接使用用户选择的坐标
+      location.latitude = lat
+      location.longitude = lng
+      location.is_virtual = true
+      location.virtual_address = virtual_address
+      location.location_type = 'virtual'
+    else
+      # 真实位置添加噪声以保护隐私（roughly ±500m）
     noise_lat = lat + rand(-0.005..0.005)
     noise_lng = lng + rand(-0.005..0.005)
 
-    location = find_or_initialize_by(user_id: user_id)
     location.latitude = noise_lat
     location.longitude = noise_lng
+      location.is_virtual = false
+      location.virtual_address = nil
+      location.location_type = 'real'
+    end
+    
     location.enabled = true
     location.save!
     location
@@ -53,5 +74,13 @@ class UserLocation < ActiveRecord::Base
     a = [[a_raw, 1.0].min, -1.0].max
     c = Math.acos(a)
     earth_radius * c
+  end
+
+  def virtual?
+    is_virtual || location_type == 'virtual'
+  end
+
+  def real?
+    !virtual?
   end
 end 

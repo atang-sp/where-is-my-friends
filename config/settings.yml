@@ -25,3 +25,37 @@ plugins:
     description: "允许的最大搜索距离（千米）"
     category: "where_is_my_friends"
     translated: true 
+  
+  where_is_my_friends_enable_virtual_location:
+    default: true
+    client: true
+    type: bool
+    description: "启用虚拟定位功能，允许用户在地图上选择位置"
+    category: "where_is_my_friends"
+    translated: true
+  
+  where_is_my_friends_map_provider:
+    default: "amap"
+    client: true
+    type: enum
+    choices:
+      - amap
+      - baidu
+      - openstreetmap
+    description: "地图服务提供商 (amap: 高德地图, baidu: 百度地图, openstreetmap: 开源地图)"
+    category: "where_is_my_friends"
+    translated: true
+  
+  where_is_my_friends_amap_api_key:
+    default: ""
+    type: string
+    description: "高德地图API密钥（用于虚拟定位功能）"
+    category: "where_is_my_friends"
+    translated: true
+  
+  where_is_my_friends_baidu_api_key:
+    default: ""
+    type: string  
+    description: "百度地图API密钥（用于虚拟定位功能）"
+    category: "where_is_my_friends"
+    translated: true 

@@ -168,6 +168,15 @@
             i {
               margin-right: 5px;
             }
+
+            .virtual-badge {
+              color: var(--success);
+              margin-left: 8px;
+              
+              i {
+                margin-right: 2px;
+              }
+            }
           }
 
           .last-seen {
@@ -198,6 +207,19 @@
     background-color: var(--highlight-low);
     border-radius: 5px;
     text-align: center;
+  }
+
+  .virtual-address {
+    margin-top: 8px;
+    
+    small {
+      color: var(--primary-high);
+      font-size: 13px;
+      
+      i {
+        margin-right: 5px;
+      }
+    }
   }
 
   .nearby-users-content {
@@ -295,6 +317,302 @@
   }
 }
 
+// 模态对话框背景
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+// 位置模式选择对话框
+.location-mode-dialog {
+  background-color: var(--secondary);
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+  .dialog-header {
+    text-align: center;
+    margin-bottom: 30px;
+
+    h3 {
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-size: 24px;
+
+      i {
+        margin-right: 10px;
+      }
+    }
+
+    p {
+      color: var(--primary-high);
+      font-size: 16px;
+    }
+  }
+
+  .location-options {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+
+    .location-option {
+      flex: 1;
+      padding: 20px;
+      border: 2px solid var(--primary-low);
+      border-radius: 10px;
+      background-color: var(--highlight-low);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+
+      &:hover {
+        border-color: var(--primary);
+        background-color: var(--highlight-medium);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .option-icon {
+        font-size: 48px;
+        color: var(--primary);
+        margin-bottom: 15px;
+      }
+
+      .option-content {
+        h4 {
+          color: var(--primary);
+          margin-bottom: 10px;
+          font-size: 18px;
+        }
+
+        p {
+          color: var(--primary-high);
+          font-size: 14px;
+          margin-bottom: 15px;
+          line-height: 1.5;
+        }
+
+        .option-pros {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+
+          .pro {
+            color: var(--success);
+            font-size: 13px;
+            
+            i {
+              margin-right: 5px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .dialog-footer {
+    text-align: center;
+  }
+}
+
+// 虚拟位置选择器模态框
+.virtual-location-modal {
+  background-color: var(--secondary);
+  border-radius: 12px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+// 虚拟位置选择器组件
+.virtual-location-picker-container {
+  padding: 30px;
+
+  .picker-header {
+    text-align: center;
+    margin-bottom: 25px;
+
+    h3 {
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-size: 22px;
+
+      i {
+        margin-right: 8px;
+      }
+    }
+
+    .picker-description {
+      color: var(--primary-high);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+  }
+
+  .map-container-wrapper {
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--primary-low);
+
+    .virtual-map-container {
+      width: 100%;
+      height: 400px;
+      position: relative;
+      background-color: var(--highlight-low);
+
+      .map-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--primary);
+        font-size: 16px;
+
+        i {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  .location-info {
+    background-color: var(--highlight-low);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+
+    .selected-coordinates {
+      margin-bottom: 8px;
+      
+      strong {
+        color: var(--primary);
+      }
+
+      .coordinates {
+        color: var(--primary-high);
+        font-family: monospace;
+        margin-left: 8px;
+      }
+    }
+
+    .selected-address {
+      strong {
+        color: var(--primary);
+      }
+
+      .address {
+        color: var(--primary-high);
+        margin-left: 8px;
+      }
+    }
+  }
+
+  .picker-controls {
+    margin-bottom: 25px;
+
+    .control-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+
+      .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        min-width: 120px;
+
+        i {
+          margin-right: 8px;
+        }
+
+        &.btn-primary {
+          background-color: var(--primary);
+          color: white;
+
+          &:hover {
+            background-color: var(--primary-hover);
+          }
+
+          &:disabled {
+            background-color: var(--primary-low);
+            cursor: not-allowed;
+          }
+        }
+
+        &.btn-secondary {
+          background-color: var(--tertiary);
+          color: white;
+
+          &:hover {
+            background-color: var(--tertiary-hover);
+          }
+        }
+
+        &.btn-default {
+          background-color: var(--primary-low);
+          color: var(--primary);
+          border: 1px solid var(--primary-low);
+
+          &:hover {
+            background-color: var(--primary-medium);
+          }
+        }
+      }
+    }
+  }
+
+  .picker-tips {
+    background-color: var(--highlight-low);
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+
+    h4 {
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 15px;
+
+      i {
+        margin-right: 8px;
+      }
+    }
+
+    ul {
+      margin-bottom: 0;
+      padding-left: 20px;
+
+      li {
+        color: var(--primary-high);
+        margin-bottom: 8px;
+        line-height: 1.5;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}
+
 // Responsive design
 @media (max-width: 768px) {
   .where-is-my-friends-container {
@@ -348,6 +666,37 @@
             text-align: center;
             margin-top: 10px;
           }
+        }
+      }
+    }
+  }
+
+  .location-mode-dialog {
+    padding: 20px;
+
+    .location-options {
+      flex-direction: column;
+      gap: 15px;
+    }
+  }
+
+  .virtual-location-picker-container {
+    padding: 20px;
+
+    .map-container-wrapper {
+      .virtual-map-container {
+        height: 300px;
+      }
+    }
+
+    .picker-controls {
+      .control-buttons {
+        flex-direction: column;
+        align-items: center;
+
+        .btn {
+          width: 100%;
+          max-width: 250px;
         }
       }
     }

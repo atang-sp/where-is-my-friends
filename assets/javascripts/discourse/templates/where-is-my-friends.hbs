@@ -4,42 +4,113 @@
     <p>{{i18n "where_is_my_friends.description"}}</p>
   </div>
 
-  {{#if error}}
+  {{#if this.error}}
     <div class="alert alert-error">
       <i class="fa fa-exclamation-triangle"></i>
-      {{{error}}}
+      {{{this.error}}}
     </div>
   {{/if}}
 
-  {{#if debugInfo}}
+  {{#if this.debugInfo}}
     <div class="alert alert-info">
       <details>
         <summary><i class="fa fa-bug"></i> 调试信息（点击展开）</summary>
-        <pre>{{debugInfo}}</pre>
+        <pre>{{this.debugInfo}}</pre>
       </details>
     </div>
   {{/if}}
 
-  {{#if loading}}
+  {{#if this.loading}}
     <div class="alert alert-info">
       <i class="fa fa-spinner fa-spin"></i>
       {{i18n "where_is_my_friends.getting_location"}}
     </div>
   {{/if}}
 
+  <!-- 位置模式选择对话框 -->
+  {{#if this.showLocationModeDialog}}
+    <div class="modal-backdrop">
+      <div class="location-mode-dialog">
+        <div class="dialog-header">
+          <h3><i class="fa fa-map-marker-alt"></i> {{i18n "where_is_my_friends.choose_location_mode"}}</h3>
+          <p>{{i18n "where_is_my_friends.privacy_intro"}}</p>
+        </div>
+        
+        <div class="location-options">
+          <div class="location-option real-location" {{action "selectRealLocation"}}>
+            <div class="option-icon">
+              <i class="fa fa-location-arrow"></i>
+            </div>
+            <div class="option-content">
+              <h4>{{i18n "where_is_my_friends.real_location"}}</h4>
+              <p>{{i18n "where_is_my_friends.real_location_desc"}}</p>
+              <div class="option-pros">
+                <span class="pro"><i class="fa fa-check"></i> {{i18n "where_is_my_friends.location_accurate"}}</span>
+                <span class="pro"><i class="fa fa-check"></i> {{i18n "where_is_my_friends.auto_obtain"}}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="location-option virtual-location" {{action "selectVirtualLocation"}}>
+            <div class="option-icon">
+              <i class="fa fa-map"></i>
+            </div>
+            <div class="option-content">
+              <h4>{{i18n "where_is_my_friends.virtual_location"}}</h4>
+              <p>{{i18n "where_is_my_friends.virtual_location_desc"}}</p>
+              <div class="option-pros">
+                <span class="pro"><i class="fa fa-check"></i> {{i18n "where_is_my_friends.privacy_protection"}}</span>
+                <span class="pro"><i class="fa fa-check"></i> {{i18n "where_is_my_friends.free_choice"}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dialog-footer">
+          <button class="btn btn-default" {{action (mut this.showLocationModeDialog) false}}>
+            <i class="fa fa-times"></i>
+            {{i18n "where_is_my_friends.cancel"}}
+          </button>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+
+  <!-- 虚拟位置选择器 -->
+  {{#if this.showVirtualLocationPicker}}
+    <div class="modal-backdrop">
+      <div class="virtual-location-modal">
+        {{virtual-location-picker
+          settings=this.model.settings
+          onConfirm=(action "onVirtualLocationConfirm")
+          onCancel=(action "onVirtualLocationCancel")
+        }}
+      </div>
+    </div>
+  {{/if}}
+
   <div class="where-is-my-friends-content">
-    {{#if currentUser.location}}
+    {{#if this.currentUser.location}}
       <div class="location-status">
         <div class="alert alert-success">
           <i class="fa fa-map-marker-alt"></i>
-          {{i18n "where_is_my_friends.location_shared"}}
+          {{#if this.currentUser.location.is_virtual}}
+            {{i18n "where_is_my_friends.virtual_location_set"}}
+            {{#if this.currentUser.location.virtual_address}}
+              <div class="virtual-address">
+                <small><i class="fa fa-map"></i> {{this.currentUser.location.virtual_address}}</small>
+              </div>
+            {{/if}}
+          {{else}}
+            {{i18n "where_is_my_friends.location_shared"}}
+          {{/if}}
         </div>
         
         <div class="location-actions">
-          <button class="btn btn-primary" {{action "findNearbyUsers"}} disabled={{loading}}>
+          <button class="btn btn-primary" {{action "findNearbyUsers"}} disabled={{this.loading}}>
             <i class="fa fa-search"></i>
-            {{#if loading}}
-              正在查找...
+            {{#if this.loading}}
+              {{i18n "where_is_my_friends.searching_nearby"}}
             {{else}}
               {{i18n "where_is_my_friends.find_nearby"}}
             {{/if}}
@@ -55,47 +126,61 @@
       <div class="location-setup">
         <div class="alert alert-info">
           <i class="fa fa-info-circle"></i>
-          {{i18n "where_is_my_friends.share_location_prompt"}}
+          {{#if this.siteSettings.where_is_my_friends_enable_virtual_location}}
+            {{i18n "where_is_my_friends.location_mode_prompt"}}
+          {{else}}
+            {{i18n "where_is_my_friends.share_location_prompt"}}
+          {{/if}}
         </div>
         
-        <button class="btn btn-primary btn-large" {{action "shareLocation"}} disabled={{loading}}>
+        <button class="btn btn-primary btn-large" {{action "shareLocation"}} disabled={{this.loading}}>
           <i class="fa fa-map-marker-alt"></i>
-          {{#if loading}}
+          {{#if this.loading}}
             {{i18n "where_is_my_friends.getting_location"}}
           {{else}}
-            {{i18n "where_is_my_friends.share_location"}}
+            {{#if this.siteSettings.where_is_my_friends_enable_virtual_location}}
+              {{i18n "where_is_my_friends.choose_location_mode_button"}}
+            {{else}}
+              {{i18n "where_is_my_friends.share_location"}}
+            {{/if}}
           {{/if}}
         </button>
         
         <button class="btn btn-secondary" {{action "checkPermissions"}}>
           <i class="fa fa-shield-alt"></i>
-          检查权限状态
+          {{i18n "where_is_my_friends.check_permissions"}}
         </button>
         
-        {{#if permissionStatus}}
+        {{#if this.permissionStatus}}
           <div class="permission-status">
-            <p><strong>权限状态：</strong> {{permissionStatus}}</p>
+            <p><strong>{{i18n "where_is_my_friends.permission_status"}}：</strong> {{this.permissionStatus}}</p>
           </div>
         {{/if}}
         
         <div class="location-tips">
-          <h4><i class="fa fa-lightbulb"></i> 使用提示</h4>
+          <h4><i class="fa fa-lightbulb"></i> {{i18n "where_is_my_friends.location_tips_title"}}</h4>
           <ul>
-            <li>确保浏览器允许位置访问权限</li>
-            <li>如果在室内遇到问题，请尝试到室外或靠近窗户的地方</li>
-            <li>确保设备的位置服务已开启</li>
-            <li>如果使用Chrome，请检查地址栏左侧的锁定图标设置</li>
+            {{#if this.siteSettings.where_is_my_friends_enable_virtual_location}}
+              <li><strong>{{i18n "where_is_my_friends.real_location"}}：</strong>{{i18n "where_is_my_friends.real_location_tip"}}</li>
+              <li><strong>{{i18n "where_is_my_friends.virtual_location"}}：</strong>{{i18n "where_is_my_friends.virtual_location_tip"}}</li>
+              <li>{{i18n "where_is_my_friends.recommend_virtual"}}</li>
+            {{else}}
+              <li>{{i18n "where_is_my_friends.real_location_auto_tip"}}</li>
+              <li>{{i18n "where_is_my_friends.indoor_tip"}}</li>
+              <li>{{i18n "where_is_my_friends.location_service_tip"}}</li>
+              <li>{{i18n "where_is_my_friends.chrome_tip"}}</li>
+            {{/if}}
           </ul>
         </div>
       </div>
     {{/if}}
 
-    {{#if nearbyUsers}}
+    {{#if this.nearbyUsers}}
       <div class="nearby-users">
-        <h3>{{i18n "where_is_my_friends.nearby_users"}} ({{nearbyUsers.length}})</h3>
+        <h3>{{i18n "where_is_my_friends.nearby_users"}} ({{this.nearbyUsers.length}})</h3>
         
         <div class="users-list">
-          {{#each nearbyUsers as |userData|}}
+          {{#each this.nearbyUsers as |userData|}}
             <div class="user-card {{if userData.isCurrentUser 'current-user'}}">
               <div class="user-avatar">
                 <a href="/u/{{userData.username}}">
@@ -111,17 +196,22 @@
                 <div class="username">
                   <a href="/u/{{userData.username}}">{{userData.username}}</a>
                   {{#if userData.isCurrentUser}}
-                    <span class="current-user-label">(您)</span>
+                    <span class="current-user-label">{{i18n "where_is_my_friends.current_user_label"}}</span>
                   {{/if}}
                 </div>
                 <div class="distance">
                   <i class="fa fa-map-marker-alt"></i>
                   {{userData.distance}} km
+                  {{#if userData.is_virtual}}
+                    <span class="virtual-badge" title="{{i18n 'where_is_my_friends.using_virtual_location'}}">
+                      <i class="fa fa-shield-alt"></i>
+                    </span>
+                  {{/if}}
                 </div>
                 {{#if userData.last_seen_at}}
                   <div class="last-seen">
                     <i class="fa fa-clock-o"></i>
-                    最后在线: {{format-date userData.last_seen_at}}
+                    {{i18n "where_is_my_friends.last_online"}}: {{format-date userData.last_seen_at}}
                   </div>
                 {{/if}}
               </div>
@@ -129,9 +219,9 @@
           {{/each}}
         </div>
         
-        {{#unless nearbyUsers.length}}
+        {{#unless this.nearbyUsers.length}}
           <div class="no-users-found">
-            <p><i class="fa fa-info-circle"></i> 在50公里范围内没有找到其他用户</p>
+            <p><i class="fa fa-info-circle"></i> {{i18n "where_is_my_friends.no_users_found_range"}}</p>
           </div>
         {{/unless}}
       </div>

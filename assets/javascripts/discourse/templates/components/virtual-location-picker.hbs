@@ -1,0 +1,73 @@
+<div class="virtual-location-picker-container">
+  <div class="picker-header">
+    <h3><i class="fa fa-map-marker-alt"></i> {{i18n "where_is_my_friends.select_virtual_location"}}</h3>
+    <p class="picker-description">
+      {{i18n "where_is_my_friends.virtual_location_instruction"}}
+    </p>
+  </div>
+
+  {{#if this.mapError}}
+    <div class="alert alert-error">
+      <i class="fa fa-exclamation-triangle"></i>
+      {{this.mapError}}
+    </div>
+  {{/if}}
+
+  <div class="map-container-wrapper">
+    <div id="virtual-map-container" class="virtual-map-container">
+      {{#unless this.isMapReady}}
+        <div class="map-loading">
+          <i class="fa fa-spinner fa-spin"></i>
+          {{i18n "where_is_my_friends.map_loading"}}
+        </div>
+      {{/unless}}
+    </div>
+  </div>
+
+  {{#if this.selectedLat}}
+    <div class="location-info">
+      <div class="selected-coordinates">
+        <strong>{{i18n "where_is_my_friends.selected_location"}}：</strong>
+        <span class="coordinates">
+          {{i18n "where_is_my_friends.latitude"}}: {{this.selectedLat}}, {{i18n "where_is_my_friends.longitude"}}: {{this.selectedLng}}
+        </span>
+      </div>
+      
+      {{#if this.selectedAddress}}
+        <div class="selected-address">
+          <strong>{{i18n "where_is_my_friends.address"}}：</strong>
+          <span class="address">{{this.selectedAddress}}</span>
+        </div>
+      {{/if}}
+    </div>
+  {{/if}}
+
+  <div class="picker-controls">
+    <div class="control-buttons">
+      <button class="btn btn-secondary" {{action "getCurrentLocation"}}>
+        <i class="fa fa-location-arrow"></i>
+        {{i18n "where_is_my_friends.locate_current"}}
+      </button>
+      
+      <button class="btn btn-primary" {{action "confirmLocation"}} disabled={{unless this.selectedLat true}}>
+        <i class="fa fa-check"></i>
+        {{i18n "where_is_my_friends.confirm_selection"}}
+      </button>
+      
+      <button class="btn btn-default" {{action "cancelSelection"}}>
+        <i class="fa fa-times"></i>
+        {{i18n "where_is_my_friends.cancel"}}
+      </button>
+    </div>
+  </div>
+
+  <div class="picker-tips">
+    <h4><i class="fa fa-lightbulb"></i> {{i18n "where_is_my_friends.usage_tips"}}</h4>
+    <ul>
+      <li>{{i18n "where_is_my_friends.tip_click_map"}}</li>
+      <li>{{i18n "where_is_my_friends.tip_drag_marker"}}</li>
+      <li>{{i18n "where_is_my_friends.tip_public_places"}}</li>
+      <li>{{i18n "where_is_my_friends.tip_no_effect"}}</li>
+    </ul>
+  </div>
+</div> 
