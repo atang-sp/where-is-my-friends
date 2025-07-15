@@ -258,6 +258,25 @@
                   </div>
                 {{/if}}
                 
+                {{#if userData.debug_user_fields}}
+                  <div class="debug-info" style="background: #ffeb3b; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 12px;">
+                    <strong>调试信息:</strong><br>
+                    性别字段: {{userData.gender}}<br>
+                    {{#if userData.debug_user_fields.user_fields}}
+                      用户字段: 
+                      {{#each-in userData.debug_user_fields.user_fields as |key value|}}
+                        {{key}}={{value}} | 
+                      {{/each-in}}<br>
+                    {{/if}}
+                    {{#if userData.debug_user_fields.custom_fields}}
+                      自定义字段: 
+                      {{#each-in userData.debug_user_fields.custom_fields as |key value|}}
+                        {{key}}={{value}} | 
+                      {{/each-in}}
+                    {{/if}}
+                  </div>
+                {{/if}}
+                
                 <div class="user-footer">
                   {{#if userData.last_seen_at}}
                     <div class="last-seen">

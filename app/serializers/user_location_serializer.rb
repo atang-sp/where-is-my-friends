@@ -3,7 +3,7 @@
 class UserLocationSerializer < ApplicationSerializer
   attributes :id, :username, :name, :avatar_template, :distance, :last_seen_at,
              :is_virtual, :virtual_address, :location_type, :gender, :bio,
-             :user_fields, :location_display_name, :is_online
+             :user_fields, :location_display_name, :is_online, :debug_user_fields
 
   def id
     object[:user].id
@@ -54,10 +54,21 @@ class UserLocationSerializer < ApplicationSerializer
     
     # 如果用户字段中没有性别信息，尝试从自定义字段获取
     if gender_value.blank?
-      gender_value = object[:user].custom_fields&.dig('gender')
+      gender_value = object[:user].custom_fields&.dig('gender') ||
+                     object[:user].custom_fields&.dig('性别')
     end
     
-        gender_value
+    # 标准化性别值
+    return nil if gender_value.blank?
+    
+    case gender_value.to_s.downcase
+    when '男', 'male', 'm', '1'
+      'male'
+    when '女', 'female', 'f', '2' 
+      'female'
+    else
+      gender_value.to_s
+    end
   end
 
   def bio
@@ -72,8 +83,10 @@ class UserLocationSerializer < ApplicationSerializer
     if object[:user].user_fields.present?
       object[:user].user_fields.each do |key, value|
         next if value.blank?
-        # 只包含"属性"字段
-        if ['属性', 'attributes', 'Attributes'].include?(key)
+        # 排除性别字段，只包含属性相关字段
+        next if ['性别', 'gender', 'Gender', 'sex', 'Sex'].include?(key)
+        # 包含属性字段或其他非性别字段
+        if ['属性', 'attributes', 'Attributes', '标签', 'tags', 'Tags', '兴趣', 'interests', 'hobby', '爱好'].include?(key)
           fields[key] = value
         end
       end
@@ -83,7 +96,10 @@ class UserLocationSerializer < ApplicationSerializer
     if object[:user].custom_fields.present?
       object[:user].custom_fields.each do |key, value|
         next if value.blank?
-        if ['属性', 'attributes', 'Attributes'].include?(key)
+        # 排除性别字段
+        next if ['gender', '性别'].include?(key)
+        # 包含属性相关字段
+        if ['属性', 'attributes', 'Attributes', '标签', 'tags', 'Tags', '兴趣', 'interests', 'hobby', '爱好'].include?(key)
           fields[key] = value
         end
       end
@@ -106,5 +122,22 @@ class UserLocationSerializer < ApplicationSerializer
     # 判断用户是否在线（最近5分钟活跃）
     return false unless object[:user].last_seen_at
     object[:user].last_seen_at > 5.minutes.ago
+  end
+
+  def debug_user_fields
+    # 返回所有用户字段用于调试
+    debug_info = {}
+    
+    # 获取所有用户字段
+    if object[:user].user_fields.present?
+      debug_info[:user_fields] = object[:user].user_fields
+    end
+    
+    # 获取所有自定义字段
+    if object[:user].custom_fields.present?
+      debug_info[:custom_fields] = object[:user].custom_fields
+    end
+    
+    debug_info
   end
 end 
