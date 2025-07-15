@@ -42,29 +42,40 @@ class UserLocationSerializer < ApplicationSerializer
   end
 
   def gender
-    # 尝试从用户字段中获取性别信息
+    # 从用户字段和自定义字段中查找性别信息
+    gender_value = nil
+    
+    # 检查所有用户字段中可能的性别值
     user_fields_data = object[:user].user_fields || {}
+    user_fields_data.each do |key, value|
+      next if value.blank?
+      # 检查值是否像性别
+      if ['男', '女', 'male', 'female', 'm', 'f'].include?(value.to_s.downcase)
+        gender_value = value
+        break
+      end
+    end
     
-    # 检查常见的性别字段名
-    gender_value = user_fields_data['性别'] || 
-                   user_fields_data['gender'] || 
-                   user_fields_data['Gender'] ||
-                   user_fields_data['sex'] ||
-                   user_fields_data['Sex']
-    
-    # 如果用户字段中没有性别信息，尝试从自定义字段获取
+    # 如果用户字段中没有找到，检查自定义字段
     if gender_value.blank?
-      gender_value = object[:user].custom_fields&.dig('gender') ||
-                     object[:user].custom_fields&.dig('性别')
+      custom_fields = object[:user].custom_fields || {}
+      custom_fields.each do |key, value|
+        next if value.blank?
+        # 检查字段名包含性别相关词汇或值像性别
+        if key.to_s.match(/gender|性别|sex/i) || ['男', '女', 'male', 'female', 'm', 'f'].include?(value.to_s.downcase)
+          gender_value = value
+          break
+        end
+      end
     end
     
     # 标准化性别值
     return nil if gender_value.blank?
     
     case gender_value.to_s.downcase
-    when '男', 'male', 'm', '1'
+    when '男', 'male', 'm'
       'male'
-    when '女', 'female', 'f', '2' 
+    when '女', 'female', 'f'
       'female'
     else
       gender_value.to_s
@@ -76,32 +87,29 @@ class UserLocationSerializer < ApplicationSerializer
   end
 
   def user_fields
-    # 只返回"属性"字段
+    # 返回所有非性别的用户字段作为属性
     fields = {}
     
     # 获取用户字段数据
     if object[:user].user_fields.present?
       object[:user].user_fields.each do |key, value|
         next if value.blank?
-        # 排除性别字段，只包含属性相关字段
-        next if ['性别', 'gender', 'Gender', 'sex', 'Sex'].include?(key)
-        # 包含属性字段或其他非性别字段
-        if ['属性', 'attributes', 'Attributes', '标签', 'tags', 'Tags', '兴趣', 'interests', 'hobby', '爱好'].include?(key)
-          fields[key] = value
-        end
+        # 排除看起来像性别的字段
+        next if ['男', '女', 'male', 'female', 'm', 'f'].include?(value.to_s.downcase)
+        # 添加所有其他字段，使用"字段#{key}"作为显示名
+        fields["字段#{key}"] = value
       end
     end
     
-    # 获取自定义字段中的属性
+    # 获取自定义字段中的属性（排除系统字段和性别字段）
     if object[:user].custom_fields.present?
       object[:user].custom_fields.each do |key, value|
         next if value.blank?
-        # 排除性别字段
-        next if ['gender', '性别'].include?(key)
-        # 包含属性相关字段
-        if ['属性', 'attributes', 'Attributes', '标签', 'tags', 'Tags', '兴趣', 'interests', 'hobby', '爱好'].include?(key)
-          fields[key] = value
-        end
+        # 排除系统字段和性别相关字段
+        next if key.to_s.match(/^(user_field_|last_chat_channel_id|gender|性别)/i)
+        # 排除看起来像性别的值
+        next if ['男', '女', 'male', 'female', 'm', 'f'].include?(value.to_s.downcase)
+        fields[key] = value
       end
     end
     
