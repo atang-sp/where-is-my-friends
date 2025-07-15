@@ -209,11 +209,8 @@
                     {{#if userData.isCurrentUser}}
                       <span class="current-user-label">(您)</span>
                     {{/if}}
-                  </div>
-                  
-                  <div class="user-meta">
                     {{#if userData.gender}}
-                      <div class="user-gender {{if (eq userData.gender "male") "gender-male" (if (eq userData.gender "female") "gender-female" "gender-other")}}">
+                      <span class="user-gender {{if (eq userData.gender "male") "gender-male" (if (eq userData.gender "female") "gender-female" "gender-other")}}">
                         {{#if (eq userData.gender "male")}}
                           <i class="fa fa-mars"></i>
                           男
@@ -224,12 +221,10 @@
                           <i class="fa fa-genderless"></i>
                           {{userData.gender}}
                         {{/if}}
-                      </div>
+                      </span>
                     {{/if}}
                   </div>
-                </div>
-                
-                <div class="location-info">
+                  
                   <div class="distance">
                     <i class="fa fa-map-marker-alt"></i>
                     {{userData.location_display_name}}
@@ -248,36 +243,17 @@
                   </div>
                 {{/if}}
                 
-                {{#if userData.user_fields}}
-                  <div class="user-attributes">
-                    {{#each-in userData.user_fields as |key value|}}
-                      <span class="attribute-tag">
-                        <strong>{{key}}:</strong> {{value}}
-                      </span>
-                    {{/each-in}}
-                  </div>
-                {{/if}}
-                
-                {{#if userData.debug_user_fields}}
-                  <div class="debug-info" style="background: #ffeb3b; padding: 8px; margin: 8px 0; border-radius: 4px; font-size: 12px;">
-                    <strong>调试信息:</strong><br>
-                    性别字段: {{userData.gender}}<br>
-                    {{#if userData.debug_user_fields.user_fields}}
-                      用户字段: 
-                      {{#each-in userData.debug_user_fields.user_fields as |key value|}}
-                        {{key}}={{value}} | 
-                      {{/each-in}}<br>
-                    {{/if}}
-                    {{#if userData.debug_user_fields.custom_fields}}
-                      自定义字段: 
-                      {{#each-in userData.debug_user_fields.custom_fields as |key value|}}
-                        {{key}}={{value}} | 
+                <div class="user-bottom">
+                  {{#if userData.user_fields}}
+                    <div class="user-attributes">
+                      {{#each-in userData.user_fields as |key value|}}
+                        <span class="attribute-tag">
+                          {{value}}
+                        </span>
                       {{/each-in}}
-                    {{/if}}
-                  </div>
-                {{/if}}
-                
-                <div class="user-footer">
+                    </div>
+                  {{/if}}
+                  
                   {{#if userData.last_seen_at}}
                     <div class="last-seen">
                       <i class="fa fa-clock-o"></i>

@@ -3,7 +3,7 @@
 class UserLocationSerializer < ApplicationSerializer
   attributes :id, :username, :name, :avatar_template, :distance, :last_seen_at,
              :is_virtual, :virtual_address, :location_type, :gender, :bio,
-             :user_fields, :location_display_name, :is_online, :debug_user_fields
+             :user_fields, :location_display_name, :is_online
 
   def id
     object[:user].id
@@ -132,20 +132,5 @@ class UserLocationSerializer < ApplicationSerializer
     object[:user].last_seen_at > 5.minutes.ago
   end
 
-  def debug_user_fields
-    # 返回所有用户字段用于调试
-    debug_info = {}
-    
-    # 获取所有用户字段
-    if object[:user].user_fields.present?
-      debug_info[:user_fields] = object[:user].user_fields
-    end
-    
-    # 获取所有自定义字段
-    if object[:user].custom_fields.present?
-      debug_info[:custom_fields] = object[:user].custom_fields
-    end
-    
-    debug_info
-  end
+
 end 

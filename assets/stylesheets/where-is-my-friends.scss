@@ -138,14 +138,14 @@
           flex: 1;
 
           .user-header {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
           }
 
           .username {
             font-weight: bold;
             color: var(--primary);
             font-size: 16px;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -165,76 +165,37 @@
               color: white;
               font-size: 11px;
               padding: 2px 6px;
-              border-radius: 3px;
+              border-radius: 12px;
               font-weight: normal;
-            }
-
-            .user-title {
-              background-color: var(--tertiary);
-              color: white;
-              font-size: 11px;
-              padding: 2px 6px;
-              border-radius: 3px;
-              font-weight: normal;
-            }
-          }
-
-          .user-meta {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-
-            .user-name {
-              display: flex;
-              align-items: center;
-              color: var(--primary-high);
-              font-size: 13px;
-              
-              i {
-                margin-right: 5px;
-                color: var(--primary-medium);
-              }
             }
 
             .user-gender {
               display: flex;
               align-items: center;
               font-size: 13px;
+              padding: 2px 8px;
+              border-radius: 12px;
+              background-color: var(--highlight-medium);
               
               i {
-                margin-right: 5px;
-                font-size: 14px;
+                margin-right: 4px;
+                font-size: 12px;
               }
 
               &.gender-male {
                 color: #4285f4;
+                background-color: rgba(66, 133, 244, 0.1);
               }
 
               &.gender-female {
                 color: #ea4335;
+                background-color: rgba(234, 67, 53, 0.1);
               }
 
               &.gender-other {
                 color: var(--primary-medium);
               }
             }
-
-            .user-age {
-              display: flex;
-              align-items: center;
-              color: var(--primary-high);
-              font-size: 13px;
-              
-              i {
-                margin-right: 5px;
-                color: var(--success);
-              }
-            }
-          }
-
-          .location-info {
-            margin-bottom: 10px;
           }
 
           .distance {
@@ -298,39 +259,32 @@
             }
           }
 
-          .user-footer {
+          .user-bottom {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px solid var(--primary-very-low);
-            font-size: 12px;
+            align-items: flex-end;
+            gap: 10px;
+            margin-top: 8px;
             flex-wrap: wrap;
 
+            .user-attributes {
+              flex: 1;
+            }
+
             .last-seen {
-              color: var(--primary-high);
+              color: var(--primary-medium);
+              font-size: 12px;
               display: flex;
               align-items: center;
+              white-space: nowrap;
 
               i {
-                margin-right: 5px;
+                margin-right: 4px;
               }
 
               .online-text {
                 color: var(--success);
                 font-weight: 500;
-              }
-            }
-
-            .join-date {
-              color: var(--primary-medium);
-              display: flex;
-              align-items: center;
-
-              i {
-                margin-right: 5px;
               }
             }
           }
@@ -802,33 +756,32 @@
             margin-bottom: 10px;
           }
 
-          .user-info {
-            text-align: center;
-
-            .username {
-              justify-content: center;
-            }
-
-            .user-meta {
-              justify-content: center;
-              gap: 10px;
-            }
-
-            .user-attributes {
-              justify-content: center;
-            }
-
-            .user-footer {
-              flex-direction: column;
-              gap: 8px;
-              align-items: center;
+                      .user-info {
               text-align: center;
-            }
 
-            .user-bio {
-              text-align: center;
+              .username {
+                justify-content: center;
+              }
+
+              .user-attributes {
+                justify-content: center;
+              }
+
+              .user-bottom {
+                flex-direction: column;
+                gap: 8px;
+                align-items: center;
+                text-align: center;
+
+                .last-seen {
+                  white-space: normal;
+                }
+              }
+
+              .user-bio {
+                text-align: center;
+              }
             }
-          }
         }
       }
     }
