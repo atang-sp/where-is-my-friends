@@ -209,36 +209,21 @@
                     {{#if userData.isCurrentUser}}
                       <span class="current-user-label">{{i18n "where_is_my_friends.current_user_label"}}</span>
                     {{/if}}
-                    {{#if userData.title}}
-                      <span class="user-title">{{userData.title}}</span>
-                    {{/if}}
                   </div>
                   
                   <div class="user-meta">
-                    {{#if userData.name}}
-                      <div class="user-name">
-                        <i class="fa fa-id-card"></i>
-                        {{userData.name}}
-                      </div>
-                    {{/if}}
-                    
                     {{#if userData.gender}}
                       <div class="user-gender {{if (eq userData.gender "male") "gender-male" (if (eq userData.gender "female") "gender-female" "gender-other")}}">
                         {{#if (eq userData.gender "male")}}
                           <i class="fa fa-mars"></i>
+                          {{i18n "where_is_my_friends.gender_male"}}
                         {{else if (eq userData.gender "female")}}
                           <i class="fa fa-venus"></i>
+                          {{i18n "where_is_my_friends.gender_female"}}
                         {{else}}
                           <i class="fa fa-genderless"></i>
+                          {{userData.gender}}
                         {{/if}}
-                        {{userData.gender}}
-                      </div>
-                    {{/if}}
-                    
-                    {{#if userData.age}}
-                      <div class="user-age">
-                        <i class="fa fa-birthday-cake"></i>
-                        {{userData.age}}岁
                       </div>
                     {{/if}}
                   </div>
@@ -256,13 +241,6 @@
                   </div>
                 </div>
                 
-                {{#if userData.bio}}
-                  <div class="user-bio">
-                    <i class="fa fa-quote-left"></i>
-                    <span class="bio-text">{{userData.bio}}</span>
-                  </div>
-                {{/if}}
-                
                 {{#if userData.user_fields}}
                   <div class="user-attributes">
                     {{#each-in userData.user_fields as |key value|}}
@@ -272,26 +250,6 @@
                     {{/each-in}}
                   </div>
                 {{/if}}
-                
-                <div class="user-footer">
-                  {{#if userData.last_seen_at}}
-                    <div class="last-seen">
-                      <i class="fa fa-clock-o"></i>
-                      {{#if userData.is_online}}
-                        <span class="online-text">{{i18n "where_is_my_friends.online_now"}}</span>
-                      {{else}}
-                        {{i18n "where_is_my_friends.last_online"}}: {{format-date userData.last_seen_at}}
-                      {{/if}}
-                    </div>
-                  {{/if}}
-                  
-                  {{#if userData.created_at}}
-                    <div class="join-date">
-                      <i class="fa fa-calendar"></i>
-                      {{i18n "where_is_my_friends.joined"}}: {{format-date userData.created_at leaveAgo=true}}
-                    </div>
-                  {{/if}}
-                </div>
               </div>
             </div>
           {{/each}}
