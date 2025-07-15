@@ -263,9 +263,9 @@
                     <div class="last-seen">
                       <i class="fa fa-clock-o"></i>
                       {{#if userData.is_online}}
-                        <span class="online-text">{{i18n "where_is_my_friends.online_now"}}</span>
+                        <span class="online-text">在线</span>
                       {{else}}
-                        {{i18n "where_is_my_friends.last_online"}}: {{format-date userData.last_seen_at}}
+                        最后在线: {{format-date userData.last_seen_at}}
                       {{/if}}
                     </div>
                   {{/if}}
