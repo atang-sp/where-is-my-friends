@@ -196,6 +196,15 @@
                 color: var(--primary-medium);
               }
             }
+
+            .attribute-tag {
+              background-color: var(--highlight-medium);
+              color: var(--primary-high);
+              padding: 2px 8px;
+              border-radius: 12px;
+              font-size: 11px;
+              border: 1px solid var(--primary-low);
+            }
           }
 
           .distance {
@@ -259,33 +268,20 @@
             }
           }
 
-          .user-bottom {
+          .last-seen {
+            color: var(--primary-medium);
+            font-size: 12px;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 10px;
+            align-items: center;
             margin-top: 8px;
-            flex-wrap: wrap;
 
-            .user-attributes {
-              flex: 1;
+            i {
+              margin-right: 4px;
             }
 
-            .last-seen {
-              color: var(--primary-medium);
-              font-size: 12px;
-              display: flex;
-              align-items: center;
-              white-space: nowrap;
-
-              i {
-                margin-right: 4px;
-              }
-
-              .online-text {
-                color: var(--success);
-                font-weight: 500;
-              }
+            .online-text {
+              color: var(--success);
+              font-weight: 500;
             }
           }
         }
@@ -763,19 +759,8 @@
                 justify-content: center;
               }
 
-              .user-attributes {
+              .last-seen {
                 justify-content: center;
-              }
-
-              .user-bottom {
-                flex-direction: column;
-                gap: 8px;
-                align-items: center;
-                text-align: center;
-
-                .last-seen {
-                  white-space: normal;
-                }
               }
 
               .user-bio {

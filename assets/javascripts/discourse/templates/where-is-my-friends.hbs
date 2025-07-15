@@ -223,6 +223,13 @@
                         {{/if}}
                       </span>
                     {{/if}}
+                    {{#if userData.user_fields}}
+                      {{#each-in userData.user_fields as |key value|}}
+                        <span class="attribute-tag">
+                          {{value}}
+                        </span>
+                      {{/each-in}}
+                    {{/if}}
                   </div>
                   
                   <div class="distance">
@@ -243,28 +250,16 @@
                   </div>
                 {{/if}}
                 
-                <div class="user-bottom">
-                  {{#if userData.user_fields}}
-                    <div class="user-attributes">
-                      {{#each-in userData.user_fields as |key value|}}
-                        <span class="attribute-tag">
-                          {{value}}
-                        </span>
-                      {{/each-in}}
-                    </div>
-                  {{/if}}
-                  
-                  {{#if userData.last_seen_at}}
-                    <div class="last-seen">
-                      <i class="fa fa-clock-o"></i>
-                      {{#if userData.is_online}}
-                        <span class="online-text">在线</span>
-                      {{else}}
-                        最后在线: {{format-date userData.last_seen_at}}
-                      {{/if}}
-                    </div>
-                  {{/if}}
-                </div>
+                {{#if userData.last_seen_at}}
+                  <div class="last-seen">
+                    <i class="fa fa-clock-o"></i>
+                    {{#if userData.is_online}}
+                      <span class="online-text">在线</span>
+                    {{else}}
+                      最后在线: {{format-date userData.last_seen_at}}
+                    {{/if}}
+                  </div>
+                {{/if}}
               </div>
             </div>
           {{/each}}
