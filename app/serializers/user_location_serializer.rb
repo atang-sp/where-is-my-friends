@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class UserLocationSerializer < ApplicationSerializer
-  attributes :id, :username, :name, :avatar_template, :distance,
-             :is_virtual, :virtual_address, :location_type, :gender, 
+  attributes :id, :username, :name, :avatar_template, :distance, :last_seen_at,
+             :is_virtual, :virtual_address, :location_type, :gender, :bio,
              :user_fields, :location_display_name, :is_online
 
   def id
@@ -21,11 +21,13 @@ class UserLocationSerializer < ApplicationSerializer
     object[:user].avatar_template
   end
 
-  def distance
+    def distance
     object[:distance]
   end
 
-
+  def last_seen_at
+    object[:user].last_seen_at
+  end
 
   def is_virtual
     object[:location].is_virtual || false
@@ -55,10 +57,12 @@ class UserLocationSerializer < ApplicationSerializer
       gender_value = object[:user].custom_fields&.dig('gender')
     end
     
-    gender_value
+        gender_value
   end
 
-
+  def bio
+    object[:user].user_profile&.bio_raw
+  end
 
   def user_fields
     # 只返回"属性"字段
