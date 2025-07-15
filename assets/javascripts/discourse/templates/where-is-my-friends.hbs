@@ -207,7 +207,7 @@
                   <div class="username">
                     <a href="/u/{{userData.username}}">{{userData.username}}</a>
                     {{#if userData.isCurrentUser}}
-                      <span class="current-user-label">{{i18n "where_is_my_friends.current_user_label"}}</span>
+                      <span class="current-user-label">(您)</span>
                     {{/if}}
                   </div>
                   
@@ -216,10 +216,10 @@
                       <div class="user-gender {{if (eq userData.gender "male") "gender-male" (if (eq userData.gender "female") "gender-female" "gender-other")}}">
                         {{#if (eq userData.gender "male")}}
                           <i class="fa fa-mars"></i>
-                          {{i18n "where_is_my_friends.gender_male"}}
+                          男
                         {{else if (eq userData.gender "female")}}
                           <i class="fa fa-venus"></i>
-                          {{i18n "where_is_my_friends.gender_female"}}
+                          女
                         {{else}}
                           <i class="fa fa-genderless"></i>
                           {{userData.gender}}
