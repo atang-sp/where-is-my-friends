@@ -68,4 +68,29 @@ zh_CN:
       real_location_auto_tip: "确保浏览器允许位置访问权限"
       indoor_tip: "如果在室内遇到问题，请尝试到室外或靠近窗户的地方"
       location_service_tip: "确保设备的位置服务已开启"
-      chrome_tip: "如果使用Chrome，请检查地址栏左侧的锁定图标设置" 
+      chrome_tip: "如果使用Chrome，请检查地址栏左侧的锁定图标设置"
+      
+      # 筛选功能相关翻译
+      filter_by_gender: "按性别筛选"
+      filter_by_attributes: "按属性筛选"
+      all_genders: "所有性别"
+      male: "男性"
+      female: "女性"
+      other_gender: "其他"
+      attributes_placeholder: "例如：学生,音乐,运动"
+      attributes_help: "输入关键词筛选用户属性，多个关键词用逗号分隔"
+      only_online: "仅显示在线用户"
+      clear_filters: "清除筛选"
+      clear_filters_and_retry: "清除筛选条件并重试"
+      no_users_match_filters: "没有用户符合筛选条件"
+      
+      # 用户信息相关翻译
+      user_online: "用户在线"
+      online_now: "在线"
+      joined: "加入时间"
+      
+      # 性别相关翻译（用于显示）
+      gender_male: "男"
+      gender_female: "女"
+      gender_other: "其他"
+      gender_unknown: "未知" 

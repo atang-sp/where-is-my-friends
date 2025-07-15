@@ -137,11 +137,19 @@
         .user-info {
           flex: 1;
 
+          .user-header {
+            margin-bottom: 12px;
+          }
+
           .username {
             font-weight: bold;
             color: var(--primary);
             font-size: 16px;
             margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
 
             a {
               color: var(--primary);
@@ -153,10 +161,80 @@
             }
 
             .current-user-label {
-              color: var(--primary);
+              background-color: var(--primary);
+              color: white;
+              font-size: 11px;
+              padding: 2px 6px;
+              border-radius: 3px;
               font-weight: normal;
-              font-size: 14px;
             }
+
+            .user-title {
+              background-color: var(--tertiary);
+              color: white;
+              font-size: 11px;
+              padding: 2px 6px;
+              border-radius: 3px;
+              font-weight: normal;
+            }
+          }
+
+          .user-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+
+            .user-name {
+              display: flex;
+              align-items: center;
+              color: var(--primary-high);
+              font-size: 13px;
+              
+              i {
+                margin-right: 5px;
+                color: var(--primary-medium);
+              }
+            }
+
+            .user-gender {
+              display: flex;
+              align-items: center;
+              font-size: 13px;
+              
+              i {
+                margin-right: 5px;
+                font-size: 14px;
+              }
+
+              &.gender-male {
+                color: #4285f4;
+              }
+
+              &.gender-female {
+                color: #ea4335;
+              }
+
+              &.gender-other {
+                color: var(--primary-medium);
+              }
+            }
+
+            .user-age {
+              display: flex;
+              align-items: center;
+              color: var(--primary-high);
+              font-size: 13px;
+              
+              i {
+                margin-right: 5px;
+                color: var(--success);
+              }
+            }
+          }
+
+          .location-info {
+            margin-bottom: 10px;
           }
 
           .distance {
@@ -179,14 +257,99 @@
             }
           }
 
-          .last-seen {
-            color: var(--primary-high);
-            font-size: 12px;
+          .user-bio {
+            background-color: var(--primary-very-low);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--primary-low);
 
             i {
-              margin-right: 5px;
+              color: var(--primary-medium);
+              margin-right: 8px;
+              font-size: 12px;
+            }
+
+            .bio-text {
+              color: var(--primary-high);
+              font-size: 13px;
+              line-height: 1.4;
+              font-style: italic;
             }
           }
+
+          .user-attributes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+
+            .attribute-tag {
+              background-color: var(--highlight-medium);
+              color: var(--primary-high);
+              padding: 3px 8px;
+              border-radius: 12px;
+              font-size: 11px;
+              border: 1px solid var(--primary-low);
+
+              strong {
+                color: var(--primary);
+              }
+            }
+          }
+
+          .user-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid var(--primary-very-low);
+            font-size: 12px;
+            flex-wrap: wrap;
+
+            .last-seen {
+              color: var(--primary-high);
+              display: flex;
+              align-items: center;
+
+              i {
+                margin-right: 5px;
+              }
+
+              .online-text {
+                color: var(--success);
+                font-weight: 500;
+              }
+            }
+
+            .join-date {
+              color: var(--primary-medium);
+              display: flex;
+              align-items: center;
+
+              i {
+                margin-right: 5px;
+              }
+            }
+          }
+        }
+
+        .online-badge {
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          background-color: var(--success);
+          color: white;
+          border-radius: 50%;
+          width: 16px;
+          height: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 8px;
+          border: 2px solid var(--secondary);
         }
       }
     }
@@ -641,6 +804,26 @@
 
           .user-info {
             text-align: center;
+
+            .username {
+              justify-content: center;
+            }
+
+            .user-meta {
+              justify-content: center;
+              gap: 10px;
+            }
+
+            .user-attributes {
+              justify-content: center;
+            }
+
+            .user-footer {
+              flex-direction: column;
+              gap: 8px;
+              align-items: center;
+              text-align: center;
+            }
           }
         }
       }

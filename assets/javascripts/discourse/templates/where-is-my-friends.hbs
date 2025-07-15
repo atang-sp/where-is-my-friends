@@ -177,11 +177,15 @@
 
     {{#if this.nearbyUsers}}
       <div class="nearby-users">
-        <h3>{{i18n "where_is_my_friends.nearby_users"}} ({{this.nearbyUsers.length}})</h3>
+        <div class="users-header">
+          <div class="users-title">
+            <h3>{{i18n "where_is_my_friends.nearby_users"}} ({{this.nearbyUsers.length}})</h3>
+          </div>
+        </div>
         
         <div class="users-list">
           {{#each this.nearbyUsers as |userData|}}
-            <div class="user-card {{if userData.isCurrentUser 'current-user'}}">
+            <div class="user-card {{if userData.isCurrentUser 'current-user'}} {{if userData.is_online 'online'}}">
               <div class="user-avatar">
                 <a href="/u/{{userData.username}}">
                   {{avatar userData imageSize="large"}}
@@ -191,29 +195,103 @@
                     <i class="fa fa-user"></i>
                   </div>
                 {{/if}}
-              </div>
-              <div class="user-info">
-                <div class="username">
-                  <a href="/u/{{userData.username}}">{{userData.username}}</a>
-                  {{#if userData.isCurrentUser}}
-                    <span class="current-user-label">{{i18n "where_is_my_friends.current_user_label"}}</span>
-                  {{/if}}
-                </div>
-                <div class="distance">
-                  <i class="fa fa-map-marker-alt"></i>
-                  {{userData.distance}} km
-                  {{#if userData.is_virtual}}
-                    <span class="virtual-badge" title="{{i18n 'where_is_my_friends.using_virtual_location'}}">
-                      <i class="fa fa-shield-alt"></i>
-                    </span>
-                  {{/if}}
-                </div>
-                {{#if userData.last_seen_at}}
-                  <div class="last-seen">
-                    <i class="fa fa-clock-o"></i>
-                    {{i18n "where_is_my_friends.last_online"}}: {{format-date userData.last_seen_at}}
+                {{#if userData.is_online}}
+                  <div class="online-badge" title="{{i18n 'where_is_my_friends.user_online'}}">
+                    <i class="fa fa-circle"></i>
                   </div>
                 {{/if}}
+              </div>
+              
+              <div class="user-info">
+                <div class="user-header">
+                  <div class="username">
+                    <a href="/u/{{userData.username}}">{{userData.username}}</a>
+                    {{#if userData.isCurrentUser}}
+                      <span class="current-user-label">{{i18n "where_is_my_friends.current_user_label"}}</span>
+                    {{/if}}
+                    {{#if userData.title}}
+                      <span class="user-title">{{userData.title}}</span>
+                    {{/if}}
+                  </div>
+                  
+                  <div class="user-meta">
+                    {{#if userData.name}}
+                      <div class="user-name">
+                        <i class="fa fa-id-card"></i>
+                        {{userData.name}}
+                      </div>
+                    {{/if}}
+                    
+                    {{#if userData.gender}}
+                      <div class="user-gender {{if (eq userData.gender "male") "gender-male" (if (eq userData.gender "female") "gender-female" "gender-other")}}">
+                        {{#if (eq userData.gender "male")}}
+                          <i class="fa fa-mars"></i>
+                        {{else if (eq userData.gender "female")}}
+                          <i class="fa fa-venus"></i>
+                        {{else}}
+                          <i class="fa fa-genderless"></i>
+                        {{/if}}
+                        {{userData.gender}}
+                      </div>
+                    {{/if}}
+                    
+                    {{#if userData.age}}
+                      <div class="user-age">
+                        <i class="fa fa-birthday-cake"></i>
+                        {{userData.age}}岁
+                      </div>
+                    {{/if}}
+                  </div>
+                </div>
+                
+                <div class="location-info">
+                  <div class="distance">
+                    <i class="fa fa-map-marker-alt"></i>
+                    {{userData.location_display_name}}
+                    {{#if userData.is_virtual}}
+                      <span class="virtual-badge" title="{{i18n 'where_is_my_friends.using_virtual_location'}}">
+                        <i class="fa fa-shield-alt"></i>
+                      </span>
+                    {{/if}}
+                  </div>
+                </div>
+                
+                {{#if userData.bio}}
+                  <div class="user-bio">
+                    <i class="fa fa-quote-left"></i>
+                    <span class="bio-text">{{userData.bio}}</span>
+                  </div>
+                {{/if}}
+                
+                {{#if userData.user_fields}}
+                  <div class="user-attributes">
+                    {{#each-in userData.user_fields as |key value|}}
+                      <span class="attribute-tag">
+                        <strong>{{key}}:</strong> {{value}}
+                      </span>
+                    {{/each-in}}
+                  </div>
+                {{/if}}
+                
+                <div class="user-footer">
+                  {{#if userData.last_seen_at}}
+                    <div class="last-seen">
+                      <i class="fa fa-clock-o"></i>
+                      {{#if userData.is_online}}
+                        <span class="online-text">{{i18n "where_is_my_friends.online_now"}}</span>
+                      {{else}}
+                        {{i18n "where_is_my_friends.last_online"}}: {{format-date userData.last_seen_at}}
+                      {{/if}}
+                    </div>
+                  {{/if}}
+                  
+                  {{#if userData.created_at}}
+                    <div class="join-date">
+                      <i class="fa fa-calendar"></i>
+                      {{i18n "where_is_my_friends.joined"}}: {{format-date userData.created_at leaveAgo=true}}
+                    </div>
+                  {{/if}}
+                </div>
               </div>
             </div>
           {{/each}}

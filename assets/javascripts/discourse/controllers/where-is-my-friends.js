@@ -1,4 +1,5 @@
 import Controller from "@ember/controller";
+import { computed } from "@ember/object";
 import { ajax } from "discourse/lib/ajax";
 import { getCurrentPositionAsync } from "discourse/plugins/where-is-my-friends/discourse/lib/where-is-my-friends-geolocation";
 
@@ -137,13 +138,20 @@ export default Controller.extend({
         console.log('🔍 查找附近用户，位置:', { latitude, longitude });
         
         const distance = this.siteSettings.where_is_my_friends_default_distance_km;
+        
         const result = await ajax("/api/where-is-my-friends/locations/nearby", {
-          data: { latitude, longitude, distance }
+          data: { 
+            latitude, 
+            longitude, 
+            distance 
+          }
         });
         
         console.log('✅ 找到附近用户:', result.users?.length || 0, '个');
+        
         this.set("nearbyUsers", result.users || []);
         this.set("error", null);
+        
       } catch (error) {
         console.error('❌ 查找附近用户失败:', error);
         let errMsg = error?.errors?.[0] || error?.message || (error.jqXHR && error.jqXHR.responseJSON?.errors?.[0]);
@@ -398,5 +406,6 @@ export default Controller.extend({
     }
 
     throw new Error(parsed.message || "IP 位置服务返回错误");
-  }
+  },
+
 }); 

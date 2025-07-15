@@ -76,4 +76,29 @@ en:
       real_location_auto_tip: "Make sure browser allows location access permission"
       indoor_tip: "If you encounter problems indoors, try going outdoors or near a window"
       location_service_tip: "Make sure your device's location service is turned on"
-      chrome_tip: "If using Chrome, please check the lock icon settings on the left side of the address bar" 
+      chrome_tip: "If using Chrome, please check the lock icon settings on the left side of the address bar"
+      
+      # Filter functionality translations
+      filter_by_gender: "Filter by Gender"
+      filter_by_attributes: "Filter by Attributes"
+      all_genders: "All Genders"
+      male: "Male"
+      female: "Female"
+      other_gender: "Other"
+      attributes_placeholder: "e.g. student, music, sports"
+      attributes_help: "Enter keywords to filter user attributes, separate multiple keywords with commas"
+      only_online: "Show only online users"
+      clear_filters: "Clear Filters"
+      clear_filters_and_retry: "Clear filters and retry"
+      no_users_match_filters: "No users match the current filters"
+      
+      # User information translations
+      user_online: "User is online"
+      online_now: "Online"
+      joined: "Joined"
+      
+      # Gender display translations
+      gender_male: "Male"
+      gender_female: "Female"
+      gender_other: "Other"
+      gender_unknown: "Unknown" 

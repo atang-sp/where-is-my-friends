@@ -117,6 +117,7 @@ module WhereIsMyFriends
         # 查找所有启用的位置，包括当前用户
         nearby_users = UserLocation.nearby(latitude, longitude, distance)
           .where(enabled: true)
+          .includes(:user => [:user_profile])
           .limit(50)
 
         Rails.logger.info "WhereIsMyFriends: Found #{nearby_users.count} users within #{distance}km"
@@ -146,7 +147,7 @@ module WhereIsMyFriends
           end
         end
 
-        Rails.logger.info "WhereIsMyFriends: Returning #{users_with_distance.count} users (including current user)"
+        Rails.logger.info "WhereIsMyFriends: Returning #{users_with_distance.count} users"
 
         render json: {
           users: users_with_distance.map { |u| UserLocationSerializer.new(u, root: false) },
@@ -187,5 +188,6 @@ module WhereIsMyFriends
         raise Discourse::NotFound
       end
     end
+
   end
 end 
