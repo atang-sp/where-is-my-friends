@@ -23,4 +23,6 @@ zh_CN:
     getting_location: "正在获取位置..."
     location_access_denied_detailed: "位置访问被拒绝，请在浏览器设置中允许位置访问后重试"
     location_unavailable: "位置信息不可用，请检查设备的位置服务"
-    location_timeout: "位置请求超时，请重试或检查网络连接" 
+    location_timeout: "位置请求超时，请重试或检查网络连接"
+  site_settings:
+    where_is_my_friends_max_users_display: "附近用户列表的最大显示数量"

@@ -29,7 +29,8 @@ module WhereIsMyFriends
           virtual_location_enabled: SiteSetting.where_is_my_friends_enable_virtual_location,
           map_provider: SiteSetting.where_is_my_friends_map_provider,
           has_amap_key: SiteSetting.where_is_my_friends_amap_api_key.present?,
-          has_baidu_key: SiteSetting.where_is_my_friends_baidu_api_key.present?
+          has_baidu_key: SiteSetting.where_is_my_friends_baidu_api_key.present?,
+          max_users_display: (SiteSetting.where_is_my_friends_max_users_display rescue 50)
         }
       }
       
@@ -115,10 +116,12 @@ module WhereIsMyFriends
 
       begin
         # 查找所有启用的位置，包括当前用户
+        # 使用站点设置中配置的最大显示数量，如果设置不存在则使用默认值50
+        max_users_display = SiteSetting.where_is_my_friends_max_users_display rescue 50
         nearby_users = UserLocation.nearby(latitude, longitude, distance)
           .where(enabled: true)
           .includes(:user => [:user_profile])
-          .limit(50)
+          .limit(max_users_display)
 
         Rails.logger.info "WhereIsMyFriends: Found #{nearby_users.count} users within #{distance}km"
 

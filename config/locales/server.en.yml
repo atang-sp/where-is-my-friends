@@ -23,4 +23,6 @@ en:
     getting_location: "Getting location..."
     location_access_denied_detailed: "Location access denied, please allow location access in your browser settings and try again"
     location_unavailable: "Location information is unavailable, please check your device's location services"
-    location_timeout: "Location request timed out, please try again or check your internet connection" 
+    location_timeout: "Location request timed out, please try again or check your internet connection"
+  site_settings:
+    where_is_my_friends_max_users_display: "Maximum number of users to display in nearby list"

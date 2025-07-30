@@ -55,7 +55,17 @@ plugins:
   
   where_is_my_friends_baidu_api_key:
     default: ""
-    type: string  
+    type: string
     description: "百度地图API密钥（用于虚拟定位功能）"
     category: "where_is_my_friends"
-    translated: true 
+    translated: true
+
+  where_is_my_friends_max_users_display:
+    default: 500
+    min: 10
+    max: 5000
+    client: true
+    type: integer
+    description: "附近用户列表的最大显示数量"
+    category: "where_is_my_friends"
+    translated: true
