@@ -8,8 +8,93 @@ export default Controller.extend({
   showVirtualLocationPicker: false,
   virtualLocationData: null,
   locationMode: 'real', // 'real' or 'virtual'
+  filterGender: "all",
+  filterAttribute: "all",
+  sortBy: "distance",
+
+  filteredUsers: computed(
+    "nearbyUsers.[]",
+    "filterGender",
+    "filterAttribute",
+    "sortBy",
+    function () {
+      let users = (this.nearbyUsers || []).slice();
+
+      if (!users.length) {
+        return [];
+      }
+
+      const genderFilter = this.filterGender;
+      if (genderFilter && genderFilter !== "all") {
+        users = users.filter((user) => {
+          if (genderFilter === "unknown") {
+            return !user.gender;
+          }
+          return user.gender === genderFilter;
+        });
+      }
+
+      const attributeFilter = this.filterAttribute;
+      if (attributeFilter && attributeFilter !== "all") {
+        const matchersByAttribute = {
+          active: ["主动", "active"],
+          passive: ["被动", "passive"],
+          vers: ["双", "vers"]
+        };
+        const matchers = (matchersByAttribute[attributeFilter] || [attributeFilter]).map((item) =>
+          String(item).toLowerCase()
+        );
+
+        users = users.filter((user) => {
+          if (!user.user_fields) {
+            return false;
+          }
+
+          const values = Object.values(user.user_fields)
+            .flatMap((value) => (Array.isArray(value) ? value : [value]))
+            .map((value) => String(value).toLowerCase());
+
+          return values.some((value) => matchers.some((matcher) => value.includes(matcher)));
+        });
+      }
+
+      const sortBy = this.sortBy;
+      if (sortBy === "recent") {
+        users.sort((a, b) => {
+          const left = Date.parse(a.last_seen_at || 0) || 0;
+          const right = Date.parse(b.last_seen_at || 0) || 0;
+          return right - left;
+        });
+      } else {
+        users.sort((a, b) => {
+          const left = Number.parseFloat(a.distance);
+          const right = Number.parseFloat(b.distance);
+          const leftValue = Number.isFinite(left) ? left : Number.POSITIVE_INFINITY;
+          const rightValue = Number.isFinite(right) ? right : Number.POSITIVE_INFINITY;
+          return leftValue - rightValue;
+        });
+      }
+
+      return users;
+    }
+  ),
+
+  filtersActive: computed("filterGender", "filterAttribute", function () {
+    return (
+      this.filterGender !== "all" ||
+      this.filterAttribute !== "all"
+    );
+  }),
   
   actions: {
+    clearFilters() {
+      this.setProperties({
+        filterGender: "all",
+        filterAttribute: "all",
+        sortBy: "distance"
+      });
+    },
+
     async shareLocation() {
       // 检查是否启用虚拟定位功能
       if (this.siteSettings.where_is_my_friends_enable_virtual_location) {

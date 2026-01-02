@@ -50,7 +50,7 @@ class UserLocationSerializer < ApplicationSerializer
     user_fields_data.each do |key, value|
       next if value.blank?
       # 检查值是否像性别
-      if ['男', '女', 'male', 'female', 'm', 'f'].include?(value.to_s.downcase)
+      if gender_like_value?(value)
         gender_value = value
         break
       end
@@ -62,7 +62,7 @@ class UserLocationSerializer < ApplicationSerializer
       custom_fields.each do |key, value|
         next if value.blank?
         # 检查字段名包含性别相关词汇或值像性别
-        if key.to_s.match(/gender|性别|sex/i) || ['男', '女', 'male', 'female', 'm', 'f'].include?(value.to_s.downcase)
+        if key.to_s.match(/gender|性别|sex/i) || gender_like_value?(value)
           gender_value = value
           break
         end
@@ -87,17 +87,19 @@ class UserLocationSerializer < ApplicationSerializer
   end
 
   def user_fields
-    # 返回所有非性别的用户字段作为属性
+    # 返回所有非性别的用户字段作为属性（带字段名）
     fields = {}
+    user_field_names = user_field_name_map
     
     # 获取用户字段数据
     if object[:user].user_fields.present?
       object[:user].user_fields.each do |key, value|
         next if value.blank?
         # 排除看起来像性别的字段
-        next if ['男', '女', 'male', 'female', 'm', 'f'].include?(value.to_s.downcase)
-        # 添加所有其他字段，使用"字段#{key}"作为显示名
-        fields["字段#{key}"] = value
+        next if gender_like_value?(value)
+        # 添加所有其他字段，优先使用用户自定义字段名称
+        label = user_field_names[key.to_i].presence || "字段#{key}"
+        fields[label] = normalize_field_value(value)
       end
     end
     
@@ -108,8 +110,9 @@ class UserLocationSerializer < ApplicationSerializer
         # 排除系统字段和性别相关字段
         next if key.to_s.match(/^(user_field_|last_chat_channel_id|gender|性别)/i)
         # 排除看起来像性别的值
-        next if ['男', '女', 'male', 'female', 'm', 'f'].include?(value.to_s.downcase)
-        fields[key] = value
+        next if gender_like_value?(value)
+        label = key.to_s.tr("_", " ").strip
+        fields[label] = normalize_field_value(value)
       end
     end
     
@@ -119,10 +122,12 @@ class UserLocationSerializer < ApplicationSerializer
 
 
   def location_display_name
+    distance_text = distance.present? ? "#{distance}km 外" : nil
+
     if is_virtual && virtual_address.present?
-      virtual_address
+      distance_text ? "#{virtual_address} · #{distance_text}" : virtual_address
     else
-      "#{distance}km 外"
+      distance_text.to_s
     end
   end
 
@@ -132,5 +137,19 @@ class UserLocationSerializer < ApplicationSerializer
     object[:user].last_seen_at > 5.minutes.ago
   end
 
+  private
 
-end 
+  def user_field_name_map
+    @user_field_name_map ||= UserField.pluck(:id, :name).to_h
+  end
+
+  def normalize_field_value(value)
+    return value.join(", ") if value.is_a?(Array)
+    value.to_s
+  end
+
+  def gender_like_value?(value)
+    %w[男 女 male female m f].include?(value.to_s.downcase)
+  end
+
+end

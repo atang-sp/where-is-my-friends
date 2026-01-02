@@ -179,12 +179,43 @@
       <div class="nearby-users">
         <div class="users-header">
           <div class="users-title">
-            <h3>{{i18n "where_is_my_friends.nearby_users"}} ({{this.nearbyUsers.length}})</h3>
+            <h3>{{i18n "where_is_my_friends.nearby_users"}} ({{this.filteredUsers.length}})</h3>
+          </div>
+        </div>
+
+        <div class="users-filters">
+          <div class="filter-item">
+            <label>{{i18n "where_is_my_friends.filter_by_gender"}}</label>
+            <select onchange={{action (mut this.filterGender) value="target.value"}}>
+              <option value="all">{{i18n "where_is_my_friends.all_genders"}}</option>
+              <option value="male">{{i18n "where_is_my_friends.gender_male"}}</option>
+              <option value="female">{{i18n "where_is_my_friends.gender_female"}}</option>
+              <option value="other">{{i18n "where_is_my_friends.gender_other"}}</option>
+              <option value="unknown">{{i18n "where_is_my_friends.gender_unknown"}}</option>
+            </select>
+          </div>
+
+          <div class="filter-item filter-wide">
+            <label>{{i18n "where_is_my_friends.filter_by_attributes"}}</label>
+            <select onchange={{action (mut this.filterAttribute) value="target.value"}}>
+              <option value="all">{{i18n "where_is_my_friends.attribute_all"}}</option>
+              <option value="active">{{i18n "where_is_my_friends.attribute_active"}}</option>
+              <option value="passive">{{i18n "where_is_my_friends.attribute_passive"}}</option>
+              <option value="vers">{{i18n "where_is_my_friends.attribute_vers"}}</option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <label>{{i18n "where_is_my_friends.sort_by"}}</label>
+            <select onchange={{action (mut this.sortBy) value="target.value"}}>
+              <option value="distance">{{i18n "where_is_my_friends.sort_distance"}}</option>
+              <option value="recent">{{i18n "where_is_my_friends.sort_recent"}}</option>
+            </select>
           </div>
         </div>
         
         <div class="users-list">
-          {{#each this.nearbyUsers as |userData|}}
+          {{#each this.filteredUsers as |userData|}}
             <div class="user-card {{if userData.isCurrentUser 'current-user'}} {{if userData.is_online 'online'}}">
               <div class="user-avatar">
                 <a href="/u/{{userData.username}}">
@@ -209,27 +240,6 @@
                     {{#if userData.isCurrentUser}}
                       <span class="current-user-label">(您)</span>
                     {{/if}}
-                    {{#if userData.gender}}
-                      <span class="user-gender {{if (eq userData.gender "male") "gender-male" (if (eq userData.gender "female") "gender-female" "gender-other")}}">
-                        {{#if (eq userData.gender "male")}}
-                          <i class="fa fa-mars"></i>
-                          男
-                        {{else if (eq userData.gender "female")}}
-                          <i class="fa fa-venus"></i>
-                          女
-                        {{else}}
-                          <i class="fa fa-genderless"></i>
-                          {{userData.gender}}
-                        {{/if}}
-                      </span>
-                    {{/if}}
-                    {{#if userData.user_fields}}
-                      {{#each-in userData.user_fields as |key value|}}
-                        <span class="attribute-tag">
-                          {{value}}
-                        </span>
-                      {{/each-in}}
-                    {{/if}}
                   </div>
                   
                   <div class="distance">
@@ -249,6 +259,32 @@
                     <span class="bio-text">{{userData.bio}}</span>
                   </div>
                 {{/if}}
+
+                <div class="user-attributes">
+                  {{#if userData.gender}}
+                    <span class="attribute-tag gender-tag {{if (eq userData.gender "male") "gender-male" (if (eq userData.gender "female") "gender-female" "gender-other")}}">
+                      <strong>{{i18n "where_is_my_friends.gender_label"}}:</strong>
+                      {{#if (eq userData.gender "male")}}
+                        {{i18n "where_is_my_friends.gender_male"}}
+                      {{else if (eq userData.gender "female")}}
+                        {{i18n "where_is_my_friends.gender_female"}}
+                      {{else if (eq userData.gender "other")}}
+                        {{i18n "where_is_my_friends.gender_other"}}
+                      {{else}}
+                        {{userData.gender}}
+                      {{/if}}
+                    </span>
+                  {{/if}}
+
+                  {{#if userData.user_fields}}
+                    {{#each-in userData.user_fields as |key value|}}
+                      <span class="attribute-tag">
+                        <strong>{{key}}:</strong>
+                        {{value}}
+                      </span>
+                    {{/each-in}}
+                  {{/if}}
+                </div>
                 
                 {{#if userData.last_seen_at}}
                   <div class="last-seen">
@@ -265,9 +301,17 @@
           {{/each}}
         </div>
         
-        {{#unless this.nearbyUsers.length}}
+        {{#unless this.filteredUsers.length}}
           <div class="no-users-found">
-            <p><i class="fa fa-info-circle"></i> {{i18n "where_is_my_friends.no_users_found_range"}}</p>
+            {{#if this.filtersActive}}
+              <p><i class="fa fa-info-circle"></i> {{i18n "where_is_my_friends.no_users_match_filters"}}</p>
+              <button class="btn btn-default" {{action "clearFilters"}}>
+                <i class="fa fa-eraser"></i>
+                {{i18n "where_is_my_friends.clear_filters"}}
+              </button>
+            {{else}}
+              <p><i class="fa fa-info-circle"></i> {{i18n "where_is_my_friends.no_users_found_range"}}</p>
+            {{/if}}
           </div>
         {{/unless}}
       </div>

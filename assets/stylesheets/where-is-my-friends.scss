@@ -169,34 +169,6 @@
               font-weight: normal;
             }
 
-            .user-gender {
-              display: flex;
-              align-items: center;
-              font-size: 13px;
-              padding: 2px 8px;
-              border-radius: 12px;
-              background-color: var(--highlight-medium);
-              
-              i {
-                margin-right: 4px;
-                font-size: 12px;
-              }
-
-              &.gender-male {
-                color: #4285f4;
-                background-color: rgba(66, 133, 244, 0.1);
-              }
-
-              &.gender-female {
-                color: #ea4335;
-                background-color: rgba(234, 67, 53, 0.1);
-              }
-
-              &.gender-other {
-                color: var(--primary-medium);
-              }
-            }
-
             .attribute-tag {
               background-color: var(--highlight-medium);
               color: var(--primary-high);
@@ -265,6 +237,22 @@
               strong {
                 color: var(--primary);
               }
+
+              &.gender-male {
+                color: #4285f4;
+                background-color: rgba(66, 133, 244, 0.1);
+                border-color: rgba(66, 133, 244, 0.2);
+              }
+
+              &.gender-female {
+                color: #ea4335;
+                background-color: rgba(234, 67, 53, 0.1);
+                border-color: rgba(234, 67, 53, 0.2);
+              }
+
+              &.gender-other {
+                color: var(--primary-medium);
+              }
             }
           }
 
@@ -311,6 +299,48 @@
       padding: 40px;
       background-color: var(--highlight-low);
       border-radius: 8px;
+
+      .btn {
+        margin-top: 12px;
+      }
+    }
+  }
+
+  .users-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--primary-low);
+    background-color: var(--highlight-low);
+
+    .filter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 160px;
+
+      label {
+        font-size: 12px;
+        color: var(--primary-high);
+      }
+
+      select,
+      input {
+        padding: 8px 10px;
+        border: 1px solid var(--primary-low);
+        border-radius: 6px;
+        background-color: var(--secondary);
+        color: var(--primary);
+        font-size: 13px;
+      }
+    }
+
+    .filter-wide {
+      flex: 1;
+      min-width: 220px;
     }
   }
 

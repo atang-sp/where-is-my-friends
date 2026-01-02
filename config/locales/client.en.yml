@@ -81,7 +81,14 @@ en:
       # Filter functionality translations
       filter_by_gender: "Filter by Gender"
       filter_by_attributes: "Filter by Attributes"
+      sort_by: "Sort by"
       all_genders: "All Genders"
+      attribute_all: "All"
+      attribute_active: "Active"
+      attribute_passive: "Passive"
+      attribute_vers: "Versatile"
+      sort_distance: "Distance"
+      sort_recent: "Recently Online"
       male: "Male"
       female: "Female"
       other_gender: "Other"
@@ -93,6 +100,7 @@ en:
       no_users_match_filters: "No users match the current filters"
       
       # User information translations
+      gender_label: "Gender"
       user_online: "User is online"
       online_now: "Online"
       joined: "Joined"
