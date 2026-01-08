@@ -758,45 +758,111 @@
 
 // Responsive design
 @media (max-width: 768px) {
+  .modal-backdrop {
+    padding: 15px;
+  }
+
+  .virtual-location-modal {
+    max-width: 100%;
+    width: calc(100% - 30px);
+    max-height: 85vh;
+    border-radius: 8px;
+  }
+
   .where-is-my-friends-container {
     padding: 10px;
 
     .location-controls {
-      flex-direction: column;
-      align-items: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+
+      .btn {
+        flex: 1 1 calc(50% - 4px);
+        min-width: calc(50% - 4px);
+        max-width: calc(50% - 4px);
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 500;
+      }
     }
 
     .location-actions {
-      flex-direction: column;
-      align-items: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+
+      .btn {
+        flex: 1 1 calc(50% - 4px);
+        min-width: calc(50% - 4px);
+        max-width: calc(50% - 4px);
+        min-height: 44px;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 500;
+      }
     }
 
     .nearby-users {
       .users-list {
         .user-card {
-          flex-direction: column;
-          text-align: center;
+          flex-direction: row;
+          padding: 12px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 
           .user-avatar {
-            margin-right: 0;
-            margin-bottom: 10px;
+            margin-right: 12px;
+            margin-bottom: 0;
+            flex-shrink: 0;
           }
 
-                      .user-info {
-              text-align: center;
+          .user-info {
+            flex: 1;
+            min-width: 0;
 
-              .username {
-                justify-content: center;
-              }
+            .user-header {
+              margin-bottom: 6px;
+            }
 
-              .last-seen {
-                justify-content: center;
-              }
+            .username {
+              font-size: 14px;
+              margin-bottom: 4px;
+              justify-content: flex-start;
+              gap: 6px;
+            }
 
-              .user-bio {
-                text-align: center;
+            .distance {
+              font-size: 12px;
+              margin-bottom: 6px;
+            }
+
+            .user-bio {
+              padding: 6px 8px;
+              margin-bottom: 6px;
+              font-size: 12px;
+              line-height: 1.3;
+              text-align: left;
+            }
+
+            .user-attributes {
+              gap: 4px;
+              margin-bottom: 6px;
+
+              .attribute-tag {
+                font-size: 10px;
+                padding: 2px 6px;
               }
             }
+
+            .last-seen {
+              font-size: 11px;
+              margin-top: 6px;
+              justify-content: flex-start;
+            }
+          }
         }
       }
     }
@@ -824,34 +890,232 @@
         }
       }
     }
+
+    .users-filters {
+      padding: 8px;
+      gap: 8px;
+
+      .filter-item {
+        width: 100%;
+        min-width: unset;
+        gap: 6px;
+
+        label {
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--primary);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        select,
+        input {
+          width: 100%;
+          min-height: 44px;
+          padding: 10px 12px;
+          font-size: 14px;
+          border-radius: 8px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+          &:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+          }
+        }
+      }
+
+      .filter-wide {
+        flex: unset;
+        min-width: unset;
+        width: 100%;
+      }
+    }
   }
 
   .location-mode-dialog {
-    padding: 20px;
+    padding: 16px;
+    margin: 15px;
+    max-width: 100%;
+    width: calc(100% - 30px);
+
+    .dialog-header {
+      margin-bottom: 20px;
+
+      h3 {
+        font-size: 20px;
+
+        i {
+          margin-right: 8px;
+          font-size: 22px;
+        }
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
 
     .location-options {
-      flex-direction: column;
-      gap: 15px;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+
+      .location-option {
+        flex: 1 1 calc(50% - 6px);
+        min-width: calc(50% - 6px);
+        padding: 16px 12px;
+
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .option-icon {
+          font-size: 36px;
+          margin-bottom: 12px;
+        }
+
+        .option-content {
+          h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+          }
+
+          p {
+            font-size: 13px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+          }
+
+          .option-pros {
+            gap: 4px;
+
+            .pro {
+              font-size: 12px;
+
+              i {
+                margin-right: 4px;
+                font-size: 10px;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .dialog-footer {
+      .btn {
+        min-height: 44px;
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 500;
+      }
     }
   }
 
   .virtual-location-picker-container {
-    padding: 20px;
+    padding: 16px;
+
+    .picker-header {
+      margin-bottom: 20px;
+
+      h3 {
+        font-size: 20px;
+
+        i {
+          margin-right: 8px;
+          font-size: 20px;
+        }
+      }
+
+      .picker-description {
+        font-size: 14px;
+        line-height: 1.5;
+      }
+    }
 
     .map-container-wrapper {
+      margin-bottom: 16px;
+
       .virtual-map-container {
-        height: 300px;
+        height: 280px;
+      }
+    }
+
+    .location-info {
+      padding: 12px;
+      margin-bottom: 16px;
+
+      .selected-coordinates,
+      .selected-address {
+        margin-bottom: 6px;
+        font-size: 13px;
+
+        strong {
+          font-size: 13px;
+        }
+
+        .coordinates,
+        .address {
+          font-size: 13px;
+          margin-left: 6px;
+        }
       }
     }
 
     .picker-controls {
+      margin-bottom: 20px;
+
       .control-buttons {
-        flex-direction: column;
-        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
 
         .btn {
-          width: 100%;
-          max-width: 250px;
+          flex: 1 1 calc(50% - 4px);
+          min-width: calc(50% - 4px);
+          max-width: calc(50% - 4px);
+          min-height: 44px;
+          padding: 12px 16px;
+          font-size: 14px;
+          font-weight: 500;
+          min-width: unset;
+
+          i {
+            margin-right: 6px;
+            font-size: 14px;
+          }
+
+          &.btn-primary {
+            flex: 1 1 100%;
+            max-width: 100%;
+          }
+        }
+      }
+    }
+
+    .picker-tips {
+      padding: 16px;
+
+      h4 {
+        font-size: 15px;
+        margin-bottom: 12px;
+
+        i {
+          margin-right: 6px;
+          font-size: 15px;
+        }
+      }
+
+      ul {
+        padding-left: 16px;
+
+        li {
+          font-size: 13px;
+          margin-bottom: 6px;
         }
       }
     }
