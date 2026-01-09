@@ -166,7 +166,9 @@ module WhereIsMyFriends
     end
 
     def ip_location
-      uri = URI("http://ip-api.com/json/")
+      # 获取客户端真实 IP（而不是服务器 IP）
+      client_ip = request.remote_ip
+      uri = URI("http://ip-api.com/json/#{client_ip}")
 
       begin
         response = Net::HTTP.get_response(uri)
