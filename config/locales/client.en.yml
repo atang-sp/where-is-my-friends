@@ -109,4 +109,17 @@ en:
       gender_male: "Male"
       gender_female: "Female"
       gender_other: "Other"
-      gender_unknown: "Unknown" 
+      gender_unknown: "Unknown"
+      
+      # Location accuracy translations
+      low_accuracy_warning: "This user is using IP-based location, distance may be inaccurate"
+      location_source_gps: "GPS Location"
+      location_source_ip: "IP Location (Low Accuracy)"
+      ip_location_warning: "Using IP-based location with low accuracy (may have several kilometers of error). Please authorize browser location for more accurate results."
+
+      # GPS failed translations
+      gps_failed_title: "GPS Location Failed"
+      gps_failed_desc: "Unable to get your real location. This may be because browser permission was denied, device location service is off, or you're using a desktop computer. We recommend using virtual location to manually select a position."
+      use_virtual_instead: "Use Virtual Location"
+      use_virtual_instead_desc: "Manually select your desired location on the map to protect privacy while still using the feature"
+      no_gps_needed: "No GPS permission needed"

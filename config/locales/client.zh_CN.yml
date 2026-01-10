@@ -101,4 +101,17 @@ zh_CN:
       gender_male: "男"
       gender_female: "女"
       gender_other: "其他"
-      gender_unknown: "未知" 
+      gender_unknown: "未知"
+      
+      # 定位精度相关翻译
+      low_accuracy_warning: "此用户使用IP定位，距离可能不准确"
+      location_source_gps: "GPS定位"
+      location_source_ip: "IP定位（低精度）"
+      ip_location_warning: "使用IP定位，精度较低（可能有数公里误差）。建议授权浏览器定位以获得更准确的结果。"
+
+      # GPS定位失败相关翻译
+      gps_failed_title: "GPS定位失败"
+      gps_failed_desc: "无法获取您的真实位置。这可能是因为浏览器权限被拒绝、设备位置服务未开启，或者您使用的是桌面电脑。建议使用虚拟定位功能手动选择位置。"
+      use_virtual_instead: "使用虚拟定位"
+      use_virtual_instead_desc: "在地图上手动选择您想要显示的位置，保护隐私的同时也能正常使用功能"
+      no_gps_needed: "无需GPS权限"

@@ -27,6 +27,41 @@
     </div>
   {{/if}}
 
+  <!-- GPS定位失败，引导使用虚拟定位 -->
+  {{#if this.gpsFailedSuggestVirtual}}
+    <div class="modal-backdrop">
+      <div class="location-mode-dialog gps-failed-dialog">
+        <div class="dialog-header">
+          <h3><i class="fa fa-exclamation-triangle"></i> {{i18n "where_is_my_friends.gps_failed_title"}}</h3>
+          <p>{{i18n "where_is_my_friends.gps_failed_desc"}}</p>
+        </div>
+
+        <div class="location-options">
+          <div class="location-option virtual-location recommended" {{action "useVirtualLocationInstead"}}>
+            <div class="option-icon">
+              <i class="fa fa-map"></i>
+            </div>
+            <div class="option-content">
+              <h4>{{i18n "where_is_my_friends.use_virtual_instead"}}</h4>
+              <p>{{i18n "where_is_my_friends.use_virtual_instead_desc"}}</p>
+              <div class="option-pros">
+                <span class="pro"><i class="fa fa-check"></i> {{i18n "where_is_my_friends.no_gps_needed"}}</span>
+                <span class="pro"><i class="fa fa-check"></i> {{i18n "where_is_my_friends.privacy_protection"}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog-footer">
+          <button class="btn btn-default" {{action "dismissGpsFailedSuggestion"}}>
+            <i class="fa fa-times"></i>
+            {{i18n "where_is_my_friends.cancel"}}
+          </button>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+
   <!-- 位置模式选择对话框 -->
   {{#if this.showLocationModeDialog}}
     <div class="modal-backdrop">
@@ -103,8 +138,24 @@
             {{/if}}
           {{else}}
             {{i18n "where_is_my_friends.location_shared"}}
+            {{#if (eq this.currentUser.location.location_source "gps")}}
+              <span class="location-source-badge gps">
+                <i class="fa fa-satellite"></i> GPS
+              </span>
+            {{else if (eq this.currentUser.location.location_source "ip")}}
+              <span class="location-source-badge ip">
+                <i class="fa fa-wifi"></i> IP定位（低精度）
+              </span>
+            {{/if}}
           {{/if}}
         </div>
+        
+        {{#if this.locationStatus}}
+          <div class="alert alert-{{this.locationStatus.type}}">
+            <i class="fa fa-exclamation-triangle"></i>
+            {{this.locationStatus.message}}
+          </div>
+        {{/if}}
         
         <div class="location-actions">
           <button class="btn btn-primary" {{action "findNearbyUsers"}} disabled={{this.loading}}>
@@ -182,6 +233,13 @@
             <h3>{{i18n "where_is_my_friends.nearby_users"}} ({{this.filteredUsers.length}})</h3>
           </div>
         </div>
+        
+        {{#if this.nearbyWarning}}
+          <div class="alert alert-warning nearby-accuracy-warning">
+            <i class="fa fa-exclamation-triangle"></i>
+            {{this.nearbyWarning}}
+          </div>
+        {{/if}}
 
         <div class="users-filters">
           <div class="filter-item">
@@ -248,6 +306,10 @@
                     {{#if userData.is_virtual}}
                       <span class="virtual-badge" title="{{i18n 'where_is_my_friends.using_virtual_location'}}">
                         <i class="fa fa-shield-alt"></i>
+                      </span>
+                    {{else if userData.is_low_accuracy}}
+                      <span class="low-accuracy-badge" title="{{i18n 'where_is_my_friends.low_accuracy_warning'}}">
+                        <i class="fa fa-exclamation-triangle"></i>
                       </span>
                     {{/if}}
                   </div>

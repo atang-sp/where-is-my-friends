@@ -137,35 +137,44 @@ export default Controller.extend({
       this.set("error", null);
       this.set("debugInfo", null);
 
-      let latitude, longitude;
+      let latitude, longitude, locationAccuracy;
 
-      // 1) 尝试浏览器原生定位
+      // 尝试浏览器原生定位（高精度GPS）
       try {
-        const position = await getCurrentPositionAsync({ enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 });
+        const position = await getCurrentPositionAsync({
+          enableHighAccuracy: true,  // 优先请求高精度
+          timeout: 15000,            // 延长超时，给GPS更多时间
+          maximumAge: 0              // 不使用缓存，获取最新位置
+        });
         ({ latitude, longitude } = position.coords);
-      } catch (geoError) {
-        console.warn("HTML5 geolocation failed, fallback to IP geolocation", geoError);
-        // 2) 尝试 ip-api.com 定位
-        try {
-          const loc = await this.getLocationViaIp();
-          ({ latitude, longitude } = loc);
-        } catch (fallbackError) {
-          const errorMsg = fallbackError.message || fallbackError;
-          this.set("error", `IP 定位失败: ${errorMsg}`);
-          this.set("debugInfo", { error: errorMsg });
-          this.set("loading", false);
-          return;
+        locationAccuracy = position.coords.accuracy;  // 精度（米）
+
+        console.log(`✅ GPS定位成功: (${latitude}, ${longitude}), 精度: ${locationAccuracy}m`);
+
+        // 检查GPS精度，如果太低则警告
+        if (locationAccuracy > 1000) {
+          console.warn(`⚠️ GPS精度较低: ${locationAccuracy}m，可能影响距离计算`);
         }
+      } catch (geoError) {
+        console.warn("GPS定位失败:", geoError);
+
+        // GPS定位失败，引导用户使用虚拟定位
+        this.set("loading", false);
+        this.set("error", null);
+        this.set("gpsFailedSuggestVirtual", true);
+        return;
       }
 
       try {
         // 保存真实位置信息
         await ajax("/api/where-is-my-friends/locations", {
           type: "POST",
-          data: { 
-            latitude, 
+          data: {
+            latitude,
             longitude,
-            is_virtual: false
+            is_virtual: false,
+            location_source: 'gps',
+            location_accuracy: locationAccuracy
           }
         });
 
@@ -174,14 +183,16 @@ export default Controller.extend({
         this.set("locationStatus", null);
 
         // 更新当前用户的位置信息
-        this.set("currentUser.location", { 
-          latitude, 
+        this.set("currentUser.location", {
+          latitude,
           longitude,
           is_virtual: false,
-          location_type: 'real'
+          location_type: 'real',
+          location_source: 'gps',
+          location_accuracy: locationAccuracy
         });
 
-        console.log('✅ 真实位置信息已保存');
+        console.log(`✅ 真实位置信息已保存`);
 
         // 清除附近用户列表（因为位置已更新）
         this.set("nearbyUsers", null);
@@ -196,6 +207,15 @@ export default Controller.extend({
       } finally {
         this.set("loading", false);
       }
+    },
+
+    useVirtualLocationInstead() {
+      this.set("gpsFailedSuggestVirtual", false);
+      this.send("selectVirtualLocation");
+    },
+
+    dismissGpsFailedSuggestion() {
+      this.set("gpsFailedSuggestVirtual", false);
     },
 
     onVirtualLocationConfirm(locationData) {
@@ -217,6 +237,7 @@ export default Controller.extend({
 
       this.set("loading", true);
       this.set("error", null);
+      this.set("nearbyWarning", null);
 
       try {
         const { latitude, longitude } = this.currentUser.location;
@@ -234,8 +255,19 @@ export default Controller.extend({
         
         console.log('✅ 找到附近用户:', result.users?.length || 0, '个');
         
+        // 记录统计信息
+        if (result.stats) {
+          console.log('📊 定位统计:', result.stats);
+        }
+        
         this.set("nearbyUsers", result.users || []);
         this.set("error", null);
+        
+        // 显示低精度警告
+        if (result.warning) {
+          console.warn('⚠️', result.warning);
+          this.set("nearbyWarning", result.warning);
+        }
         
       } catch (error) {
         console.error('❌ 查找附近用户失败:', error);
