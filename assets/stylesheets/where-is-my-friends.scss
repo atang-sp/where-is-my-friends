@@ -109,7 +109,7 @@
     .users-list {
       .user-card {
         display: flex;
-        align-items: center;
+        flex-direction: column;
         padding: 15px;
         border: 1px solid var(--primary-low);
         border-radius: 8px;
@@ -144,56 +144,72 @@
           }
         }
 
+        // 卡片头部：头像 + 基本信息
+        .card-header {
+          display: flex;
+          align-items: flex-start;
+          width: 100%;
+        }
+
         .user-avatar {
           position: relative;
           margin-right: 15px;
+          flex-shrink: 0;
         }
 
-        .user-info {
+        .user-basic {
           flex: 1;
-          min-width: 0; // 关键：支持子元素 text-overflow 截断
+          min-width: 0;
+        }
 
-          .user-header {
-            margin-bottom: 8px;
-          }
+        .username {
+          font-weight: bold;
+          color: var(--primary);
+          font-size: 16px;
+          margin-bottom: 4px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
 
-          .username {
-            font-weight: bold;
+          a {
             color: var(--primary);
-            font-size: 16px;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
+            text-decoration: none;
 
-            a {
-              color: var(--primary);
-              text-decoration: none;
-
-              &:hover {
-                text-decoration: underline;
-              }
-            }
-
-            .current-user-label {
-              background-color: var(--primary);
-              color: white;
-              font-size: 11px;
-              padding: 2px 6px;
-              border-radius: 12px;
-              font-weight: normal;
-            }
-
-            .attribute-tag {
-              background-color: var(--highlight-medium);
-              color: var(--primary-high);
-              padding: 2px 8px;
-              border-radius: 12px;
-              font-size: 11px;
-              border: 1px solid var(--primary-low);
+            &:hover {
+              text-decoration: underline;
             }
           }
+
+          .current-user-label {
+            background-color: var(--primary);
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: normal;
+          }
+
+          .online-indicator {
+            color: var(--success);
+            font-size: 10px;
+            
+            i {
+              animation: pulse 2s infinite;
+            }
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        // 卡片内容区
+        .card-body {
+          width: 100%;
+          margin-top: 10px;
+        }
 
           .user-location {
             margin-bottom: 10px;
@@ -916,91 +932,153 @@
     .nearby-users {
       .users-list {
         .user-card {
-          flex-direction: row;
           padding: 12px;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 
-          .user-avatar {
-            margin-right: 12px;
-            margin-bottom: 0;
-            flex-shrink: 0;
+          // 卡片头部：头像 + 基本信息
+          .card-header {
+            display: flex;
+            align-items: flex-start;
+            width: 100%;
           }
 
-          .user-info {
+          .user-avatar {
+            margin-right: 10px;
+            flex-shrink: 0;
+            
+            img, .avatar {
+              width: 50px !important;
+              height: 50px !important;
+            }
+
+            .current-user-badge {
+              width: 18px;
+              height: 18px;
+              font-size: 9px;
+              top: -3px;
+              right: -3px;
+            }
+          }
+
+          .user-basic {
             flex: 1;
             min-width: 0;
 
-            .user-header {
-              margin-bottom: 6px;
-            }
-
             .username {
-              font-size: 14px;
+              font-size: 15px;
+              font-weight: 600;
               margin-bottom: 4px;
-              justify-content: flex-start;
+              display: flex;
+              align-items: center;
+              flex-wrap: wrap;
               gap: 6px;
+
+              a {
+                color: var(--primary);
+              }
+
+              .current-user-label {
+                font-size: 10px;
+                padding: 1px 5px;
+              }
+
+              .online-indicator {
+                color: var(--success);
+                font-size: 8px;
+              }
             }
 
             .user-location {
-              margin-bottom: 8px;
+              margin-top: 2px;
 
               .distance {
-                font-size: 12px;
+                font-size: 13px;
+                font-weight: 600;
                 margin-bottom: 2px;
+                
+                > i:first-child {
+                  font-size: 11px;
+                }
               }
 
               .virtual-address {
-                font-size: 11px;
+                font-size: 12px;
                 
                 .address-text {
-                  max-width: 150px; // 移动端缩短
+                  max-width: 160px;
+                }
+                
+                > i:first-child {
+                  font-size: 11px;
                 }
               }
             }
+          }
 
+          // 卡片内容区
+          .card-body {
+            margin-top: 10px;
+
+            // Bio 区域
             .user-bio {
-              padding: 6px 8px;
-              margin-bottom: 6px;
+              padding: 8px 10px;
+              margin-bottom: 10px;
+              
+              i {
+                display: none; // 移动端隐藏引号图标
+              }
               
               .bio-text {
-                font-size: 12px;
-                line-height: 1.4;
-                // 移动端：最多2行（约40字）
+                font-size: 13px;
+                line-height: 1.5;
                 -webkit-line-clamp: 2;
-                max-height: calc(1.4em * 2);
+                max-height: calc(1.5em * 2);
               }
             }
 
+            // 属性标签区域
             .user-attributes {
-              gap: 4px;
-              margin-bottom: 6px;
-              // 移动端：允许横向滚动，避免换行导致布局混乱
+              display: flex;
               flex-wrap: nowrap;
+              gap: 6px;
+              margin-bottom: 10px;
               overflow-x: auto;
               -webkit-overflow-scrolling: touch;
-              padding-bottom: 4px; // 给滚动条留空间
+              padding-bottom: 2px;
               
-              // 隐藏滚动条但保持滚动功能
+              // 隐藏滚动条
+              scrollbar-width: none;
+              -ms-overflow-style: none;
               &::-webkit-scrollbar {
-                height: 2px;
-              }
-              &::-webkit-scrollbar-thumb {
-                background-color: var(--primary-low);
-                border-radius: 2px;
+                display: none;
               }
 
               .attribute-tag {
-                font-size: 11px;
-                padding: 3px 8px;
-                flex-shrink: 0; // 不压缩，保持完整显示
+                font-size: 12px;
+                padding: 4px 10px;
+                flex-shrink: 0;
+                white-space: nowrap;
               }
             }
 
+            // 最后在线时间
             .last-seen {
-              font-size: 11px;
-              margin-top: 6px;
-              justify-content: flex-start;
-              white-space: nowrap; // 确保移动端也不换行
+              font-size: 12px;
+              padding-top: 8px;
+              margin-top: 8px;
+              border-top: 1px solid var(--primary-very-low);
+              color: var(--primary-medium);
+
+              .last-seen-text {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+
+              .online-text {
+                color: var(--success);
+                font-weight: 600;
+              }
             }
           }
         }

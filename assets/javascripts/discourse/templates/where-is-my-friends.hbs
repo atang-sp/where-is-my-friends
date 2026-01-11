@@ -275,28 +275,29 @@
         <div class="users-list">
           {{#each this.filteredUsers as |userData|}}
             <div class="user-card {{if userData.isCurrentUser 'current-user'}} {{if userData.is_online 'online'}}">
-              <div class="user-avatar">
-                <a href="/u/{{userData.username}}">
-                  {{avatar userData imageSize="large"}}
-                </a>
-                {{#if userData.isCurrentUser}}
-                  <div class="current-user-badge">
-                    <i class="fa fa-user"></i>
-                  </div>
-                {{/if}}
-                {{#if userData.is_online}}
-                  <div class="online-badge" title="{{i18n 'where_is_my_friends.user_online'}}">
-                    <i class="fa fa-circle"></i>
-                  </div>
-                {{/if}}
-              </div>
-              
-              <div class="user-info">
-                <div class="user-header">
+              {{!-- 卡片头部：头像 + 基本信息 --}}
+              <div class="card-header">
+                <div class="user-avatar">
+                  <a href="/u/{{userData.username}}">
+                    {{avatar userData imageSize="large"}}
+                  </a>
+                  {{#if userData.isCurrentUser}}
+                    <div class="current-user-badge">
+                      <i class="fa fa-user"></i>
+                    </div>
+                  {{/if}}
+                </div>
+                
+                <div class="user-basic">
                   <div class="username">
                     <a href="/u/{{userData.username}}">{{userData.username}}</a>
                     {{#if userData.isCurrentUser}}
                       <span class="current-user-label">(您)</span>
+                    {{/if}}
+                    {{#if userData.is_online}}
+                      <span class="online-indicator" title="{{i18n 'where_is_my_friends.user_online'}}">
+                        <i class="fa fa-circle"></i>
+                      </span>
                     {{/if}}
                   </div>
                   
@@ -321,7 +322,10 @@
                     {{/if}}
                   </div>
                 </div>
-                
+              </div>
+
+              {{!-- 卡片内容区 --}}
+              <div class="card-body">
                 {{#if userData.bio}}
                   <div class="user-bio" title="{{userData.bio}}">
                     <i class="fa fa-quote-left"></i>
@@ -361,7 +365,7 @@
                     {{#if userData.is_online}}
                       <span class="online-text">在线</span>
                     {{else}}
-                      最后在线: {{format-date userData.last_seen_at}}
+                      <span class="last-seen-text">最后在线: {{format-date userData.last_seen_at}}</span>
                     {{/if}}
                   </div>
                 {{/if}}
