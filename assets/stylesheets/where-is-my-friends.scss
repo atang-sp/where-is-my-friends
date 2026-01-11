@@ -195,53 +195,71 @@
             }
           }
 
-          .distance {
-            color: var(--tertiary);
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            flex-wrap: nowrap;
-            min-width: 0; // 支持子元素截断
+          .user-location {
+            margin-bottom: 10px;
 
-            > i:first-child {
-              margin-right: 5px;
-              flex-shrink: 0;
-            }
+            .distance {
+              color: var(--tertiary);
+              font-size: 14px;
+              font-weight: bold;
+              margin-bottom: 4px;
+              display: flex;
+              align-items: center;
 
-            .location-text {
-              // 位置文字截断 - 最多约20字
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              max-width: 180px; // 约20字宽度
-              display: inline-block;
-              vertical-align: middle;
-            }
+              > i:first-child {
+                margin-right: 6px;
+                flex-shrink: 0;
+              }
 
-            .virtual-badge {
-              color: var(--success);
-              margin-left: 8px;
-              flex-shrink: 0;
+              .distance-text {
+                white-space: nowrap;
+              }
               
-              i {
-                margin-right: 2px;
+              .low-accuracy-badge {
+                color: var(--highlight);
+                background-color: rgba(255, 193, 7, 0.15);
+                padding: 2px 6px;
+                border-radius: 4px;
+                margin-left: 8px;
+                font-size: 11px;
+                flex-shrink: 0;
+                
+                i {
+                  margin-right: 2px;
+                  color: #f0ad4e;
+                }
               }
             }
-            
-            .low-accuracy-badge {
-              color: var(--highlight);
-              background-color: rgba(255, 193, 7, 0.15);
-              padding: 2px 6px;
-              border-radius: 4px;
-              margin-left: 8px;
-              font-size: 11px;
-              flex-shrink: 0;
-              
-              i {
-                margin-right: 2px;
-                color: #f0ad4e;
+
+            .virtual-address {
+              color: var(--primary-medium);
+              font-size: 13px;
+              display: flex;
+              align-items: center;
+              padding-left: 2px;
+
+              > i:first-child {
+                margin-right: 6px;
+                flex-shrink: 0;
+                color: var(--primary-low-mid);
+              }
+
+              .address-text {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 200px;
+              }
+
+              .virtual-badge {
+                color: var(--success);
+                margin-left: 8px;
+                flex-shrink: 0;
+                font-size: 12px;
+                
+                i {
+                  margin-right: 0;
+                }
               }
             }
           }
@@ -923,12 +941,20 @@
               gap: 6px;
             }
 
-            .distance {
-              font-size: 12px;
-              margin-bottom: 6px;
+            .user-location {
+              margin-bottom: 8px;
 
-              .location-text {
-                max-width: 140px; // 移动端缩短
+              .distance {
+                font-size: 12px;
+                margin-bottom: 2px;
+              }
+
+              .virtual-address {
+                font-size: 11px;
+                
+                .address-text {
+                  max-width: 150px; // 移动端缩短
+                }
               }
             }
 

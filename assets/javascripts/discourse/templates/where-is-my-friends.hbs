@@ -300,17 +300,24 @@
                     {{/if}}
                   </div>
                   
-                  <div class="distance">
-                    <i class="fa fa-map-marker-alt"></i>
-                    <span class="location-text" title="{{userData.location_display_name}}">{{userData.location_display_name}}</span>
+                  <div class="user-location">
+                    <div class="distance">
+                      <i class="fa fa-location-arrow"></i>
+                      <span class="distance-text">{{userData.distance}}km 外</span>
+                      {{#if userData.is_low_accuracy}}
+                        <span class="low-accuracy-badge" title="{{i18n 'where_is_my_friends.low_accuracy_warning'}}">
+                          <i class="fa fa-exclamation-triangle"></i>
+                        </span>
+                      {{/if}}
+                    </div>
                     {{#if userData.is_virtual}}
-                      <span class="virtual-badge" title="{{i18n 'where_is_my_friends.using_virtual_location'}}">
-                        <i class="fa fa-shield-alt"></i>
-                      </span>
-                    {{else if userData.is_low_accuracy}}
-                      <span class="low-accuracy-badge" title="{{i18n 'where_is_my_friends.low_accuracy_warning'}}">
-                        <i class="fa fa-exclamation-triangle"></i>
-                      </span>
+                      <div class="virtual-address">
+                        <i class="fa fa-map-marker-alt"></i>
+                        <span class="address-text" title="{{userData.virtual_address}}">{{userData.virtual_address}}</span>
+                        <span class="virtual-badge" title="{{i18n 'where_is_my_friends.using_virtual_location'}}">
+                          <i class="fa fa-shield-alt"></i>
+                        </span>
+                      </div>
                     {{/if}}
                   </div>
                 </div>
