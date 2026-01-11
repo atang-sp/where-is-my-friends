@@ -151,9 +151,10 @@
 
         .user-info {
           flex: 1;
+          min-width: 0; // 关键：支持子元素 text-overflow 截断
 
           .user-header {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
           }
 
           .username {
@@ -198,15 +199,31 @@
             color: var(--tertiary);
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            min-width: 0; // 支持子元素截断
 
-            i {
+            > i:first-child {
               margin-right: 5px;
+              flex-shrink: 0;
+            }
+
+            .location-text {
+              // 位置文字截断 - 最多约20字
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 180px; // 约20字宽度
+              display: inline-block;
+              vertical-align: middle;
             }
 
             .virtual-badge {
               color: var(--success);
               margin-left: 8px;
+              flex-shrink: 0;
               
               i {
                 margin-right: 2px;
@@ -220,6 +237,7 @@
               border-radius: 4px;
               margin-left: 8px;
               font-size: 11px;
+              flex-shrink: 0;
               
               i {
                 margin-right: 2px;
@@ -257,18 +275,30 @@
             border-radius: 6px;
             margin-bottom: 10px;
             border-left: 3px solid var(--primary-low);
+            display: flex;
+            align-items: flex-start;
 
             i {
               color: var(--primary-medium);
               margin-right: 8px;
               font-size: 12px;
+              flex-shrink: 0;
+              margin-top: 2px;
             }
 
             .bio-text {
               color: var(--primary-high);
               font-size: 13px;
-              line-height: 1.4;
+              line-height: 1.5;
               font-style: italic;
+              // 多行截断 - 最多3行（约60字）
+              display: -webkit-box;
+              -webkit-line-clamp: 3;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              word-break: break-word;
+              max-height: calc(1.5em * 3); // 3行高度
             }
           }
 
@@ -889,14 +919,23 @@
             .distance {
               font-size: 12px;
               margin-bottom: 6px;
+
+              .location-text {
+                max-width: 140px; // 移动端缩短
+              }
             }
 
             .user-bio {
               padding: 6px 8px;
               margin-bottom: 6px;
-              font-size: 12px;
-              line-height: 1.3;
-              text-align: left;
+              
+              .bio-text {
+                font-size: 12px;
+                line-height: 1.4;
+                // 移动端：最多2行（约40字）
+                -webkit-line-clamp: 2;
+                max-height: calc(1.4em * 2);
+              }
             }
 
             .user-attributes {
