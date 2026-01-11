@@ -3,7 +3,8 @@
 class UserLocationSerializer < ApplicationSerializer
   attributes :id, :username, :name, :avatar_template, :distance, :last_seen_at,
              :is_virtual, :virtual_address, :location_type, :gender, :bio,
-             :user_fields, :location_display_name, :is_online
+             :user_fields, :location_display_name, :is_online,
+             :location_source, :location_accuracy, :is_low_accuracy
 
   def id
     object[:user].id
@@ -135,6 +136,22 @@ class UserLocationSerializer < ApplicationSerializer
     # 判断用户是否在线（最近5分钟活跃）
     return false unless object[:user].last_seen_at
     object[:user].last_seen_at > 5.minutes.ago
+  end
+  
+  def location_source
+    object[:location].location_source || 'unknown'
+  end
+  
+  def location_accuracy
+    object[:location].location_accuracy
+  end
+  
+  def is_low_accuracy
+    # IP定位或精度超过1000米视为低精度
+    return false if is_virtual
+    return true if location_source == 'ip'
+    return true if location_accuracy.present? && location_accuracy > 1000
+    location_source == 'unknown'
   end
 
   private
