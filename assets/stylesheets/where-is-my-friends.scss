@@ -311,13 +311,18 @@
             .attribute-tag {
               background-color: var(--highlight-medium);
               color: var(--primary-high);
-              padding: 3px 8px;
+              padding: 4px 10px;
               border-radius: 12px;
-              font-size: 11px;
+              font-size: 12px;
               border: 1px solid var(--primary-low);
+              white-space: nowrap; // 关键：保证标签内容不换行
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
 
               strong {
                 color: var(--primary);
+                font-weight: 600;
               }
 
               &.gender-male {
@@ -344,9 +349,11 @@
             display: flex;
             align-items: center;
             margin-top: 8px;
+            white-space: nowrap; // 关键：保证"最后在线"不换行
 
             i {
               margin-right: 4px;
+              flex-shrink: 0;
             }
 
             .online-text {
@@ -941,10 +948,25 @@
             .user-attributes {
               gap: 4px;
               margin-bottom: 6px;
+              // 移动端：允许横向滚动，避免换行导致布局混乱
+              flex-wrap: nowrap;
+              overflow-x: auto;
+              -webkit-overflow-scrolling: touch;
+              padding-bottom: 4px; // 给滚动条留空间
+              
+              // 隐藏滚动条但保持滚动功能
+              &::-webkit-scrollbar {
+                height: 2px;
+              }
+              &::-webkit-scrollbar-thumb {
+                background-color: var(--primary-low);
+                border-radius: 2px;
+              }
 
               .attribute-tag {
-                font-size: 10px;
-                padding: 2px 6px;
+                font-size: 11px;
+                padding: 3px 8px;
+                flex-shrink: 0; // 不压缩，保持完整显示
               }
             }
 
@@ -952,6 +974,7 @@
               font-size: 11px;
               margin-top: 6px;
               justify-content: flex-start;
+              white-space: nowrap; // 确保移动端也不换行
             }
           }
         }
