@@ -184,4 +184,3 @@ installed. It exercises two users in the same city plus an administrator:
 
 No merge to `main` occurs until server tests, front-end tests, linting, and the
 Playwright suite all pass on the feature branch.
-

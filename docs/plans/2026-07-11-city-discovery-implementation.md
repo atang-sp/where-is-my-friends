@@ -548,4 +548,3 @@ git merge --no-ff feat/city-discovery
 Expected: merge commit on `main`, no conflict. Re-run `git status --short` and
 the essential plugin/Playwright gates against the merged commit before reporting
 completion.
-
