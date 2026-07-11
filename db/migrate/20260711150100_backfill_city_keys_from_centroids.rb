@@ -6,7 +6,7 @@ class BackfillCityKeysFromCentroids < ActiveRecord::Migration[7.0]
 
   def up
     require File.expand_path(
-              "../../../lib/where_is_my_friends/city_centroid_lookup",
+              "../../lib/where_is_my_friends/city_centroid_lookup",
               __dir__
             )
     lookup = WhereIsMyFriends::CityCentroidLookup.instance
