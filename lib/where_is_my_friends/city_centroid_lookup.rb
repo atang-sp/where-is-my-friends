@@ -5,7 +5,7 @@ require "json"
 module WhereIsMyFriends
   class CityCentroidLookup
     DATA_PATH =
-      File.expand_path("../../../data/city_centroids.json", __dir__).freeze
+      File.expand_path("../../data/city_centroids.json", __dir__).freeze
     EARTH_RADIUS_KM = 6371.0
 
     def self.instance
