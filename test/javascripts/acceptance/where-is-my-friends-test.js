@@ -142,6 +142,52 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.dom(".where-is-my-friends").exists();
   });
 
+  test("setup uses social proof, city suggestions, and an optional region", async function (assert) {
+    api.initial = {
+      state: "setup",
+      current_user: { id: 1, username: "current-user" },
+      location: null,
+      active_participants: { suppressed: false, count: 12 },
+      city_suggestions: [
+        { city: "上海", city_key: "上海" },
+        { city: "北京", city_key: "北京" },
+      ],
+      settings: { location_ttl_days: 30 },
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert
+      .dom("[data-test-participant-proof]")
+      .hasText("12 members have joined local discovery");
+    assert
+      .dom("[data-test-city-input]")
+      .hasAttribute("list", "where-is-my-friends-city-suggestions");
+    assert
+      .dom("#where-is-my-friends-city-suggestions option")
+      .exists({ count: 2 });
+    assert.dom("[data-test-region-field]").doesNotExist();
+
+    await click("[data-test-toggle-region]");
+    assert.dom("[data-test-region-field]").exists();
+    await fillIn("[data-test-city-input]", "上海");
+    await fillIn("[data-test-region-field]", "上海");
+    await click("[data-test-save-city]");
+
+    assert.strictEqual(api.savedLocations[0].region, "上海");
+  });
+
+  test("editing a saved region keeps the optional field visible", async function (assert) {
+    api.initial = readyState();
+    api.initial.location.region = "上海";
+
+    await visit("/where-is-my-friends");
+    await click("[data-test-update-location]");
+
+    assert.dom("[data-test-region-field]").hasValue("上海");
+    assert.dom("[data-test-toggle-region]").doesNotExist();
+  });
+
   test("first visit saves a city and automatically loads results", async function (assert) {
     api.nearby = {
       state: "ready",

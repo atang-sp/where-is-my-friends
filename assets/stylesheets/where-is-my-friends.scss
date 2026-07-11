@@ -53,11 +53,11 @@
 
 .where-is-my-friends__header {
   max-width: 44rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 
   h1 {
     margin: 0.2rem 0 0.75rem;
-    font-size: clamp(2rem, 6vw, 3.6rem);
+    font-size: clamp(1.9rem, 5vw, 3rem);
     line-height: 1.05;
     letter-spacing: -0.04em;
   }
@@ -130,6 +130,20 @@
     justify-self: start;
     margin-top: 0.75rem;
   }
+}
+
+.where-is-my-friends__participant-proof {
+  width: fit-content;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: var(--tertiary-very-low);
+  color: var(--primary) !important;
+  font-size: var(--font-down-1);
+  font-weight: 650;
+}
+
+.where-is-my-friends__add-region.btn {
+  margin-top: 0;
 }
 
 .where-is-my-friends__privacy {
