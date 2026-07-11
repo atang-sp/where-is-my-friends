@@ -28,6 +28,7 @@ en:
       remove_location: "Remove location"
       location_settings: "Location settings"
       loading_results: "Looking for local members…"
+      generic_error: "We couldn't load local discovery. Please try again."
       people_in_city: "People in your city"
       results_count_one: "%{count} local member in %{city}"
       results_count_other: "%{count} local members in %{city}"
@@ -42,6 +43,9 @@ en:
       browse_local_topics: "Browse local topics"
       browse_topics_for: "Browse topics about %{city}"
       empty_invitation: "Know someone local? Invite them to join this conversation on the forum."
+      copy_invite: "Copy invite link"
+      invite_copied: "Invite link copied to your clipboard"
+      invite_copy_failed: "Could not copy the invite link. Please try again."
       distance_bands:
         same_city: "same city"
         under_5: "within about 5 km"
