@@ -10,19 +10,12 @@ enabled_site_setting :where_is_my_friends_enabled
 
 register_asset 'stylesheets/where-is-my-friends.scss'
 
+require_relative "lib/where_is_my_friends/engine"
+
 # JavaScript files under assets/javascripts are automatically included in JS bundles
 # No need to manually register them with register_asset
 
 after_initialize do
-  # Load the model
-  load File.expand_path('../app/models/user_location.rb', __FILE__)
-  
-  # Load the serializer
-  load File.expand_path('../app/serializers/user_location_serializer.rb', __FILE__)
-  
-  # Load the controller
-  load File.expand_path('../app/controllers/where_is_my_friends/locations_controller.rb', __FILE__)
-  
   # Add list controller extension for frontend route
   reloadable_patch do |plugin|
     ListController.class_eval do
@@ -50,4 +43,4 @@ after_initialize do
 
   # Add admin route
   add_admin_route 'where_is_my_friends.title', 'where-is-my-friends'
-end 
+end

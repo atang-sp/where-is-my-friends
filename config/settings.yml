@@ -61,11 +61,20 @@ plugins:
     translated: true
 
   where_is_my_friends_max_users_display:
-    default: 500
+    default: 50
     min: 10
-    max: 5000
+    max: 200
     client: true
     type: integer
     description: "附近用户列表的最大显示数量"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_location_ttl_days:
+    default: 30
+    min: 1
+    max: 365
+    type: integer
+    description: "位置在多少天后自动过期并删除"
     category: "where_is_my_friends"
     translated: true
