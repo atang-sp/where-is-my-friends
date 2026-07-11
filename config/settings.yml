@@ -68,3 +68,10 @@ plugins:
     description: "显示精确活跃人数所需的最少用户数"
     category: "where_is_my_friends"
     translated: true
+
+  where_is_my_friends_seed_cities:
+    default: ""
+    type: string
+    description: "推荐城市列表，用竖线分隔（如 上海|北京|深圳|New York|Tokyo）"
+    category: "where_is_my_friends"
+    translated: true

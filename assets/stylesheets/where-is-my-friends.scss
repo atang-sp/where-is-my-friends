@@ -171,6 +171,23 @@
   font-weight: 650;
 }
 
+.where-is-my-friends__city-preview {
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.4rem;
+  background: var(--success-low);
+  color: var(--success);
+  font-size: var(--font-down-1);
+  font-weight: 600;
+}
+
+.where-is-my-friends__city-hint {
+  margin: 0;
+  color: var(--primary-medium);
+  font-size: var(--font-down-1);
+  font-style: italic;
+}
+
 .where-is-my-friends__add-region.btn {
   margin-top: 0;
 }

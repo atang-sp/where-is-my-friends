@@ -13,3 +13,4 @@ en:
     where_is_my_friends_max_users_display: "Maximum number of users to display in the local list"
     where_is_my_friends_location_ttl_days: "Days before stored discovery locations expire"
     where_is_my_friends_aggregate_privacy_threshold: "Minimum participants before showing an exact aggregate count"
+    where_is_my_friends_seed_cities: "Suggested cities for autocomplete, separated by | (e.g. Shanghai|Beijing|New York|Tokyo)"
