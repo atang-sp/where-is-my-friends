@@ -5,7 +5,7 @@ export default {
   name: "where-is-my-friends",
 
   initialize() {
-    withPluginApi("0.8.31", api => {
+    withPluginApi(api => {
       // 添加导航栏项目
       api.addNavigationBarItem({
         name: "where-is-my-friends",
