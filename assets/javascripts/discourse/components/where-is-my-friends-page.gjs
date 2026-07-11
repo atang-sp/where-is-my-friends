@@ -3,14 +3,19 @@ import { tracked } from "@glimmer/tracking";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
+import { next } from "@ember/runloop";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import DButton from "discourse/ui-kit/d-button";
 import dAvatar from "discourse/ui-kit/helpers/d-avatar";
 import { i18n } from "discourse-i18n";
+import { getCurrentPositionAsync } from "../lib/where-is-my-friends-geolocation";
+import LocationModeDialog from "./location-mode-dialog";
+import VirtualLocationPicker from "./virtual-location-picker";
 
 export default class WhereIsMyFriendsPage extends Component {
   @service currentUser;
+  @service modal;
 
   @tracked city;
   @tracked region;
@@ -19,6 +24,7 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked users = [];
   @tracked loading = false;
   @tracked error = null;
+  @tracked gpsFallback = false;
 
   constructor() {
     super(...arguments);
@@ -122,6 +128,67 @@ export default class WhereIsMyFriendsPage extends Component {
     }
   }
 
+  @action
+  openAdvancedLocation() {
+    this.gpsFallback = false;
+    this.modal.show(LocationModeDialog, {
+      model: {
+        onGps: () => this.upgradeWithGps(),
+        onMap: () => next(() => this.openMapPicker()),
+      },
+    });
+  }
+
+  @action
+  openMapPicker() {
+    this.modal.show(VirtualLocationPicker, {
+      model: {
+        settings: this.args.model.settings,
+        onConfirm: (coordinates) => this.savePrecise("map", coordinates),
+      },
+    });
+  }
+
+  async upgradeWithGps() {
+    this.loading = true;
+    this.error = null;
+    try {
+      const position = await getCurrentPositionAsync();
+      await this.savePrecise("gps", {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        location_accuracy: position.coords.accuracy,
+      });
+    } catch {
+      this.gpsFallback = true;
+      this.loading = false;
+    }
+  }
+
+  async savePrecise(discoveryMode, coordinates) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const response = await ajax("/where-is-my-friends/locations.json", {
+        type: "POST",
+        data: {
+          city: this.location.city,
+          region: this.location.region ?? "",
+          discovery_mode: discoveryMode,
+          ...coordinates,
+        },
+      });
+      this.location = response.location;
+      this.discoveryState = response.state;
+      void this.recordEvent("location_saved", { location_mode: discoveryMode });
+      await this.loadResults();
+    } catch (error) {
+      this.error = this.errorMessage(error);
+    } finally {
+      this.loading = false;
+    }
+  }
+
   async recordEvent(eventName, data = {}) {
     try {
       await ajax("/where-is-my-friends/events.json", {
@@ -199,12 +266,30 @@ export default class WhereIsMyFriendsPage extends Component {
             }}</p>
         </section>
       {{else}}
-        <section class="where-is-my-friends__location-summary">
+        <section
+          class="where-is-my-friends__location-summary"
+          data-test-location-mode={{this.location.discovery_mode}}
+        >
           <div>
             <span>{{i18n "where_is_my_friends.your_city"}}</span>
             <strong>{{this.location.city}}</strong>
           </div>
+          {{#if @model.settings.virtual_location_enabled}}
+            <DButton
+              @action={{this.openAdvancedLocation}}
+              @label="where_is_my_friends.advanced_location"
+              @icon="map-location-dot"
+              class="btn-flat"
+              data-test-advanced-location
+            />
+          {{/if}}
         </section>
+
+        {{#if this.gpsFallback}}
+          <p class="alert alert-info" data-test-gps-fallback>{{i18n
+              "where_is_my_friends.gps_city_fallback"
+            }}</p>
+        {{/if}}
 
         {{#if this.loading}}
           <div class="where-is-my-friends__loading" role="status">

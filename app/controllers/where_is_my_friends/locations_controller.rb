@@ -137,12 +137,25 @@ module WhereIsMyFriends
     end
 
     def client_settings
-      {
+      settings = {
         virtual_location_enabled:
           SiteSetting.where_is_my_friends_enable_virtual_location,
         map_provider: SiteSetting.where_is_my_friends_map_provider,
         location_ttl_days: UserLocation.ttl_days
       }
+
+      case settings[:map_provider]
+      when "amap"
+        settings[
+          :amap_api_key
+        ] = SiteSetting.where_is_my_friends_amap_api_key.presence
+      when "baidu"
+        settings[
+          :baidu_api_key
+        ] = SiteSetting.where_is_my_friends_baidu_api_key.presence
+      end
+
+      settings.compact
     end
 
     def active_participants

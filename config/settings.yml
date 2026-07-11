@@ -35,7 +35,7 @@ plugins:
     translated: true
   
   where_is_my_friends_map_provider:
-    default: "amap"
+    default: "openstreetmap"
     client: true
     type: enum
     choices:
@@ -49,14 +49,14 @@ plugins:
   where_is_my_friends_amap_api_key:
     default: ""
     type: string
-    description: "高德地图API密钥（用于虚拟定位功能）"
+    description: "高德地图浏览器API密钥（必须限制到论坛域名）"
     category: "where_is_my_friends"
     translated: true
   
   where_is_my_friends_baidu_api_key:
     default: ""
     type: string
-    description: "百度地图API密钥（用于虚拟定位功能）"
+    description: "百度地图浏览器API密钥（必须限制到论坛域名）"
     category: "where_is_my_friends"
     translated: true
 

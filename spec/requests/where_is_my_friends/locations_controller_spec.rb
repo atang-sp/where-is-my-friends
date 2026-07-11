@@ -42,6 +42,22 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "location_accuracy"
       )
     end
+
+    it "exposes only the selected map provider browser key" do
+      SiteSetting.where_is_my_friends_map_provider = "amap"
+      SiteSetting.where_is_my_friends_amap_api_key = "amap-browser-key"
+      SiteSetting.where_is_my_friends_baidu_api_key = "baidu-browser-key"
+      sign_in(user)
+
+      get "/where-is-my-friends.json"
+
+      settings = response.parsed_body.fetch("settings")
+      expect(settings).to include(
+        "map_provider" => "amap",
+        "amap_api_key" => "amap-browser-key"
+      )
+      expect(settings).not_to have_key("baidu_api_key")
+    end
   end
 
   describe "POST /where-is-my-friends/locations.json" do
