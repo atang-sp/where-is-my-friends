@@ -19,6 +19,30 @@ async function openDiscovery(context, page, username) {
 }
 
 test.describe.serial("Local Friends against real Discourse", () => {
+  test("topic lists expose the privacy-safe local discovery entry", async ({
+    context,
+    page,
+  }) => {
+    await authenticate(context, "admin");
+    await page.goto("/latest");
+
+    const callout = page.locator("[data-test-local-friends-callout]");
+    await expect(callout).toBeVisible();
+    await expect(
+      page.locator("[data-test-local-friends-callout-proof]")
+    ).toHaveText("3 members are already participating");
+    await page.locator("[data-test-local-friends-callout-cta]").click();
+
+    await expect(page).toHaveURL(PLUGIN_PATH);
+    await expect(page.locator("[data-test-participant-proof]")).toHaveText(
+      "3 members have joined local discovery"
+    );
+    await expect(page.locator("#where-is-my-friends-city-suggestions option")).toHaveCount(2);
+    await expect(page.locator("[data-test-region-field]")).toHaveCount(0);
+    await page.locator("[data-test-toggle-region]").click();
+    await expect(page.locator("[data-test-region-field]")).toBeVisible();
+  });
+
   test("city-only onboarding automatically shows same-city members", async ({
     context,
     page,
@@ -39,6 +63,13 @@ test.describe.serial("Local Friends against real Discourse", () => {
   test("an empty city offers a local topic path", async ({ context, page }) => {
     await openDiscovery(context, page, "empty_city");
     await expect(page.locator("[data-test-empty-state]")).toBeVisible();
+    await context.grantPermissions(["clipboard-read", "clipboard-write"], {
+      origin: "http://127.0.0.1:3000",
+    });
+    await page.locator("[data-test-copy-invite]").click();
+    await expect(page.locator("[data-test-invite-feedback]")).toHaveText(
+      "Invite link copied to your clipboard"
+    );
     const localTopics = page.locator("[data-test-local-topics]");
     await expect(localTopics).toHaveAttribute("href", /\/search\?q=/);
     await localTopics.click();
@@ -50,6 +81,17 @@ test.describe.serial("Local Friends against real Discourse", () => {
     const profile = page.locator("[data-test-profile-link='shanghai_two']");
     const message = page.locator("[data-test-message-link='shanghai_two']");
 
+    await expect(page.locator("[data-test-results-summary]")).toHaveText(
+      "2 local members in 上海"
+    );
+    await expect(page.locator("[data-test-local-topics]")).toHaveAttribute(
+      "href",
+      "/search?q=%E4%B8%8A%E6%B5%B7"
+    );
+    const locationSettings = page.locator("[data-test-location-settings]");
+    await expect(locationSettings).not.toHaveAttribute("open", "");
+    await page.locator("[data-test-location-settings-toggle]").click();
+    await expect(locationSettings).toHaveAttribute("open", "");
     await expect(profile).toHaveAttribute("href", "/u/shanghai_two");
     await expect(message).toHaveAttribute(
       "href",
@@ -69,6 +111,7 @@ test.describe.serial("Local Friends against real Discourse", () => {
   }) => {
     await context.clearPermissions();
     await openDiscovery(context, page, "shanghai_one");
+    await page.locator("[data-test-location-settings-toggle]").click();
     await page.locator("[data-test-advanced-location]").click();
     await page.locator("[data-test-use-gps]").click();
 
@@ -78,6 +121,7 @@ test.describe.serial("Local Friends against real Discourse", () => {
 
   test("map selection upgrades the stored mode", async ({ context, page }) => {
     await openDiscovery(context, page, "shanghai_two");
+    await page.locator("[data-test-location-settings-toggle]").click();
     await page.locator("[data-test-advanced-location]").click();
     await page.locator("[data-test-use-map]").click();
     await expect(page.locator("[data-test-map-provider]")).toHaveText(
@@ -93,6 +137,7 @@ test.describe.serial("Local Friends against real Discourse", () => {
 
   test("a member can remove their discovery location", async ({ context, page }) => {
     await openDiscovery(context, page, "empty_city");
+    await page.locator("[data-test-location-settings-toggle]").click();
     await page.locator("[data-test-remove-location]").click();
 
     await expect(page.locator("[data-test-city-input]")).toBeVisible();
