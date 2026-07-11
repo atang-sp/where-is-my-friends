@@ -28,11 +28,13 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked error = null;
   @tracked gpsFallback = false;
   @tracked memberFilter = "";
+  @tracked showRegion;
 
   constructor() {
     super(...arguments);
     this.city = this.args.model.location?.city ?? "";
     this.region = this.args.model.location?.region ?? "";
+    this.showRegion = Boolean(this.region);
     this.location = this.args.model.location;
     this.discoveryState = this.args.model.state;
   }
@@ -88,6 +90,17 @@ export default class WhereIsMyFriendsPage extends Component {
     return new Date(this.location.expires_at).toLocaleDateString();
   }
 
+  get participantProof() {
+    const participants = this.args.model.active_participants;
+    if (!participants || participants.suppressed) {
+      return i18n("where_is_my_friends.participant_proof_generic");
+    }
+
+    return i18n("where_is_my_friends.participant_proof_count", {
+      count: participants.count,
+    });
+  }
+
   @action
   initialize() {
     void this.recordEvent("page_view");
@@ -104,6 +117,11 @@ export default class WhereIsMyFriendsPage extends Component {
   @action
   updateRegion(event) {
     this.region = event.target.value;
+  }
+
+  @action
+  revealRegion() {
+    this.showRegion = true;
   }
 
   @action
@@ -226,6 +244,7 @@ export default class WhereIsMyFriendsPage extends Component {
   @action
   editLocation() {
     this.discoveryState = "setup";
+    this.showRegion = Boolean(this.region);
     this.users = [];
     this.memberFilter = "";
     this.gpsFallback = false;
@@ -305,6 +324,10 @@ export default class WhereIsMyFriendsPage extends Component {
           {{/if}}
           <h2>{{i18n "where_is_my_friends.setup_title"}}</h2>
           <p>{{i18n "where_is_my_friends.setup_description"}}</p>
+          <p
+            class="where-is-my-friends__participant-proof"
+            data-test-participant-proof
+          >{{this.participantProof}}</p>
           <label for="where-is-my-friends-city">{{i18n
               "where_is_my_friends.city"
             }}</label>
@@ -312,20 +335,37 @@ export default class WhereIsMyFriendsPage extends Component {
             id="where-is-my-friends-city"
             type="text"
             value={{this.city}}
+            list="where-is-my-friends-city-suggestions"
             autocomplete="address-level2"
             data-test-city-input
             {{on "input" this.updateCity}}
           />
-          <label for="where-is-my-friends-region">{{i18n
-              "where_is_my_friends.region_optional"
-            }}</label>
-          <input
-            id="where-is-my-friends-region"
-            type="text"
-            value={{this.region}}
-            autocomplete="address-level1"
-            {{on "input" this.updateRegion}}
-          />
+          <datalist id="where-is-my-friends-city-suggestions">
+            {{#each @model.city_suggestions as |suggestion|}}
+              <option value={{suggestion.city}}></option>
+            {{/each}}
+          </datalist>
+          {{#if this.showRegion}}
+            <label for="where-is-my-friends-region">{{i18n
+                "where_is_my_friends.region_optional"
+              }}</label>
+            <input
+              id="where-is-my-friends-region"
+              type="text"
+              value={{this.region}}
+              autocomplete="address-level1"
+              data-test-region-field
+              {{on "input" this.updateRegion}}
+            />
+          {{else}}
+            <DButton
+              @action={{this.revealRegion}}
+              @label="where_is_my_friends.add_region"
+              @icon="plus"
+              class="btn-flat where-is-my-friends__add-region"
+              data-test-toggle-region
+            />
+          {{/if}}
           <DButton
             @action={{this.saveCity}}
             @label="where_is_my_friends.save_city"
