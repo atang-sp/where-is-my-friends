@@ -1,4 +1,4 @@
-import { click, fillIn, triggerEvent, visit } from "@ember/test-helpers";
+import { click, fillIn, triggerEvent, visit, waitFor } from "@ember/test-helpers";
 import { test } from "qunit";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 
@@ -39,9 +39,13 @@ function setupApi(needs, state) {
     });
 
     server.get("/where-is-my-friends/locations/nearby.json", () => {
+      if (state.nearbyError) {
+        return helper.response(500, { errors: [] });
+      }
+
       state.nearbyRequests += 1;
       return helper.response(state.nearby ?? { state: "empty", users: [] });
-    });
+    }, state.nearbyDelay);
 
     server.delete("/where-is-my-friends/locations.json", () => {
       state.deleteRequests += 1;
@@ -61,6 +65,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
   needs.user({ username: "current-user" });
   const api = {};
   let originalGeolocation;
+  let originalClipboard;
 
   needs.hooks.beforeEach(() => {
     sessionStorage.removeItem(CALLOUT_DISMISSED_KEY);
@@ -68,12 +73,15 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       navigator,
       "geolocation"
     );
+    originalClipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
     Object.assign(api, {
       initial: null,
       nearby: null,
       saveError: null,
       events: [],
       nearbyRequests: 0,
+      nearbyDelay: 0,
+      nearbyError: false,
       savedLocations: [],
       deleteRequests: 0,
     });
@@ -85,6 +93,11 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       Object.defineProperty(navigator, "geolocation", originalGeolocation);
     } else {
       delete navigator.geolocation;
+    }
+    if (originalClipboard) {
+      Object.defineProperty(navigator, "clipboard", originalClipboard);
+    } else {
+      delete navigator.clipboard;
     }
   });
 
@@ -267,6 +280,30 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.dom("[data-test-error] img").doesNotExist();
   });
 
+  test("generic discovery failures use translated recovery copy", async function (assert) {
+    api.initial = readyState();
+    api.nearbyError = true;
+
+    await visit("/where-is-my-friends");
+
+    assert
+      .dom("[data-test-error]")
+      .hasText("We couldn't load local discovery. Please try again.");
+  });
+
+  test("loading results shows temporary member-card skeletons", async function (assert) {
+    api.nearbyDelay = 250;
+
+    await visit("/where-is-my-friends");
+    await fillIn("[data-test-city-input]", "上海");
+    const save = click("[data-test-save-city]");
+
+    await waitFor("[data-test-result-skeleton]");
+    assert.dom("[data-test-result-skeleton]").exists({ count: 3 });
+    await save;
+    assert.dom("[data-test-result-skeleton]").doesNotExist();
+  });
+
   test("the current user is not rendered even if returned defensively", async function (assert) {
     api.initial = {
       state: "ready",
@@ -439,6 +476,36 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     await triggerEvent("[data-test-local-topics]", "click", { ctrlKey: true });
     assert.true(api.events.includes("local_topics_clicked"));
     assert.dom("[data-test-empty-invitation]").exists();
+  });
+
+  test("empty state copies an invite link and announces the outcome", async function (assert) {
+    api.initial = readyState();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: () => Promise.resolve() },
+    });
+
+    await visit("/where-is-my-friends");
+    await click("[data-test-copy-invite]");
+
+    assert
+      .dom("[data-test-invite-feedback]")
+      .hasText("Invite link copied to your clipboard");
+  });
+
+  test("empty state explains when copying an invite link fails", async function (assert) {
+    api.initial = readyState();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: () => Promise.reject() },
+    });
+
+    await visit("/where-is-my-friends");
+    await click("[data-test-copy-invite]");
+
+    assert
+      .dom("[data-test-invite-feedback]")
+      .hasText("Could not copy the invite link. Please try again.");
   });
 });
 

@@ -8,6 +8,7 @@ import { LinkTo } from "@ember/routing";
 import { next } from "@ember/runloop";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
+import { clipboardCopy } from "discourse/lib/utilities";
 import DButton from "discourse/ui-kit/d-button";
 import dAvatar from "discourse/ui-kit/helpers/d-avatar";
 import { i18n } from "discourse-i18n";
@@ -29,6 +30,7 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked gpsFallback = false;
   @tracked memberFilter = "";
   @tracked showRegion;
+  @tracked inviteFeedback = null;
 
   constructor() {
     super(...arguments);
@@ -302,9 +304,21 @@ export default class WhereIsMyFriendsPage extends Component {
     }
   }
 
+  @action
+  async copyInvite() {
+    try {
+      await clipboardCopy(new URL("/where-is-my-friends", window.location).href);
+      this.inviteFeedback = i18n("where_is_my_friends.invite_copied");
+    } catch {
+      this.inviteFeedback = i18n("where_is_my_friends.invite_copy_failed");
+    }
+  }
+
   errorMessage(error) {
     const response = error?.jqXHR?.responseJSON ?? error?.responseJSON;
-    return response?.errors?.[0] ?? "Unable to load local discovery.";
+    return (
+      response?.errors?.[0] ?? i18n("where_is_my_friends.generic_error")
+    );
   }
 
   <template>
@@ -450,6 +464,14 @@ export default class WhereIsMyFriendsPage extends Component {
           <div class="where-is-my-friends__loading" role="status">
             {{i18n "where_is_my_friends.loading_results"}}
           </div>
+          <div
+            class="where-is-my-friends__skeleton-grid"
+            aria-hidden="true"
+          >
+            <article data-test-result-skeleton></article>
+            <article data-test-result-skeleton></article>
+            <article data-test-result-skeleton></article>
+          </div>
         {{else if this.hasUsers}}
           <section class="where-is-my-friends__results">
             <div class="where-is-my-friends__results-heading">
@@ -553,6 +575,16 @@ export default class WhereIsMyFriendsPage extends Component {
                 (fn this.trackConnection "local_topics_clicked")
               }}
             >{{i18n "where_is_my_friends.browse_local_topics"}}</LinkTo>
+            <DButton
+              @action={{this.copyInvite}}
+              @label="where_is_my_friends.copy_invite"
+              @icon="link"
+              class="btn"
+              data-test-copy-invite
+            />
+            {{#if this.inviteFeedback}}
+              <p role="status" data-test-invite-feedback>{{this.inviteFeedback}}</p>
+            {{/if}}
             <p data-test-empty-invitation>{{i18n
                 "where_is_my_friends.empty_invitation"
               }}</p>

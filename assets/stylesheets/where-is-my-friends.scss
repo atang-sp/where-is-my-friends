@@ -267,6 +267,31 @@
   text-align: center;
 }
 
+.where-is-my-friends__skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+
+  article {
+    min-height: 10rem;
+    border-radius: 0.9rem;
+    background: linear-gradient(
+      100deg,
+      var(--primary-very-low) 20%,
+      var(--primary-low) 40%,
+      var(--primary-very-low) 60%
+    );
+    background-size: 200% 100%;
+    animation: where-is-my-friends-skeleton 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes where-is-my-friends-skeleton {
+  to {
+    background-position: -200% 0;
+  }
+}
+
 .where-is-my-friends__results {
   h2 {
     margin-bottom: 1rem;
@@ -442,7 +467,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .where-is-my-friends__user-card {
+  .where-is-my-friends__user-card,
+  .where-is-my-friends__skeleton-grid article {
     transition: none;
+    animation: none;
   }
 }
