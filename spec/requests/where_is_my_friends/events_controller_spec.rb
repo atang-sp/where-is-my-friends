@@ -101,11 +101,23 @@ RSpec.describe WhereIsMyFriends::EventsController do
       expect(response.parsed_body).to include("window_days" => 7)
       expect(response.parsed_body.fetch("funnel")).to include(
         "unique_page_visitors" => 1,
-        "result_bucket_distribution" => { "one_to_four" => 1 }
+        "result_bucket_distribution" => {
+          "one_to_four" => 1
+        }
       )
       expect(response.parsed_body.fetch("locations")).to eq(
-        "active" => { "total" => 1, "by_mode" => { "city" => 1 } },
-        "expired" => { "total" => 1, "by_mode" => { "map" => 1 } }
+        "active" => {
+          "total" => 1,
+          "by_mode" => {
+            "city" => 1
+          }
+        },
+        "expired" => {
+          "total" => 1,
+          "by_mode" => {
+            "map" => 1
+          }
+        }
       )
     end
   end

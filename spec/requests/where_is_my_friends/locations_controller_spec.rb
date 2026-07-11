@@ -94,6 +94,21 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       expect(response.status).to eq(422)
       expect(UserLocation.find_by(user_id: user.id)).to be_nil
     end
+
+    it "rejects precise modes when the administrator disables them" do
+      SiteSetting.where_is_my_friends_enable_virtual_location = false
+
+      post "/where-is-my-friends/locations.json",
+           params: {
+             city: "上海",
+             discovery_mode: "gps",
+             latitude: 31.2304,
+             longitude: 121.4737
+           }
+
+      expect(response.status).to eq(422)
+      expect(UserLocation.find_by(user_id: user.id)).to be_nil
+    end
   end
 
   describe "GET /where-is-my-friends/locations/nearby.json" do
@@ -151,6 +166,15 @@ RSpec.describe WhereIsMyFriends::LocationsController do
 
       result = response.parsed_body.fetch("users").first
       expect(result["distance_band"]).to eq("under_5")
+      expect(result.keys).to contain_exactly(
+        "id",
+        "username",
+        "name",
+        "avatar_template",
+        "city",
+        "distance_band",
+        "message_url"
+      )
       expect(response.body).not_to include(
         "latitude",
         "longitude",

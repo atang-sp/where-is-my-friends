@@ -26,6 +26,16 @@ module WhereIsMyFriends
     end
 
     def create
+      if discovery_mode != "city" &&
+           !SiteSetting.where_is_my_friends_enable_virtual_location
+        return(
+          render_json_error(
+            I18n.t("where_is_my_friends.invalid_location"),
+            status: 422
+          )
+        )
+      end
+
       location =
         if discovery_mode == "city"
           UserLocation.upsert_city_location(
@@ -64,7 +74,7 @@ module WhereIsMyFriends
           .active_for_discovery
           .where(city_key: origin.city_key)
           .where.not(user_id: current_user.id)
-          .includes(user: :user_profile)
+          .includes(:user)
           .order(updated_at: :desc)
           .limit(
             UserLocation.discovery_limit(

@@ -22,7 +22,7 @@ Local Friends 让论坛成员先用“城市”发现同城用户，再按需启
 - 插件不调用 IP 定位或 Nominatim 逆地理编码。
 - 活跃人数低于隐私阈值时不会返回精确总数。
 
-管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据。
+管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。
 
 ## 安装与升级
 

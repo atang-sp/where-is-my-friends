@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+unless Rails.env.development?
+  raise "Local Friends E2E setup is development-only"
+end
+
 password = "LocalFriendsTest123!"
 users = {
   admin: {
