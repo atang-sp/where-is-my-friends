@@ -17,7 +17,7 @@ module WhereIsMyFriends
                  username: current_user.username
                },
                location: location_metadata(location),
-               active_participants: UserLocation.active_for_discovery.count,
+               active_participants: active_participants,
                city_suggestions: city_suggestions,
                settings: client_settings
              }
@@ -94,7 +94,8 @@ module WhereIsMyFriends
                expired:
                  UserLocation.where("expires_at <= ?", Time.current).count,
                by_mode:
-                 UserLocation.active_for_discovery.group(:discovery_mode).count
+                 UserLocation.active_for_discovery.group(:discovery_mode).count,
+               funnel: WhereIsMyFriendsEvent.aggregate
              }
     end
 
@@ -142,6 +143,18 @@ module WhereIsMyFriends
         map_provider: SiteSetting.where_is_my_friends_map_provider,
         location_ttl_days: UserLocation.ttl_days
       }
+    end
+
+    def active_participants
+      count = UserLocation.active_for_discovery.count
+      threshold =
+        SiteSetting.where_is_my_friends_aggregate_privacy_threshold.to_i.clamp(
+          2,
+          20
+        )
+      return { suppressed: true } if count < threshold
+
+      { suppressed: false, count: count }
     end
 
     def ensure_plugin_enabled

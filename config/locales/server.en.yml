@@ -13,6 +13,7 @@ en:
     please_share_location_first: "Please share your location first"
     invalid_coordinates: "Invalid coordinates"
     invalid_location: "Please provide a valid city and location."
+    invalid_event: "This activity cannot be recorded."
     nearby_users_found: "Found %{count} nearby friends"
     no_nearby_users: "No friends found within the specified distance"
     distance_km: "%{distance} km"
