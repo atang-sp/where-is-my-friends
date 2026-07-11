@@ -36,6 +36,9 @@ module WhereIsMyFriends
         )
       end
 
+      previous_city_key =
+        UserLocation.find_by(user_id: current_user.id)&.city_key
+
       location =
         if discovery_mode == "city"
           UserLocation.upsert_city_location(
@@ -54,6 +57,8 @@ module WhereIsMyFriends
             location_accuracy: params[:location_accuracy]
           )
         end
+
+      enqueue_member_joined_notification(location, previous_city_key)
 
       render json: { state: "ready", location: location_metadata(location) }
     rescue ActiveRecord::RecordInvalid
@@ -74,7 +79,7 @@ module WhereIsMyFriends
           .active_for_discovery
           .where(city_key: origin.city_key)
           .where.not(user_id: current_user.id)
-          .includes(:user)
+          .includes(user: :user_profile)
           .order(updated_at: :desc)
           .limit(
             UserLocation.discovery_limit(
@@ -202,6 +207,18 @@ module WhereIsMyFriends
 
     def ensure_plugin_enabled
       raise Discourse::NotFound unless SiteSetting.where_is_my_friends_enabled
+    end
+
+    def enqueue_member_joined_notification(location, previous_city_key)
+      return if location.city_key.blank?
+      return if previous_city_key == location.city_key
+
+      Jobs.enqueue(
+        :where_is_my_friends_notify_city_members,
+        joiner_id: current_user.id,
+        city: location.city,
+        city_key: location.city_key
+      )
     end
   end
 end

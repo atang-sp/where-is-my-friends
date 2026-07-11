@@ -2,6 +2,8 @@ zh_CN:
   where_is_my_friends:
     invalid_location: "请提供有效的城市和位置信息"
     invalid_event: "无法记录此活动"
+    notification:
+      member_joined_description: "也加入了 %{city} 的同城发现"
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
     where_is_my_friends_enable_virtual_location: "允许可选的 GPS 和地图距离范围"

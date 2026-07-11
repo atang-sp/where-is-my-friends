@@ -9,7 +9,9 @@ class UserLocationSerializer < ApplicationSerializer
              :avatar_template,
              :city,
              :distance_band,
-             :message_url
+             :message_url,
+             :is_recent,
+             :bio_excerpt
 
   def id
     user.id
@@ -37,6 +39,17 @@ class UserLocationSerializer < ApplicationSerializer
 
   def message_url
     "/new-message?username=#{CGI.escape(username)}"
+  end
+
+  def is_recent
+    location.updated_at > 7.days.ago
+  end
+
+  def bio_excerpt
+    raw = user.user_profile&.bio_raw
+    return nil if raw.blank?
+
+    raw.to_s.gsub(/\s+/, " ").strip.truncate(80)
   end
 
   private

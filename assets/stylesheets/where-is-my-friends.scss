@@ -30,6 +30,29 @@
     }
   }
 
+  &__setup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+
+    input {
+      min-width: min(100%, 12rem);
+      min-height: 2.25rem;
+      margin: 0;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid var(--primary-low-mid);
+      border-radius: 0.5rem;
+      background: var(--secondary);
+      color: var(--primary);
+    }
+  }
+
+  &__error {
+    color: var(--danger) !important;
+    font-size: var(--font-down-1);
+  }
+
   &__dismiss {
     align-self: start;
   }
@@ -372,6 +395,30 @@
   }
 }
 
+.where-is-my-friends__new-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--success-low);
+  color: var(--success);
+  font-size: var(--font-down-2);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
+.where-is-my-friends__bio {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  color: var(--primary-high) !important;
+  font-size: var(--font-down-1);
+  line-height: 1.45;
+}
+
 .where-is-my-friends__user-actions {
   display: flex;
   grid-column: 1 / -1;
@@ -403,10 +450,20 @@
     grid-template-columns: minmax(0, 1fr) auto;
     width: min(100% - 1.25rem, 72rem);
 
-    > .btn-primary {
+    > .btn-primary,
+    > .local-friends-callout__setup {
       grid-column: 1 / -1;
       grid-row: 2;
       justify-content: center;
+    }
+
+    &__setup {
+      width: 100%;
+
+      input,
+      .btn {
+        flex: 1 1 auto;
+      }
     }
 
     &__dismiss {

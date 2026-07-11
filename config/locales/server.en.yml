@@ -2,6 +2,8 @@ en:
   where_is_my_friends:
     invalid_location: "Please provide a valid city and location."
     invalid_event: "This activity cannot be recorded."
+    notification:
+      member_joined_description: "also joined local discovery in %{city}"
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
     where_is_my_friends_enable_virtual_location: "Allow optional GPS and map distance bands"

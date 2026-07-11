@@ -68,3 +68,13 @@ zh_CN:
       longitude: "经度"
       invalid_coordinates: "请输入有效的经纬度。"
       confirm_selection: "使用这个地图位置"
+      new_member_badge: "新"
+      notify_city_members: "有新成员加入同城时通知我"
+      callout_city_placeholder: "输入你的城市"
+      callout_save_city: "加入"
+      callout_joined_title: "已加入！"
+      callout_joined_description: "查看 %{city} 的同城成员"
+      callout_save_error: "无法保存城市，请重试。"
+      notification:
+        title: "同城朋友"
+        member_joined: "加入了同城发现"

@@ -14,6 +14,11 @@ register_asset "stylesheets/where-is-my-friends.scss"
 require_relative "lib/where_is_my_friends/engine"
 
 after_initialize do
+  UserUpdater::OPTION_ATTR.push(:where_is_my_friends_notify_city)
+  add_to_serializer(:user_option, :where_is_my_friends_notify_city) do
+    object.where_is_my_friends_notify_city
+  end
+
   # Render the Discourse application for the client route, then mount the JSON API.
   Discourse::Application.routes.append do
     get "/where-is-my-friends.json" => "where_is_my_friends/locations#index",

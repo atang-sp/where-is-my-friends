@@ -68,3 +68,13 @@ en:
       longitude: "Longitude"
       invalid_coordinates: "Enter valid latitude and longitude values."
       confirm_selection: "Use this map location"
+      new_member_badge: "NEW"
+      notify_city_members: "Notify me when someone new joins my city"
+      callout_city_placeholder: "Enter your city"
+      callout_save_city: "Join"
+      callout_joined_title: "You're in!"
+      callout_joined_description: "View local members in %{city}"
+      callout_save_error: "Could not save your city. Please try again."
+      notification:
+        title: "Local Friends"
+        member_joined: "joined local discovery"

@@ -179,6 +179,7 @@ RSpec.describe WhereIsMyFriends::LocationsController do
 
       result = response.parsed_body.fetch("users").first
       expect(result["distance_band"]).to eq("under_5")
+      expect(result["is_recent"]).to eq(true)
       expect(result.keys).to contain_exactly(
         "id",
         "username",
@@ -186,7 +187,9 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "avatar_template",
         "city",
         "distance_band",
-        "message_url"
+        "message_url",
+        "is_recent",
+        "bio_excerpt"
       )
       expect(response.body).not_to include(
         "latitude",
@@ -197,6 +200,22 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       )
     end
 
+    it "includes a truncated plain-text bio excerpt for nearby members" do
+      UserLocation.upsert_city_location(user.id, city: "上海")
+      nearby_user = Fabricate(:user)
+      nearby_user.user_profile.update!(
+        bio_raw: "Loves hiking around the city parks and weekend coffee."
+      )
+      UserLocation.upsert_city_location(nearby_user.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      result = response.parsed_body.fetch("users").first
+      expect(result["bio_excerpt"]).to eq(
+        "Loves hiking around the city parks and weekend coffee."
+      )
+    end
+
     it "returns explicit empty and setup states" do
       get "/where-is-my-friends/locations/nearby.json"
       expect(response.parsed_body["state"]).to eq("setup")
@@ -204,6 +223,34 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       UserLocation.upsert_city_location(user.id, city: "成都")
       get "/where-is-my-friends/locations/nearby.json"
       expect(response.parsed_body).to include("state" => "empty", "users" => [])
+    end
+  end
+
+  describe "member joined notifications" do
+    before { sign_in(user) }
+
+    it "enqueues a city notification when a member newly joins a city" do
+      existing = Fabricate(:user)
+      UserLocation.upsert_city_location(existing.id, city: "上海")
+
+      expect do
+        post "/where-is-my-friends/locations.json", params: { city: "上海" }
+      end.to change { Jobs::WhereIsMyFriendsNotifyCityMembers.jobs.size }.by(1)
+
+      job = Jobs::WhereIsMyFriendsNotifyCityMembers.jobs.last
+      expect(job["args"].first).to include(
+        "joiner_id" => user.id,
+        "city" => "上海",
+        "city_key" => "上海"
+      )
+    end
+
+    it "does not enqueue when the user refreshes the same city" do
+      UserLocation.upsert_city_location(user.id, city: "上海")
+
+      expect do
+        post "/where-is-my-friends/locations.json", params: { city: "上海" }
+      end.not_to change { Jobs::WhereIsMyFriendsNotifyCityMembers.jobs.size }
     end
   end
 

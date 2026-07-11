@@ -5,10 +5,13 @@ module ::WhereIsMyFriends
     engine_name "where_is_my_friends"
     isolate_namespace WhereIsMyFriends
     config.autoload_paths << File.join(config.root, "lib")
-    scheduled_job_dir = "#{config.root}/app/jobs/scheduled"
+    jobs_dirs = [
+      "#{config.root}/app/jobs/scheduled",
+      "#{config.root}/app/jobs/regular"
+    ]
     config.to_prepare do
-      if Dir.exist?(scheduled_job_dir)
-        Rails.autoloaders.main.eager_load_dir(scheduled_job_dir)
+      jobs_dirs.each do |jobs_dir|
+        Rails.autoloaders.main.eager_load_dir(jobs_dir) if Dir.exist?(jobs_dir)
       end
     end
   end

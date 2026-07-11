@@ -516,11 +516,27 @@ export default class WhereIsMyFriendsPage extends Component {
                     {{dAvatar user imageSize="large"}}
                   {{/if}}
                   <div>
-                    <h3>{{if user.name user.name user.username}}</h3>
+                    <h3>
+                      {{if user.name user.name user.username}}
+                      {{#if user.is_recent}}
+                        <span
+                          class="where-is-my-friends__new-badge"
+                          data-test-new-member-badge
+                        >{{i18n
+                            "where_is_my_friends.new_member_badge"
+                          }}</span>
+                      {{/if}}
+                    </h3>
                     <LinkTo @route="user" @model={{user.username}}>
                       @{{user.username}}
                     </LinkTo>
                     <p>{{user.city}} · {{user.distance_label}}</p>
+                    {{#if user.bio_excerpt}}
+                      <p
+                        class="where-is-my-friends__bio"
+                        data-test-user-bio
+                      >{{user.bio_excerpt}}</p>
+                    {{/if}}
                   </div>
                   <div class="where-is-my-friends__user-actions">
                     <LinkTo
