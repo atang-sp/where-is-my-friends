@@ -12,6 +12,7 @@ en:
     geolocation_not_supported: "This browser does not support geolocation"
     please_share_location_first: "Please share your location first"
     invalid_coordinates: "Invalid coordinates"
+    invalid_location: "Please provide a valid city and location."
     nearby_users_found: "Found %{count} nearby friends"
     no_nearby_users: "No friends found within the specified distance"
     distance_km: "%{distance} km"

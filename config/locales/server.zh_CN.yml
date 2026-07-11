@@ -12,6 +12,7 @@ zh_CN:
     geolocation_not_supported: "此浏览器不支持地理位置功能"
     please_share_location_first: "请先分享你的位置"
     invalid_coordinates: "无效的坐标"
+    invalid_location: "请提供有效的城市和位置信息"
     nearby_users_found: "找到 %{count} 个附近的朋友"
     no_nearby_users: "在指定距离内没有找到其他朋友"
     distance_km: "%{distance} 公里"

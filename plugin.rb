@@ -8,7 +8,7 @@
 
 enabled_site_setting :where_is_my_friends_enabled
 
-register_asset 'stylesheets/where-is-my-friends.scss'
+register_asset "stylesheets/where-is-my-friends.scss"
 
 require_relative "lib/where_is_my_friends/engine"
 
@@ -16,31 +16,16 @@ require_relative "lib/where_is_my_friends/engine"
 # No need to manually register them with register_asset
 
 after_initialize do
-  # Add list controller extension for frontend route
-  reloadable_patch do |plugin|
-    ListController.class_eval do
-      def where_is_my_friends
-        # Render HTML for Ember app
-        render html: '<div id="main-outlet" class="wrap"></div>'.html_safe, layout: 'application'
-      end
-    end
-  end
-
-  # Add routes
+  # Render the Discourse application for the client route, then mount the JSON API.
   Discourse::Application.routes.append do
-    # Frontend route - renders Ember app
-    get "/where-is-my-friends" => "list#where_is_my_friends"
-    
-    # API routes - return JSON data
-    get "/api/where-is-my-friends" => "where_is_my_friends/locations#index"
-    post "/api/where-is-my-friends/locations" => "where_is_my_friends/locations#create"
-    get "/api/where-is-my-friends/locations/nearby" => "where_is_my_friends/locations#nearby"
-    delete "/api/where-is-my-friends/locations" => "where_is_my_friends/locations#destroy"
-    get "/api/where-is-my-friends/ip-location" => "where_is_my_friends/locations#ip_location"
+    get "/where-is-my-friends.json" => "where_is_my_friends/locations#index",
+        :as => "where_is_my_friends_data"
+    get "/where-is-my-friends" => "list#latest",
+        :constraints => ->(request) { request.format.html? }
+    mount ::WhereIsMyFriends::Engine,
+          at: "/where-is-my-friends",
+          as: "where_is_my_friends_engine"
   end
 
   # Navigation menu items are now handled by the frontend initializer
-
-  # Add admin route
-  add_admin_route 'where_is_my_friends.title', 'where-is-my-friends'
 end
