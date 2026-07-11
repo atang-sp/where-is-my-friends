@@ -1,4 +1,4 @@
-import { click, fillIn, visit } from "@ember/test-helpers";
+import { click, fillIn, triggerEvent, visit } from "@ember/test-helpers";
 import { test } from "qunit";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 
@@ -41,6 +41,11 @@ function setupApi(needs, state) {
       return helper.response(state.nearby ?? { state: "empty", users: [] });
     });
 
+    server.delete("/where-is-my-friends/locations.json", () => {
+      state.deleteRequests += 1;
+      return helper.response({ success: "OK", state: "setup" });
+    });
+
     server.post("/where-is-my-friends/events.json", (request) => {
       state.events.push(
         new URLSearchParams(request.requestBody).get("event_name")
@@ -67,6 +72,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       events: [],
       nearbyRequests: 0,
       savedLocations: [],
+      deleteRequests: 0,
     });
   });
 
@@ -228,13 +234,103 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.strictEqual(api.savedLocations[0].latitude, "31.2304");
     assert.strictEqual(api.savedLocations[0].longitude, "121.4737");
   });
+
+  test("connection links are safe, actionable, and measured", async function (assert) {
+    api.initial = readyState();
+    api.nearby = { state: "ready", users: [localUser("alice", "Alice")] };
+
+    await visit("/where-is-my-friends");
+
+    assert.dom("[data-test-profile-link='alice']").hasAttribute("href", "/u/alice");
+    assert
+      .dom("[data-test-profile-link='alice']")
+      .hasAttribute("aria-label", "View alice's profile");
+    assert
+      .dom("[data-test-message-link='alice']")
+      .hasAttribute("href", "/new-message?username=alice");
+    assert
+      .dom("[data-test-message-link='alice']")
+      .hasAttribute("aria-label", "Send a message to alice");
+    await triggerEvent("[data-test-profile-link='alice']", "click", {
+      ctrlKey: true,
+    });
+    await triggerEvent("[data-test-message-link='alice']", "click", {
+      ctrlKey: true,
+    });
+
+    assert.true(api.events.includes("profile_clicked"));
+    assert.true(api.events.includes("message_started"));
+    assert.dom("[data-test-member-filter]").doesNotExist();
+  });
+
+  test("filters appear only for ten or more results and filter by name", async function (assert) {
+    api.initial = readyState();
+    api.nearby = {
+      state: "ready",
+      users: [
+        localUser("alice", "Alice"),
+        ...Array.from({ length: 10 }, (_value, index) =>
+          localUser(`member-${index}`, `Member ${index}`)
+        ),
+      ],
+    };
+
+    await visit("/where-is-my-friends");
+    assert.dom("[data-test-member-filter]").exists();
+    assert
+      .dom("[data-test-member-filter]")
+      .hasAttribute("aria-label", "Filter members");
+    await fillIn("[data-test-member-filter]", "alice");
+
+    assert.dom("[data-test-user-card='alice']").exists();
+    assert.dom("[data-test-user-card='member-0']").doesNotExist();
+  });
+
+  test("expiry, update, and removal controls are visible and removal is measured", async function (assert) {
+    api.initial = readyState();
+
+    await visit("/where-is-my-friends");
+
+    assert
+      .dom("[data-test-location-expiry]")
+      .hasAttribute("datetime", "2026-08-10T12:00:00Z");
+    await click("[data-test-update-location]");
+    assert.dom("[data-test-city-input]").hasValue("上海");
+
+    await click("[data-test-save-city]");
+    await click("[data-test-remove-location]");
+    assert.strictEqual(api.deleteRequests, 1);
+    assert.dom("[data-test-city-input]").exists();
+    assert.true(api.events.includes("location_removed"));
+  });
+
+  test("empty state offers local topics and measures the click", async function (assert) {
+    api.initial = readyState();
+
+    await visit("/where-is-my-friends");
+
+    assert
+      .dom("[data-test-local-topics]")
+      .hasAttribute("href", "/search?q=%E4%B8%8A%E6%B5%B7");
+    assert
+      .dom("[data-test-local-topics]")
+      .hasAttribute("aria-label", "Browse topics about 上海");
+    await triggerEvent("[data-test-local-topics]", "click", { ctrlKey: true });
+    assert.true(api.events.includes("local_topics_clicked"));
+    assert.dom("[data-test-empty-invitation]").exists();
+  });
 });
 
 function readyState(settings = {}) {
   return {
     state: "ready",
     current_user: { id: 1, username: "current-user" },
-    location: { city: "上海", region: "", discovery_mode: "city" },
+    location: {
+      city: "上海",
+      region: "",
+      discovery_mode: "city",
+      expires_at: "2026-08-10T12:00:00Z",
+    },
     active_participants: { suppressed: true },
     city_suggestions: [],
     settings: {
@@ -243,6 +339,21 @@ function readyState(settings = {}) {
       map_provider: "openstreetmap",
       ...settings,
     },
+  };
+}
+
+function localUser(username, name) {
+  return {
+    id: username,
+    username,
+    name,
+    avatar_template: `/user_avatar/localhost/${username}/{size}/1.png`,
+    city: "上海",
+    discovery_mode: "city",
+    distance_band: null,
+    profile_url: `/u/${username}`,
+    message_url: `/new-message?username=${username}`,
+    local_topics_url: "/search?q=%E4%B8%8A%E6%B5%B7",
   };
 }
 

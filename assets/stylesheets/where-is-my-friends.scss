@@ -134,6 +134,13 @@
   }
 }
 
+.where-is-my-friends__location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
 .where-is-my-friends__mode-options {
   display: grid;
   grid-template-columns: max-content 1fr;
@@ -191,6 +198,24 @@
 .where-is-my-friends__results {
   h2 {
     margin-bottom: 1rem;
+  }
+}
+
+.where-is-my-friends__filter {
+  display: block;
+  max-width: 24rem;
+  margin-bottom: 1.25rem;
+
+  span {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 650;
+  }
+
+  input {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
   }
 }
 
@@ -257,6 +282,11 @@
   .btn {
     margin-top: 0.5rem;
   }
+
+  [data-test-empty-invitation] {
+    margin-top: 1.25rem;
+    font-size: var(--font-down-1);
+  }
 }
 
 @media (width <= 40rem) {
@@ -272,6 +302,20 @@
   .where-is-my-friends__user-actions .btn {
     flex: 1 1 auto;
     justify-content: center;
+  }
+
+  .where-is-my-friends__location-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .where-is-my-friends__location-actions {
+    justify-content: flex-start;
+
+    .btn {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
   }
 
   .where-is-my-friends__mode-options,

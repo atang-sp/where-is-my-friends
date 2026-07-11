@@ -1,8 +1,10 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { fn, hash } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
+import { LinkTo } from "@ember/routing";
 import { next } from "@ember/runloop";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
@@ -25,6 +27,7 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked loading = false;
   @tracked error = null;
   @tracked gpsFallback = false;
+  @tracked memberFilter = "";
 
   constructor() {
     super(...arguments);
@@ -46,17 +49,43 @@ export default class WhereIsMyFriendsPage extends Component {
     return this.discoveryState === "empty";
   }
 
-  get hasUsers() {
-    return this.users.length > 0;
-  }
-
-  get visibleUsers() {
-    const username = this.currentUser?.username ?? this.args.model.current_user?.username;
+  get availableUsers() {
+    const username =
+      this.currentUser?.username ?? this.args.model.current_user?.username;
     return this.users.filter((user) => user.username !== username);
   }
 
-  get localTopicsUrl() {
-    return `/search?q=${encodeURIComponent(this.location?.city ?? this.city)}`;
+  get hasUsers() {
+    return this.availableUsers.length > 0;
+  }
+
+  get showMemberFilter() {
+    return this.availableUsers.length >= 10;
+  }
+
+  get visibleUsers() {
+    const query = this.memberFilter.trim().toLocaleLowerCase();
+    const users = query
+      ? this.availableUsers.filter((user) =>
+          [user.name, user.username].some((value) =>
+            value?.toLocaleLowerCase().includes(query)
+          )
+        )
+      : this.availableUsers;
+
+    return users.map((user) => ({
+      ...user,
+      distance_label: i18n(
+        `where_is_my_friends.distance_bands.${user.distance_band ?? "same_city"}`
+      ),
+    }));
+  }
+
+  get formattedExpiry() {
+    if (!this.location?.expires_at) {
+      return null;
+    }
+    return new Date(this.location.expires_at).toLocaleDateString();
   }
 
   @action
@@ -75,6 +104,11 @@ export default class WhereIsMyFriendsPage extends Component {
   @action
   updateRegion(event) {
     this.region = event.target.value;
+  }
+
+  @action
+  updateMemberFilter(event) {
+    this.memberFilter = event.target.value;
   }
 
   @action
@@ -116,10 +150,10 @@ export default class WhereIsMyFriendsPage extends Component {
         "/where-is-my-friends/locations/nearby.json"
       );
       this.users = response.users ?? [];
-      this.discoveryState = this.visibleUsers.length > 0 ? "ready" : "empty";
+      this.discoveryState = this.availableUsers.length > 0 ? "ready" : "empty";
       void this.recordEvent("results_viewed", {
         location_mode: this.location?.discovery_mode ?? "city",
-        result_count: this.visibleUsers.length,
+        result_count: this.availableUsers.length,
       });
     } catch (error) {
       this.error = this.errorMessage(error);
@@ -187,6 +221,45 @@ export default class WhereIsMyFriendsPage extends Component {
     } finally {
       this.loading = false;
     }
+  }
+
+  @action
+  editLocation() {
+    this.discoveryState = "setup";
+    this.users = [];
+    this.memberFilter = "";
+    this.gpsFallback = false;
+  }
+
+  @action
+  async removeLocation() {
+    if (this.loading) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+    try {
+      await ajax("/where-is-my-friends/locations.json", { type: "DELETE" });
+      void this.recordEvent("location_removed", {
+        location_mode: this.location?.discovery_mode ?? "city",
+      });
+      this.location = null;
+      this.users = [];
+      this.discoveryState = "setup";
+      this.memberFilter = "";
+    } catch (error) {
+      this.error = this.errorMessage(error);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  @action
+  trackConnection(eventName) {
+    void this.recordEvent(eventName, {
+      location_mode: this.location?.discovery_mode ?? "city",
+    });
   }
 
   async recordEvent(eventName, data = {}) {
@@ -273,16 +346,39 @@ export default class WhereIsMyFriendsPage extends Component {
           <div>
             <span>{{i18n "where_is_my_friends.your_city"}}</span>
             <strong>{{this.location.city}}</strong>
+            {{#if this.formattedExpiry}}
+              <span>{{i18n "where_is_my_friends.expires_on"}}
+                <time
+                  datetime={{this.location.expires_at}}
+                  data-test-location-expiry
+                >{{this.formattedExpiry}}</time></span>
+            {{/if}}
           </div>
-          {{#if @model.settings.virtual_location_enabled}}
+          <div class="where-is-my-friends__location-actions">
+            {{#if @model.settings.virtual_location_enabled}}
+              <DButton
+                @action={{this.openAdvancedLocation}}
+                @label="where_is_my_friends.advanced_location"
+                @icon="map-location-dot"
+                class="btn-flat"
+                data-test-advanced-location
+              />
+            {{/if}}
             <DButton
-              @action={{this.openAdvancedLocation}}
-              @label="where_is_my_friends.advanced_location"
-              @icon="map-location-dot"
+              @action={{this.editLocation}}
+              @label="where_is_my_friends.update_city"
+              @icon="pencil"
               class="btn-flat"
-              data-test-advanced-location
+              data-test-update-location
             />
-          {{/if}}
+            <DButton
+              @action={{this.removeLocation}}
+              @label="where_is_my_friends.remove_location"
+              @icon="trash-can"
+              class="btn-danger"
+              data-test-remove-location
+            />
+          </div>
         </section>
 
         {{#if this.gpsFallback}}
@@ -298,6 +394,21 @@ export default class WhereIsMyFriendsPage extends Component {
         {{else if this.hasUsers}}
           <section class="where-is-my-friends__results">
             <h2>{{i18n "where_is_my_friends.people_in_city"}}</h2>
+            {{#if this.showMemberFilter}}
+              <label class="where-is-my-friends__filter">
+                <span>{{i18n "where_is_my_friends.filter_members"}}</span>
+                <input
+                  type="search"
+                  value={{this.memberFilter}}
+                  aria-label={{i18n "where_is_my_friends.filter_members"}}
+                  placeholder={{i18n
+                    "where_is_my_friends.filter_members_placeholder"
+                  }}
+                  data-test-member-filter
+                  {{on "input" this.updateMemberFilter}}
+                />
+              </label>
+            {{/if}}
             <div class="where-is-my-friends__user-grid">
               {{#each this.visibleUsers as |user|}}
                 <article
@@ -309,17 +420,40 @@ export default class WhereIsMyFriendsPage extends Component {
                   {{/if}}
                   <div>
                     <h3>{{if user.name user.name user.username}}</h3>
-                    <a href={{user.profile_url}}>@{{user.username}}</a>
-                    <p>{{user.city}}</p>
+                    <LinkTo @route="user" @model={{user.username}}>
+                      @{{user.username}}
+                    </LinkTo>
+                    <p>{{user.city}} · {{user.distance_label}}</p>
                   </div>
                   <div class="where-is-my-friends__user-actions">
-                    <a class="btn btn-primary" href={{user.profile_url}}>{{i18n
-                        "where_is_my_friends.view_profile"
-                      }}</a>
+                    <LinkTo
+                      @route="user"
+                      @model={{user.username}}
+                      class="btn btn-primary"
+                      aria-label={{i18n
+                        "where_is_my_friends.view_profile_for"
+                        username=user.username
+                      }}
+                      data-test-profile-link={{user.username}}
+                      {{on
+                        "click"
+                        (fn this.trackConnection "profile_clicked")
+                      }}
+                    >{{i18n "where_is_my_friends.view_profile"}}</LinkTo>
                     {{#if user.message_url}}
-                      <a class="btn" href={{user.message_url}}>{{i18n
-                          "where_is_my_friends.send_message"
-                        }}</a>
+                      <a
+                        class="btn"
+                        href={{user.message_url}}
+                        aria-label={{i18n
+                          "where_is_my_friends.message_user"
+                          username=user.username
+                        }}
+                        data-test-message-link={{user.username}}
+                        {{on
+                          "click"
+                          (fn this.trackConnection "message_started")
+                        }}
+                      >{{i18n "where_is_my_friends.send_message"}}</a>
                     {{/if}}
                   </div>
                 </article>
@@ -330,11 +464,23 @@ export default class WhereIsMyFriendsPage extends Component {
           <section class="where-is-my-friends__empty" data-test-empty-state>
             <h2>{{i18n "where_is_my_friends.empty_title" city=this.location.city}}</h2>
             <p>{{i18n "where_is_my_friends.empty_description"}}</p>
-            <a
+            <LinkTo
+              @route="full-page-search"
+              @query={{hash q=this.location.city}}
               class="btn btn-primary"
-              href={{this.localTopicsUrl}}
+              aria-label={{i18n
+                "where_is_my_friends.browse_topics_for"
+                city=this.location.city
+              }}
               data-test-local-topics
-            >{{i18n "where_is_my_friends.browse_local_topics"}}</a>
+              {{on
+                "click"
+                (fn this.trackConnection "local_topics_clicked")
+              }}
+            >{{i18n "where_is_my_friends.browse_local_topics"}}</LinkTo>
+            <p data-test-empty-invitation>{{i18n
+                "where_is_my_friends.empty_invitation"
+              }}</p>
           </section>
         {{/if}}
       {{/if}}

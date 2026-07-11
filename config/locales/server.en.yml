@@ -1,7 +1,7 @@
 en:
   where_is_my_friends:
-    title: "Where Is My Friends"
-    description: "Find friends nearby with privacy protection"
+    title: "Local Friends"
+    description: "Discover forum members in your city without sharing precise coordinates by default"
     share_location: "Share My Location"
     remove_location: "Remove My Location"
     search_distance: "Search Distance"
@@ -27,4 +27,11 @@ en:
     location_unavailable: "Location information is unavailable, please check your device's location services"
     location_timeout: "Location request timed out, please try again or check your internet connection"
   site_settings:
+    where_is_my_friends_enabled: "Enable city-first local member discovery"
+    where_is_my_friends_enable_virtual_location: "Allow optional GPS and map distance bands"
+    where_is_my_friends_map_provider: "Map provider for optional map selection"
+    where_is_my_friends_amap_api_key: "Amap browser key restricted to this forum domain"
+    where_is_my_friends_baidu_api_key: "Baidu browser key restricted to this forum domain"
     where_is_my_friends_max_users_display: "Maximum number of users to display in nearby list"
+    where_is_my_friends_location_ttl_days: "Days before stored discovery locations expire"
+    where_is_my_friends_aggregate_privacy_threshold: "Minimum participants before showing an exact aggregate count"

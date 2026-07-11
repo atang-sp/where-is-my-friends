@@ -1,7 +1,7 @@
 zh_CN:
   where_is_my_friends:
-    title: "附近的朋友"
-    description: "发现你附近的朋友，保护隐私的同时建立联系"
+    title: "同城朋友"
+    description: "默认无需分享精确坐标，发现论坛里的同城成员"
     share_location: "分享我的位置"
     remove_location: "移除我的位置"
     search_distance: "搜索距离"
@@ -27,4 +27,11 @@ zh_CN:
     location_unavailable: "位置信息不可用，请检查设备的位置服务"
     location_timeout: "位置请求超时，请重试或检查网络连接"
   site_settings:
+    where_is_my_friends_enabled: "启用城市优先的本地成员发现"
+    where_is_my_friends_enable_virtual_location: "允许可选的 GPS 和地图距离范围"
+    where_is_my_friends_map_provider: "可选地图定位使用的地图服务"
+    where_is_my_friends_amap_api_key: "限制到论坛域名的高德浏览器密钥"
+    where_is_my_friends_baidu_api_key: "限制到论坛域名的百度浏览器密钥"
     where_is_my_friends_max_users_display: "附近用户列表的最大显示数量"
+    where_is_my_friends_location_ttl_days: "发现位置自动过期的天数"
+    where_is_my_friends_aggregate_privacy_threshold: "显示精确聚合人数所需的最少参与者"
