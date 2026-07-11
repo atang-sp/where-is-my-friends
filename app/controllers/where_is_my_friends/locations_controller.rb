@@ -39,25 +39,7 @@ module WhereIsMyFriends
       previous_city_key =
         UserLocation.find_by(user_id: current_user.id)&.city_key
 
-      location =
-        if discovery_mode == "city"
-          UserLocation.upsert_city_location(
-            current_user.id,
-            city: params[:city],
-            region: params[:region]
-          )
-        else
-          UserLocation.upsert_precise_location(
-            current_user.id,
-            city: params[:city],
-            region: params[:region],
-            discovery_mode: discovery_mode,
-            latitude: params[:latitude],
-            longitude: params[:longitude],
-            location_accuracy: params[:location_accuracy]
-          )
-        end
-
+      location = upsert_location!
       enqueue_member_joined_notification(location, previous_city_key)
 
       render json: { state: "ready", location: location_metadata(location) }
@@ -74,10 +56,17 @@ module WhereIsMyFriends
         return render json: { state: state_for(origin), users: [] }
       end
 
+      radius = origin.effective_discovery_radius_km
+      nearby_keys =
+        WhereIsMyFriends::CityCentroidLookup.instance.city_keys_within_radius(
+          origin.city_key,
+          radius
+        )
+
       locations =
         UserLocation
           .active_for_discovery
-          .where(city_key: origin.city_key)
+          .where(city_key: nearby_keys)
           .where.not(user_id: current_user.id)
           .includes(user: :user_profile)
           .order(updated_at: :desc)
@@ -141,6 +130,50 @@ module WhereIsMyFriends
       params[:discovery_mode].presence || "city"
     end
 
+    def upsert_location!
+      existing = UserLocation.find_by(user_id: current_user.id)
+      if radius_only_update?(existing)
+        radius =
+          UserLocation.normalize_discovery_radius_km(params[:discovery_radius_km])
+        raise ActiveRecord::RecordInvalid if radius.blank?
+
+        existing.update!(discovery_radius_km: radius)
+        return existing
+      end
+
+      if discovery_mode == "city"
+        UserLocation.upsert_city_location(
+          current_user.id,
+          city: params[:city],
+          region: params[:region],
+          discovery_radius_km: params[:discovery_radius_km]
+        )
+      else
+        UserLocation.upsert_precise_location(
+          current_user.id,
+          city: params[:city],
+          region: params[:region],
+          discovery_mode: discovery_mode,
+          latitude: params[:latitude],
+          longitude: params[:longitude],
+          location_accuracy: params[:location_accuracy],
+          discovery_radius_km: params[:discovery_radius_km]
+        )
+      end
+    end
+
+    def radius_only_update?(existing)
+      return false if existing.blank?
+      return false if params[:discovery_radius_km].blank?
+      return false if params[:city].blank?
+      return false unless UserLocation.normalize_city(params[:city]) ==
+                            existing.city_key
+      return false unless discovery_mode == existing.discovery_mode
+      return true if discovery_mode == "city"
+
+      existing.precise? && params[:latitude].blank? && params[:longitude].blank?
+    end
+
     def location_metadata(location)
       return nil if location.blank?
 
@@ -148,6 +181,7 @@ module WhereIsMyFriends
         city: location.city,
         region: location.region,
         discovery_mode: location.discovery_mode,
+        discovery_radius_km: location.effective_discovery_radius_km,
         expires_at: location.expires_at&.iso8601
       }
     end
@@ -198,7 +232,9 @@ module WhereIsMyFriends
           SiteSetting.where_is_my_friends_aggregate_privacy_threshold.to_i.clamp(
             2,
             20
-          )
+          ),
+        default_discovery_radius_km: UserLocation.default_discovery_radius_km,
+        discovery_radius_options_km: UserLocation::DISCOVERY_RADIUS_OPTIONS_KM
       }
 
       case settings[:map_provider]

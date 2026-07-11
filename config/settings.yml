@@ -75,3 +75,13 @@ plugins:
     description: "推荐城市列表，用竖线分隔（如 上海|北京|深圳|New York|Tokyo）"
     category: "where_is_my_friends"
     translated: true
+
+  where_is_my_friends_default_discovery_radius_km:
+    default: 100
+    min: 20
+    max: 500
+    client: true
+    type: integer
+    description: "默认发现半径（公里）。用户可在 50/100/200 中自选。"
+    category: "where_is_my_friends"
+    translated: true

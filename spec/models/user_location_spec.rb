@@ -142,8 +142,40 @@ RSpec.describe UserLocation do
           longitude: 121.4737
         )
 
-      expect(city_only.distance_band_to(precise)).to be_nil
-      expect(precise.distance_band_to(city_only)).to be_nil
+      expect(city_only.distance_band_to(precise)).to eq("same_city")
+      expect(precise.distance_band_to(city_only)).to eq("same_city")
+    end
+
+    it "uses city centroids for cross-city bands" do
+      shanghai =
+        described_class.upsert_city_location(Fabricate(:user).id, city: "上海")
+      suzhou =
+        described_class.upsert_city_location(Fabricate(:user).id, city: "苏州")
+      beijing =
+        described_class.upsert_city_location(Fabricate(:user).id, city: "北京")
+
+      expect(shanghai.distance_band_to(suzhou)).to eq("moderate")
+      expect(shanghai.distance_band_to(beijing)).to eq("far")
+    end
+  end
+
+  describe "#effective_discovery_radius_km" do
+    it "falls back to the site setting default" do
+      location =
+        described_class.upsert_city_location(Fabricate(:user).id, city: "上海")
+
+      expect(location.effective_discovery_radius_km).to eq(100)
+    end
+
+    it "uses the stored preference when present" do
+      location =
+        described_class.upsert_city_location(
+          Fabricate(:user).id,
+          city: "上海",
+          discovery_radius_km: 50
+        )
+
+      expect(location.effective_discovery_radius_km).to eq(50)
     end
   end
 end

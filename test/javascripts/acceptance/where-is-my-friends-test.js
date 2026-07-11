@@ -33,6 +33,7 @@ function setupApi(needs, state) {
           city: location.city || "上海",
           region: location.region || "",
           discovery_mode: location.discovery_mode || "city",
+          discovery_radius_km: Number(location.discovery_radius_km || 100),
           expires_at: "2026-08-10T12:00:00Z",
         },
       });
@@ -396,7 +397,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     assert
       .dom("[data-test-results-summary]")
-      .hasText("1 local member in 上海");
+      .hasText("1 member within 100 km of 上海");
     assert.dom("[data-test-profile-link='alice']").hasAttribute("href", "/u/alice");
     assert
       .dom("[data-test-profile-link='alice']")
@@ -542,6 +543,25 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .dom("[data-test-user-bio]")
       .hasText("Weekend cyclist and tea drinker.");
   });
+
+  test("discovery radius can be changed and reloads nearby results", async function (assert) {
+    api.initial = readyState();
+    api.nearby = { state: "ready", users: [localUser("alice", "Alice")] };
+
+    await visit("/where-is-my-friends");
+
+    assert.dom("[data-test-discovery-radius]").exists();
+    assert.dom("[data-test-discovery-radius-option='100']").hasClass("btn-primary");
+
+    await click("[data-test-discovery-radius-option='200']");
+
+    assert.strictEqual(api.savedLocations.length, 1);
+    assert.strictEqual(api.savedLocations[0].discovery_radius_km, "200");
+    assert.strictEqual(api.nearbyRequests, 2);
+    assert
+      .dom("[data-test-results-summary]")
+      .hasText("1 member within 200 km of 上海");
+  });
 });
 
 function readyState(settings = {}) {
@@ -552,6 +572,7 @@ function readyState(settings = {}) {
       city: "上海",
       region: "",
       discovery_mode: "city",
+      discovery_radius_km: 100,
       expires_at: "2026-08-10T12:00:00Z",
     },
     active_participants: { suppressed: true },
@@ -560,6 +581,8 @@ function readyState(settings = {}) {
       location_ttl_days: 30,
       virtual_location_enabled: true,
       map_provider: "openstreetmap",
+      default_discovery_radius_km: 100,
+      discovery_radius_options_km: [50, 100, 200],
       ...settings,
     },
   };
