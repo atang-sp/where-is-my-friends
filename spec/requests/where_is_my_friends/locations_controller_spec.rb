@@ -253,6 +253,97 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       get "/where-is-my-friends/locations/nearby.json"
       expect(response.parsed_body).to include("state" => "empty", "users" => [])
     end
+
+    it "includes members from nearby cities within the discovery radius" do
+      UserLocation.upsert_city_location(
+        user.id,
+        city: "上海",
+        discovery_radius_km: 100
+      )
+      same_city = Fabricate(:user)
+      UserLocation.upsert_city_location(same_city.id, city: "上海")
+      nearby_city = Fabricate(:user)
+      UserLocation.upsert_city_location(nearby_city.id, city: "苏州")
+      far_city = Fabricate(:user)
+      UserLocation.upsert_city_location(far_city.id, city: "北京")
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      usernames = response.parsed_body.fetch("users").pluck("username")
+      expect(usernames).to include(same_city.username, nearby_city.username)
+      expect(usernames).not_to include(far_city.username)
+
+      bands =
+        response.parsed_body.fetch("users").index_by { |entry| entry["username"] }
+      expect(bands[same_city.username]["distance_band"]).to eq("same_city")
+      expect(bands[nearby_city.username]["distance_band"]).to eq("moderate")
+    end
+
+    it "respects a tighter discovery radius" do
+      UserLocation.upsert_city_location(
+        user.id,
+        city: "上海",
+        discovery_radius_km: 50
+      )
+      nearby_city = Fabricate(:user)
+      UserLocation.upsert_city_location(nearby_city.id, city: "苏州")
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      expect(response.parsed_body).to include("state" => "empty", "users" => [])
+    end
+  end
+
+  describe "discovery radius preference" do
+    before { sign_in(user) }
+
+    it "exposes radius options and persists a selected radius" do
+      get "/where-is-my-friends.json"
+      expect(response.parsed_body.fetch("settings")).to include(
+        "default_discovery_radius_km" => 100,
+        "discovery_radius_options_km" => [50, 100, 200]
+      )
+
+      post "/where-is-my-friends/locations.json",
+           params: {
+             city: "上海",
+             discovery_radius_km: 200
+           }
+
+      expect(response.parsed_body.fetch("location")).to include(
+        "discovery_radius_km" => 200
+      )
+      expect(UserLocation.find_by(user_id: user.id).discovery_radius_km).to eq(
+        200
+      )
+    end
+
+    it "updates radius without clearing a precise location" do
+      UserLocation.upsert_precise_location(
+        user.id,
+        city: "上海",
+        discovery_mode: "map",
+        latitude: 31.2304,
+        longitude: 121.4737,
+        discovery_radius_km: 100
+      )
+
+      post "/where-is-my-friends/locations.json",
+           params: {
+             city: "上海",
+             discovery_mode: "map",
+             discovery_radius_km: 200
+           }
+
+      location = UserLocation.find_by(user_id: user.id)
+      expect(response.status).to eq(200)
+      expect(location).to have_attributes(
+        discovery_mode: "map",
+        discovery_radius_km: 200,
+        latitude: 31.2304,
+        longitude: 121.4737
+      )
+    end
   end
 
   describe "member joined notifications" do

@@ -69,6 +69,15 @@ export default class WhereIsMyFriendsPage extends Component {
   }
 
   get visibleUsers() {
+    const bandOrder = {
+      same_city: 0,
+      under_5: 1,
+      nearby: 2,
+      "5_to_20": 3,
+      moderate: 4,
+      over_20: 5,
+      far: 6,
+    };
     const query = this.memberFilter.trim().toLocaleLowerCase();
     const users = query
       ? this.availableUsers.filter((user) =>
@@ -78,12 +87,18 @@ export default class WhereIsMyFriendsPage extends Component {
         )
       : this.availableUsers;
 
-    return users.map((user) => ({
-      ...user,
-      distance_label: i18n(
-        `where_is_my_friends.distance_bands.${user.distance_band ?? "same_city"}`
-      ),
-    }));
+    return [...users]
+      .sort(
+        (a, b) =>
+          (bandOrder[a.distance_band ?? "same_city"] ?? 99) -
+          (bandOrder[b.distance_band ?? "same_city"] ?? 99)
+      )
+      .map((user) => ({
+        ...user,
+        distance_label: i18n(
+          `where_is_my_friends.distance_bands.${user.distance_band ?? "same_city"}`
+        ),
+      }));
   }
 
   get formattedExpiry() {
@@ -99,8 +114,34 @@ export default class WhereIsMyFriendsPage extends Component {
       count === 1
         ? "where_is_my_friends.results_count_one"
         : "where_is_my_friends.results_count_other",
-      { city: this.location.city, count }
+      {
+        city: this.location.city,
+        count,
+        radius: this.discoveryRadiusKm,
+      }
     );
+  }
+
+  get discoveryRadiusKm() {
+    return (
+      this.location?.discovery_radius_km ??
+      this.args.model.settings?.default_discovery_radius_km ??
+      100
+    );
+  }
+
+  get discoveryRadiusOptions() {
+    return (
+      this.args.model.settings?.discovery_radius_options_km ?? [50, 100, 200]
+    );
+  }
+
+  get discoveryRadiusButtons() {
+    return this.discoveryRadiusOptions.map((radius) => ({
+      radius,
+      selected: radius === this.discoveryRadiusKm,
+      label: i18n("where_is_my_friends.discovery_radius_option", { radius }),
+    }));
   }
 
   get participantProof() {
@@ -203,6 +244,7 @@ export default class WhereIsMyFriendsPage extends Component {
           city: this.city.trim(),
           region: this.region.trim(),
           discovery_mode: "city",
+          discovery_radius_km: this.discoveryRadiusKm,
         },
       });
       this.location = response.location;
@@ -230,6 +272,34 @@ export default class WhereIsMyFriendsPage extends Component {
         location_mode: this.location?.discovery_mode ?? "city",
         result_count: this.availableUsers.length,
       });
+    } catch (error) {
+      this.error = this.errorMessage(error);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  @action
+  async selectDiscoveryRadius(radiusKm) {
+    if (!this.location || this.loading || radiusKm === this.discoveryRadiusKm) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+    try {
+      const response = await ajax("/where-is-my-friends/locations.json", {
+        type: "POST",
+        data: {
+          city: this.location.city,
+          region: this.location.region ?? "",
+          discovery_mode: this.location.discovery_mode ?? "city",
+          discovery_radius_km: radiusKm,
+        },
+      });
+      this.location = response.location;
+      this.discoveryState = response.state;
+      await this.loadResults();
     } catch (error) {
       this.error = this.errorMessage(error);
     } finally {
@@ -475,6 +545,23 @@ export default class WhereIsMyFriendsPage extends Component {
                   data-test-location-expiry
                 >{{this.formattedExpiry}}</time></span>
             {{/if}}
+          </div>
+          <div
+            class="where-is-my-friends__radius"
+            role="group"
+            aria-label={{i18n "where_is_my_friends.discovery_radius"}}
+            data-test-discovery-radius
+          >
+            <span>{{i18n "where_is_my_friends.discovery_radius"}}</span>
+            {{#each this.discoveryRadiusButtons as |option|}}
+              <DButton
+                @action={{fn this.selectDiscoveryRadius option.radius}}
+                @translatedLabel={{option.label}}
+                @disabled={{this.loading}}
+                class={{if option.selected "btn-primary" "btn-flat"}}
+                data-test-discovery-radius-option={{option.radius}}
+              />
+            {{/each}}
           </div>
           <details
             class="where-is-my-friends__location-settings"

@@ -3,6 +3,9 @@
 class UserLocation < ActiveRecord::Base
   CITY_SUFFIXES = %w[特别行政区 自治州 地区 盟 市].freeze
   DISCOVERY_MODES = %w[city gps map].freeze
+  DISCOVERY_RADIUS_OPTIONS_KM = [50, 100, 200].freeze
+  CENTROID_NEARBY_KM = 50.0
+  CENTROID_MODERATE_KM = 150.0
 
   belongs_to :user
 
@@ -27,6 +30,11 @@ class UserLocation < ActiveRecord::Base
   validates :city, :city_key, presence: true
   validates :discovery_mode, inclusion: { in: DISCOVERY_MODES }
   validates :latitude, :longitude, presence: true, unless: :city_mode?
+  validates :discovery_radius_km,
+            inclusion: {
+              in: DISCOVERY_RADIUS_OPTIONS_KM
+            },
+            allow_nil: true
 
   scope :active_for_discovery,
         -> do
@@ -41,9 +49,23 @@ class UserLocation < ActiveRecord::Base
     suffix ? normalized.delete_suffix(suffix) : normalized
   end
 
-  def self.upsert_city_location(user_id, city:, region: nil)
+  def self.default_discovery_radius_km
+    SiteSetting
+      .where_is_my_friends_default_discovery_radius_km
+      .to_i
+      .clamp(20, 500)
+  end
+
+  def self.normalize_discovery_radius_km(value)
+    return nil if value.blank?
+
+    radius = value.to_i
+    DISCOVERY_RADIUS_OPTIONS_KM.include?(radius) ? radius : nil
+  end
+
+  def self.upsert_city_location(user_id, city:, region: nil, discovery_radius_km: nil)
     location = find_or_initialize_by(user_id: user_id)
-    location.assign_attributes(
+    attrs = {
       city: city.to_s.strip,
       city_key: normalize_city(city),
       region: region.to_s.strip.presence,
@@ -57,7 +79,10 @@ class UserLocation < ActiveRecord::Base
       location_accuracy: nil,
       enabled: true,
       expires_at: ttl_days.days.from_now
-    )
+    }
+    radius = normalize_discovery_radius_km(discovery_radius_km)
+    attrs[:discovery_radius_km] = radius if radius
+    location.assign_attributes(attrs)
     location.save!
     location
   end
@@ -69,7 +94,8 @@ class UserLocation < ActiveRecord::Base
     latitude:,
     longitude:,
     region: nil,
-    location_accuracy: nil
+    location_accuracy: nil,
+    discovery_radius_km: nil
   )
     location = find_or_initialize_by(user_id: user_id)
     map_mode = discovery_mode == "map"
@@ -81,7 +107,7 @@ class UserLocation < ActiveRecord::Base
       stored_longitude = longitude.to_f + rand(-0.005..0.005)
     end
 
-    location.assign_attributes(
+    attrs = {
       city: city.to_s.strip,
       city_key: normalize_city(city),
       region: region.to_s.strip.presence,
@@ -95,7 +121,10 @@ class UserLocation < ActiveRecord::Base
       location_accuracy: map_mode ? nil : location_accuracy,
       enabled: true,
       expires_at: ttl_days.days.from_now
-    )
+    }
+    radius = normalize_discovery_radius_km(discovery_radius_km)
+    attrs[:discovery_radius_km] = radius if radius
+    location.assign_attributes(attrs)
     location.save!
     location
   end
@@ -108,14 +137,31 @@ class UserLocation < ActiveRecord::Base
     requested.to_i.clamp(10, 200)
   end
 
+  def effective_discovery_radius_km
+    discovery_radius_km.presence || self.class.default_discovery_radius_km
+  end
+
   def distance_band_to(other)
-    return nil unless precise? && other.precise?
+    if precise? && other.precise?
+      distance = distance_to(other.latitude, other.longitude)
+      return "under_5" if distance < 5
+      return "5_to_20" if distance < 20
 
-    distance = distance_to(other.latitude, other.longitude)
-    return "under_5" if distance < 5
-    return "5_to_20" if distance < 20
+      return "over_20"
+    end
 
-    "over_20"
+    return "same_city" if city_key.present? && city_key == other.city_key
+
+    centroid_distance =
+      WhereIsMyFriends::CityCentroidLookup.instance.distance_km_between(
+        city_key,
+        other.city_key
+      )
+    return nil if centroid_distance.nil?
+    return "nearby" if centroid_distance < CENTROID_NEARBY_KM
+    return "moderate" if centroid_distance < CENTROID_MODERATE_KM
+
+    "far"
   end
 
   def city_mode?
