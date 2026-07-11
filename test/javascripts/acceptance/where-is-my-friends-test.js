@@ -2,6 +2,8 @@ import { click, fillIn, triggerEvent, visit } from "@ember/test-helpers";
 import { test } from "qunit";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 
+const CALLOUT_DISMISSED_KEY = "local-friends-callout-dismissed";
+
 function setupApi(needs, state) {
   needs.pretender((server, helper) => {
     server.get("/where-is-my-friends.json", () =>
@@ -61,6 +63,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
   let originalGeolocation;
 
   needs.hooks.beforeEach(() => {
+    sessionStorage.removeItem(CALLOUT_DISMISSED_KEY);
     originalGeolocation = Object.getOwnPropertyDescriptor(
       navigator,
       "geolocation"
@@ -77,6 +80,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
   });
 
   needs.hooks.afterEach(() => {
+    sessionStorage.removeItem(CALLOUT_DISMISSED_KEY);
     if (originalGeolocation) {
       Object.defineProperty(navigator, "geolocation", originalGeolocation);
     } else {
@@ -85,6 +89,58 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
   });
 
   setupApi(needs, api);
+
+  test("topic lists introduce city discovery with privacy-safe social proof", async function (assert) {
+    api.initial = {
+      state: "setup",
+      current_user: { id: 1, username: "current-user" },
+      location: null,
+      active_participants: { suppressed: false, count: 12 },
+      city_suggestions: [],
+      settings: { location_ttl_days: 30 },
+    };
+
+    await visit("/");
+
+    assert.dom("[data-test-local-friends-callout]").exists();
+    assert
+      .dom("[data-test-local-friends-callout-proof]")
+      .hasText("12 members are already participating");
+    assert
+      .dom("[data-test-local-friends-callout-cta]")
+      .hasText("Set my city")
+      .hasAttribute("href", "/where-is-my-friends");
+  });
+
+  test("topic-list callout uses generic proof below the privacy threshold", async function (assert) {
+    await visit("/");
+
+    assert
+      .dom("[data-test-local-friends-callout-proof]")
+      .hasText("Local members are already participating");
+  });
+
+  test("returning users can dismiss the topic-list callout for the session", async function (assert) {
+    api.initial = readyState();
+
+    await visit("/");
+
+    assert
+      .dom("[data-test-local-friends-callout-cta]")
+      .hasText("View local members");
+    await click("[data-test-dismiss-local-friends]");
+    assert.dom("[data-test-local-friends-callout]").doesNotExist();
+
+    await visit("/latest");
+    assert.dom("[data-test-local-friends-callout]").doesNotExist();
+  });
+
+  test("topic-list callout is not duplicated on the Local Friends page", async function (assert) {
+    await visit("/where-is-my-friends");
+
+    assert.dom("[data-test-local-friends-callout]").doesNotExist();
+    assert.dom(".where-is-my-friends").exists();
+  });
 
   test("first visit saves a city and automatically loads results", async function (assert) {
     api.nearby = {
