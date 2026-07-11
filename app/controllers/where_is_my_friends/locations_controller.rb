@@ -2,6 +2,8 @@
 
 module WhereIsMyFriends
   class LocationsController < ::ApplicationController
+    REPORT_WINDOWS = [7, 30, 90].freeze
+
     requires_plugin "where-is-my-friends"
 
     before_action :ensure_logged_in
@@ -89,13 +91,22 @@ module WhereIsMyFriends
     def debug_stats
       raise Discourse::InvalidAccess unless current_user.admin?
 
+      active_locations = UserLocation.active_for_discovery
+      expired_locations = UserLocation.where("expires_at <= ?", Time.current)
+
       render json: {
-               active: UserLocation.active_for_discovery.count,
-               expired:
-                 UserLocation.where("expires_at <= ?", Time.current).count,
-               by_mode:
-                 UserLocation.active_for_discovery.group(:discovery_mode).count,
-               funnel: WhereIsMyFriendsEvent.aggregate
+               window_days: report_window_days,
+               active: active_locations.count,
+               expired: expired_locations.count,
+               by_mode: active_locations.group(:discovery_mode).count,
+               locations: {
+                 active: location_totals(active_locations),
+                 expired: location_totals(expired_locations)
+               },
+               funnel:
+                 WhereIsMyFriendsEvent.aggregate(
+                   since: report_window_days.days.ago
+                 )
              }
     end
 
@@ -168,6 +179,15 @@ module WhereIsMyFriends
       return { suppressed: true } if count < threshold
 
       { suppressed: false, count: count }
+    end
+
+    def report_window_days
+      requested = params[:days].to_i
+      REPORT_WINDOWS.include?(requested) ? requested : 30
+    end
+
+    def location_totals(scope)
+      { total: scope.count, by_mode: scope.group(:discovery_mode).count }
     end
 
     def ensure_plugin_enabled

@@ -64,7 +64,12 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
       local_topics_conversion_rate:
         rate(local_topics.length, results_with_people.length),
       seven_day_return_rate:
-        rate(returning_viewers(events).length, viewers.length)
+        rate(returning_viewers(events).length, viewers.length),
+      result_bucket_distribution:
+        events
+          .select { |event| event.event_name == "results_viewed" }
+          .filter_map(&:result_bucket)
+          .tally
     }
   end
 

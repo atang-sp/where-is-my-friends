@@ -55,7 +55,10 @@ RSpec.describe WhereIsMyFriendsEvent do
       setup_completion_rate: 1.0,
       results_with_people_rate: 1.0,
       message_conversion_rate: 1.0,
-      seven_day_return_rate: 0.5
+      seven_day_return_rate: 0.5,
+      result_bucket_distribution: {
+        "one_to_four" => 1
+      }
     )
   end
 end

@@ -68,6 +68,46 @@ RSpec.describe WhereIsMyFriends::EventsController do
         "unique_page_visitors" => 1
       )
     end
+
+    it "supports approved report windows and breaks location totals down by mode" do
+      freeze_time(Time.zone.parse("2026-07-11 12:00:00"))
+      admin = Fabricate(:admin)
+      sign_in(admin)
+      WhereIsMyFriendsEvent.create!(
+        user: admin,
+        event_name: "page_view",
+        created_at: 8.days.ago
+      )
+      WhereIsMyFriendsEvent.create!(user: admin, event_name: "page_view")
+      WhereIsMyFriendsEvent.create!(
+        user: admin,
+        event_name: "results_viewed",
+        result_bucket: "one_to_four"
+      )
+      UserLocation.upsert_city_location(admin.id, city: "上海")
+      expired_user = Fabricate(:user)
+      expired =
+        UserLocation.upsert_precise_location(
+          expired_user.id,
+          city: "上海",
+          discovery_mode: "map",
+          latitude: 31.2304,
+          longitude: 121.4737
+        )
+      expired.update_column(:expires_at, 1.minute.ago)
+
+      get "/where-is-my-friends/debug-stats.json", params: { days: 7 }
+
+      expect(response.parsed_body).to include("window_days" => 7)
+      expect(response.parsed_body.fetch("funnel")).to include(
+        "unique_page_visitors" => 1,
+        "result_bucket_distribution" => { "one_to_four" => 1 }
+      )
+      expect(response.parsed_body.fetch("locations")).to eq(
+        "active" => { "total" => 1, "by_mode" => { "city" => 1 } },
+        "expired" => { "total" => 1, "by_mode" => { "map" => 1 } }
+      )
+    end
   end
 
   describe "GET /where-is-my-friends.json" do
