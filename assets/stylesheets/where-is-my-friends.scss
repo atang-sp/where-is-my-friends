@@ -1,3 +1,40 @@
+.local-friends-callout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 1rem;
+  align-items: center;
+  width: min(100% - 2rem, 72rem);
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--tertiary-low);
+  border-radius: 0.75rem;
+  background: var(--tertiary-very-low);
+
+  &__content {
+    min-width: 0;
+
+    strong,
+    p,
+    span {
+      display: block;
+    }
+
+    p {
+      margin: 0.2rem 0 0.35rem;
+      color: var(--primary-high);
+    }
+
+    span {
+      color: var(--primary-medium);
+      font-size: var(--font-down-1);
+    }
+  }
+
+  &__dismiss {
+    align-self: start;
+  }
+}
+
 .where-is-my-friends {
   --wimf-accent: var(--tertiary);
   --wimf-surface: var(--secondary-very-low);
@@ -290,6 +327,22 @@
 }
 
 @media (width <= 40rem) {
+  .local-friends-callout {
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: min(100% - 1.25rem, 72rem);
+
+    > .btn-primary {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-content: center;
+    }
+
+    &__dismiss {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+
   .where-is-my-friends {
     width: min(100% - 1.25rem, 72rem);
     margin-top: 1.25rem;

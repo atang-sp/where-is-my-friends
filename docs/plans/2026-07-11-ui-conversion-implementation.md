@@ -81,7 +81,7 @@ Clear the callout's `sessionStorage` key in test setup/teardown.
 Run:
 
 ```bash
-CI=1 d/qunit plugins/where-is-my-friends/test/javascripts/acceptance/where-is-my-friends-test.js
+CI=1 d/rake 'plugin:qunit[where-is-my-friends]'
 ```
 
 Expected: FAIL because the outlet connector does not exist.
