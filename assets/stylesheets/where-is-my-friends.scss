@@ -192,6 +192,27 @@
   justify-content: flex-end;
 }
 
+.where-is-my-friends__location-settings {
+  flex: 0 0 auto;
+
+  &:not([open]) .where-is-my-friends__location-actions {
+    display: none;
+  }
+
+  > summary {
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &[open] > summary {
+    margin-bottom: 0.5rem;
+  }
+}
+
 .where-is-my-friends__mode-options {
   display: grid;
   grid-template-columns: max-content 1fr;
@@ -249,6 +270,18 @@
 .where-is-my-friends__results {
   h2 {
     margin-bottom: 1rem;
+  }
+}
+
+.where-is-my-friends__results-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
   }
 }
 
@@ -381,6 +414,23 @@
 
     .btn {
       flex: 1 1 auto;
+      justify-content: center;
+    }
+  }
+
+  .where-is-my-friends__location-settings {
+    width: 100%;
+
+    > summary {
+      justify-content: center;
+    }
+  }
+
+  .where-is-my-friends__results-heading {
+    align-items: stretch;
+    flex-direction: column;
+
+    .btn {
       justify-content: center;
     }
   }

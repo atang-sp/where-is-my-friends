@@ -90,6 +90,16 @@ export default class WhereIsMyFriendsPage extends Component {
     return new Date(this.location.expires_at).toLocaleDateString();
   }
 
+  get resultsSummary() {
+    const count = this.availableUsers.length;
+    return i18n(
+      count === 1
+        ? "where_is_my_friends.results_count_one"
+        : "where_is_my_friends.results_count_other",
+      { city: this.location.city, count }
+    );
+  }
+
   get participantProof() {
     const participants = this.args.model.active_participants;
     if (!participants || participants.suppressed) {
@@ -394,31 +404,40 @@ export default class WhereIsMyFriendsPage extends Component {
                 >{{this.formattedExpiry}}</time></span>
             {{/if}}
           </div>
-          <div class="where-is-my-friends__location-actions">
-            {{#if @model.settings.virtual_location_enabled}}
+          <details
+            class="where-is-my-friends__location-settings"
+            data-test-location-settings
+          >
+            <summary
+              class="btn btn-flat"
+              data-test-location-settings-toggle
+            >{{i18n "where_is_my_friends.location_settings"}}</summary>
+            <div class="where-is-my-friends__location-actions">
+              {{#if @model.settings.virtual_location_enabled}}
+                <DButton
+                  @action={{this.openAdvancedLocation}}
+                  @label="where_is_my_friends.advanced_location"
+                  @icon="map-location-dot"
+                  class="btn-flat"
+                  data-test-advanced-location
+                />
+              {{/if}}
               <DButton
-                @action={{this.openAdvancedLocation}}
-                @label="where_is_my_friends.advanced_location"
-                @icon="map-location-dot"
+                @action={{this.editLocation}}
+                @label="where_is_my_friends.update_city"
+                @icon="pencil"
                 class="btn-flat"
-                data-test-advanced-location
+                data-test-update-location
               />
-            {{/if}}
-            <DButton
-              @action={{this.editLocation}}
-              @label="where_is_my_friends.update_city"
-              @icon="pencil"
-              class="btn-flat"
-              data-test-update-location
-            />
-            <DButton
-              @action={{this.removeLocation}}
-              @label="where_is_my_friends.remove_location"
-              @icon="trash-can"
-              class="btn-danger"
-              data-test-remove-location
-            />
-          </div>
+              <DButton
+                @action={{this.removeLocation}}
+                @label="where_is_my_friends.remove_location"
+                @icon="trash-can"
+                class="btn-danger"
+                data-test-remove-location
+              />
+            </div>
+          </details>
         </section>
 
         {{#if this.gpsFallback}}
@@ -433,7 +452,23 @@ export default class WhereIsMyFriendsPage extends Component {
           </div>
         {{else if this.hasUsers}}
           <section class="where-is-my-friends__results">
-            <h2>{{i18n "where_is_my_friends.people_in_city"}}</h2>
+            <div class="where-is-my-friends__results-heading">
+              <h2 data-test-results-summary>{{this.resultsSummary}}</h2>
+              <LinkTo
+                @route="full-page-search"
+                @query={{hash q=this.location.city}}
+                class="btn"
+                aria-label={{i18n
+                  "where_is_my_friends.browse_topics_for"
+                  city=this.location.city
+                }}
+                data-test-local-topics
+                {{on
+                  "click"
+                  (fn this.trackConnection "local_topics_clicked")
+                }}
+              >{{i18n "where_is_my_friends.browse_local_topics"}}</LinkTo>
+            </div>
             {{#if this.showMemberFilter}}
               <label class="where-is-my-friends__filter">
                 <span>{{i18n "where_is_my_friends.filter_members"}}</span>
@@ -469,7 +504,7 @@ export default class WhereIsMyFriendsPage extends Component {
                     <LinkTo
                       @route="user"
                       @model={{user.username}}
-                      class="btn btn-primary"
+                      class="btn"
                       aria-label={{i18n
                         "where_is_my_friends.view_profile_for"
                         username=user.username
@@ -482,7 +517,7 @@ export default class WhereIsMyFriendsPage extends Component {
                     >{{i18n "where_is_my_friends.view_profile"}}</LinkTo>
                     {{#if user.message_url}}
                       <a
-                        class="btn"
+                        class="btn btn-primary"
                         href={{user.message_url}}
                         aria-label={{i18n
                           "where_is_my_friends.message_user"

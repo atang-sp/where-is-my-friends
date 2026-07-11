@@ -343,7 +343,13 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     await visit("/where-is-my-friends");
 
+    assert
+      .dom("[data-test-results-summary]")
+      .hasText("1 local member in 上海");
     assert.dom("[data-test-profile-link='alice']").hasAttribute("href", "/u/alice");
+    assert
+      .dom("[data-test-profile-link='alice']")
+      .doesNotHaveClass("btn-primary");
     assert
       .dom("[data-test-profile-link='alice']")
       .hasAttribute("aria-label", "View alice's profile");
@@ -352,16 +358,22 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .hasAttribute("href", "/new-message?username=alice");
     assert
       .dom("[data-test-message-link='alice']")
-      .hasAttribute("aria-label", "Send a message to alice");
+      .hasAttribute("aria-label", "Send a message to alice")
+      .hasClass("btn-primary");
+    assert
+      .dom("[data-test-local-topics]")
+      .hasAttribute("href", "/search?q=%E4%B8%8A%E6%B5%B7");
     await triggerEvent("[data-test-profile-link='alice']", "click", {
       ctrlKey: true,
     });
     await triggerEvent("[data-test-message-link='alice']", "click", {
       ctrlKey: true,
     });
+    await triggerEvent("[data-test-local-topics]", "click", { ctrlKey: true });
 
     assert.true(api.events.includes("profile_clicked"));
     assert.true(api.events.includes("message_started"));
+    assert.true(api.events.includes("local_topics_clicked"));
     assert.dom("[data-test-member-filter]").doesNotExist();
   });
 
@@ -396,10 +408,17 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert
       .dom("[data-test-location-expiry]")
       .hasAttribute("datetime", "2026-08-10T12:00:00Z");
+    assert.dom("[data-test-location-settings-toggle]").hasText("Location settings");
+    assert.dom("[data-test-location-settings]").exists();
+    assert.dom("[data-test-location-settings]").doesNotHaveAttribute("open");
+
+    await click("[data-test-location-settings-toggle]");
+    assert.dom("[data-test-location-settings]").hasAttribute("open");
     await click("[data-test-update-location]");
     assert.dom("[data-test-city-input]").hasValue("上海");
 
     await click("[data-test-save-city]");
+    await click("[data-test-location-settings-toggle]");
     await click("[data-test-remove-location]");
     assert.strictEqual(api.deleteRequests, 1);
     assert.dom("[data-test-city-input]").exists();
