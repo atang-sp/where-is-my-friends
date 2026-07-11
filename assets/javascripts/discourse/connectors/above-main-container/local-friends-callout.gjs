@@ -196,10 +196,10 @@ export default class LocalFriendsCallout extends Component {
       <span hidden {{didInsert this.load}}></span>
       {{#if this.data}}
         <section
-          class="local-friends-callout"
+          class="local-friends-callout-banner"
           data-test-local-friends-callout
         >
-          <div class="local-friends-callout__content">
+          <div class="local-friends-callout-banner__content">
             {{#if this.justJoined}}
               <strong>{{i18n "where_is_my_friends.callout_joined_title"}}</strong>
               <p>{{i18n
@@ -218,7 +218,10 @@ export default class LocalFriendsCallout extends Component {
               <span data-test-local-friends-callout-proof>{{this.proof}}</span>
             {{/if}}
             {{#if this.error}}
-              <p class="local-friends-callout__error" data-test-callout-error>
+              <p
+                class="local-friends-callout-banner__error"
+                data-test-callout-error
+              >
                 {{this.error}}
               </p>
             {{/if}}
@@ -234,7 +237,7 @@ export default class LocalFriendsCallout extends Component {
             </LinkTo>
           {{else}}
             <form
-              class="local-friends-callout__setup"
+              class="local-friends-callout-banner__setup"
               data-test-local-friends-callout-setup
               {{on "submit" this.saveCity}}
             >
@@ -265,7 +268,7 @@ export default class LocalFriendsCallout extends Component {
             @icon="xmark"
             @ariaLabel="where_is_my_friends.callout_dismiss"
             @title="where_is_my_friends.callout_dismiss"
-            class="btn-flat no-text local-friends-callout__dismiss"
+            class="btn-flat no-text local-friends-callout-banner__dismiss"
             data-test-dismiss-local-friends
           />
         </section>

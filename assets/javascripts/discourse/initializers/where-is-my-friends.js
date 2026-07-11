@@ -15,47 +15,14 @@ export default {
         name: "where-is-my-friends",
         displayName: i18n("where_is_my_friends.title"),
         href: "/where-is-my-friends",
-        icon: "map-marker-alt",
+        customHref: () => "/where-is-my-friends",
+        forceActive: (_category, _args, router) =>
+          router.currentRouteName?.startsWith("where-is-my-friends"),
       });
 
       api.addSaveableUserOption("where_is_my_friends_notify_city", {
         page: "notifications",
       });
-
-      api.registerNotificationTypeRenderer(
-        "custom",
-        (NotificationTypeBase) => {
-          return class extends NotificationTypeBase {
-            get linkTitle() {
-              if (this.notification.data.title) {
-                return i18n(this.notification.data.title);
-              }
-              return super.linkTitle;
-            }
-
-            get icon() {
-              if (this.isLocalFriendsNotification) {
-                return "map-marker-alt";
-              }
-              return `notification.${this.notification.data.message}`;
-            }
-
-            get linkHref() {
-              if (this.isLocalFriendsNotification) {
-                return "/where-is-my-friends";
-              }
-              return super.linkHref;
-            }
-
-            get isLocalFriendsNotification() {
-              return (
-                this.notification.data.message ===
-                "where_is_my_friends.notification.member_joined"
-              );
-            }
-          };
-        }
-      );
     });
   },
 };

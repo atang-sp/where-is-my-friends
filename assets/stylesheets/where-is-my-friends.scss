@@ -1,4 +1,10 @@
-.local-friends-callout {
+// Discourse wraps connectors in a div named after the connector file.
+// Keep that wrapper out of the box tree so its styles never leak into page layout.
+.above-main-container-outlet > .local-friends-callout {
+  display: contents;
+}
+
+.local-friends-callout-banner {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 1rem;
@@ -446,12 +452,12 @@
 }
 
 @media (width <= 40rem) {
-  .local-friends-callout {
+  .local-friends-callout-banner {
     grid-template-columns: minmax(0, 1fr) auto;
     width: min(100% - 1.25rem, 72rem);
 
     > .btn-primary,
-    > .local-friends-callout__setup {
+    > .local-friends-callout-banner__setup {
       grid-column: 1 / -1;
       grid-row: 2;
       justify-content: center;
