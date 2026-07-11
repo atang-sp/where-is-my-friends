@@ -43,6 +43,19 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       )
     end
 
+    it "deduplicates city suggestions by normalized city key" do
+      sign_in(user)
+      UserLocation.upsert_city_location(Fabricate(:user).id, city: "上海")
+      UserLocation.upsert_city_location(Fabricate(:user).id, city: "上海市")
+      UserLocation.upsert_city_location(Fabricate(:user).id, city: "北京")
+
+      get "/where-is-my-friends.json"
+
+      suggestions = response.parsed_body.fetch("city_suggestions")
+      expect(suggestions.pluck("city_key")).to contain_exactly("上海", "北京")
+      expect(suggestions.count { |entry| entry["city_key"] == "上海" }).to eq(1)
+    end
+
     it "exposes only the selected map provider browser key" do
       SiteSetting.where_is_my_friends_map_provider = "amap"
       SiteSetting.where_is_my_friends_amap_api_key = "amap-browser-key"
