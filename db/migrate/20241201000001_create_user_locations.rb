@@ -11,9 +11,9 @@ class CreateUserLocations < ActiveRecord::Migration[7.0]
     end
 
     add_index :user_locations, :user_id, unique: true
-    add_index :user_locations, [:latitude, :longitude]
+    add_index :user_locations, %i[latitude longitude]
     add_index :user_locations, :enabled
 
     add_foreign_key :user_locations, :users, on_delete: :cascade
   end
-end 
+end
