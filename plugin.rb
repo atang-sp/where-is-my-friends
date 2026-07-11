@@ -1,19 +1,17 @@
 # frozen_string_literal: true
 
 # name: where-is-my-friends
-# about: Find friends nearby with privacy protection
-# version: 0.1
+# about: City-first local member discovery with optional private distance bands
+# version: 1.0.0
 # authors: atang
 # url: https://github.com/atang/where-is-my-friends
+# required_version: 2026.7.0.beta1
 
 enabled_site_setting :where_is_my_friends_enabled
 
 register_asset "stylesheets/where-is-my-friends.scss"
 
 require_relative "lib/where_is_my_friends/engine"
-
-# JavaScript files under assets/javascripts are automatically included in JS bundles
-# No need to manually register them with register_asset
 
 after_initialize do
   # Render the Discourse application for the client route, then mount the JSON API.
@@ -26,6 +24,4 @@ after_initialize do
           at: "/where-is-my-friends",
           as: "where_is_my_friends_engine"
   end
-
-  # Navigation menu items are now handled by the frontend initializer
 end
