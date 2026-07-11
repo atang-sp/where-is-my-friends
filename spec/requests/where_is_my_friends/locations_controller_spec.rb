@@ -54,6 +54,35 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       suggestions = response.parsed_body.fetch("city_suggestions")
       expect(suggestions.pluck("city_key")).to contain_exactly("上海", "北京")
       expect(suggestions.count { |entry| entry["city_key"] == "上海" }).to eq(1)
+      expect(suggestions.find { |entry| entry["city_key"] == "上海" }).to include(
+        "count" => 2
+      )
+    end
+
+    it "merges seed cities that are not already active" do
+      SiteSetting.where_is_my_friends_seed_cities = "深圳|上海|Tokyo"
+      sign_in(user)
+      UserLocation.upsert_city_location(Fabricate(:user).id, city: "上海市")
+
+      get "/where-is-my-friends.json"
+
+      suggestions = response.parsed_body.fetch("city_suggestions")
+      expect(suggestions.pluck("city_key")).to eq(%w[上海 深圳 tokyo])
+      expect(suggestions.find { |entry| entry["city_key"] == "深圳" }).to include(
+        "city" => "深圳",
+        "count" => 0
+      )
+    end
+
+    it "exposes aggregate privacy threshold in client settings" do
+      SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 5
+      sign_in(user)
+
+      get "/where-is-my-friends.json"
+
+      expect(response.parsed_body.fetch("settings")).to include(
+        "aggregate_privacy_threshold" => 5
+      )
     end
 
     it "exposes only the selected map provider browser key" do

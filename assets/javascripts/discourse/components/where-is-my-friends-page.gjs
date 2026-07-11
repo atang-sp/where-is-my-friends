@@ -12,6 +12,7 @@ import { clipboardCopy } from "discourse/lib/utilities";
 import DButton from "discourse/ui-kit/d-button";
 import dAvatar from "discourse/ui-kit/helpers/d-avatar";
 import { i18n } from "discourse-i18n";
+import { normalizeCityClient } from "../lib/where-is-my-friends-city";
 import { getCurrentPositionAsync } from "../lib/where-is-my-friends-geolocation";
 import LocationModeDialog from "./location-mode-dialog";
 import VirtualLocationPicker from "./virtual-location-picker";
@@ -111,6 +112,50 @@ export default class WhereIsMyFriendsPage extends Component {
     return i18n("where_is_my_friends.participant_proof_count", {
       count: participants.count,
     });
+  }
+
+  get cityPreview() {
+    const input = this.city.trim().toLowerCase();
+    if (!input) {
+      return null;
+    }
+
+    const normalizedInput = normalizeCityClient(input);
+    const match = this.args.model.city_suggestions?.find(
+      (suggestion) =>
+        suggestion.city.toLowerCase() === input ||
+        suggestion.city_key === normalizedInput
+    );
+
+    if (!match || match.count < 1) {
+      return null;
+    }
+
+    const threshold =
+      this.args.model.settings?.aggregate_privacy_threshold ?? 3;
+    if (match.count < threshold) {
+      return null;
+    }
+
+    return i18n("where_is_my_friends.city_member_count", {
+      count: match.count,
+      city: match.city,
+    });
+  }
+
+  get cityNormalizationHint() {
+    const raw = this.city.trim();
+    if (!raw) {
+      return null;
+    }
+
+    const normalized = normalizeCityClient(raw);
+    const comparable = raw.replace(/\s+/g, " ").toLowerCase();
+    if (normalized === comparable) {
+      return null;
+    }
+
+    return i18n("where_is_my_friends.city_will_match_as", { normalized });
   }
 
   @action
@@ -361,6 +406,7 @@ export default class WhereIsMyFriendsPage extends Component {
             value={{this.city}}
             list="where-is-my-friends-city-suggestions"
             autocomplete="address-level2"
+            placeholder={{i18n "where_is_my_friends.city_placeholder"}}
             data-test-city-input
             {{on "input" this.updateCity}}
           />
@@ -369,6 +415,18 @@ export default class WhereIsMyFriendsPage extends Component {
               <option value={{suggestion.city}}></option>
             {{/each}}
           </datalist>
+          {{#if this.cityPreview}}
+            <p
+              class="where-is-my-friends__city-preview"
+              data-test-city-preview
+            >{{this.cityPreview}}</p>
+          {{/if}}
+          {{#if this.cityNormalizationHint}}
+            <p
+              class="where-is-my-friends__city-hint"
+              data-test-city-hint
+            >{{this.cityNormalizationHint}}</p>
+          {{/if}}
           {{#if this.showRegion}}
             <label for="where-is-my-friends-region">{{i18n
                 "where_is_my_friends.region_optional"

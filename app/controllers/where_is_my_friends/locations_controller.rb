@@ -153,13 +153,39 @@ module WhereIsMyFriends
     end
 
     def city_suggestions
-      UserLocation
-        .active_for_discovery
-        .select("city_key, MIN(city) AS city")
-        .group(:city_key)
-        .order("MIN(city)")
-        .limit(20)
-        .map { |location| { city: location.city, city_key: location.city_key } }
+      active =
+        UserLocation
+          .active_for_discovery
+          .select("city_key, MIN(city) AS city, COUNT(*) AS member_count")
+          .group(:city_key)
+          .order("COUNT(*) DESC, MIN(city)")
+          .limit(20)
+          .map do |location|
+            {
+              city: location.city,
+              city_key: location.city_key,
+              count: location.member_count
+            }
+          end
+
+      seen_keys = active.map { |suggestion| suggestion[:city_key] }.to_set
+
+      seeds =
+        SiteSetting
+          .where_is_my_friends_seed_cities
+          .to_s
+          .split("|")
+          .map(&:strip)
+          .reject(&:blank?)
+          .filter_map do |name|
+            key = UserLocation.normalize_city(name)
+            next if seen_keys.include?(key)
+
+            seen_keys.add(key)
+            { city: name, city_key: key, count: 0 }
+          end
+
+      (active + seeds).first(30)
     end
 
     def client_settings
@@ -167,7 +193,12 @@ module WhereIsMyFriends
         virtual_location_enabled:
           SiteSetting.where_is_my_friends_enable_virtual_location,
         map_provider: SiteSetting.where_is_my_friends_map_provider,
-        location_ttl_days: UserLocation.ttl_days
+        location_ttl_days: UserLocation.ttl_days,
+        aggregate_privacy_threshold:
+          SiteSetting.where_is_my_friends_aggregate_privacy_threshold.to_i.clamp(
+            2,
+            20
+          )
       }
 
       case settings[:map_provider]
