@@ -150,9 +150,9 @@ module WhereIsMyFriends
     def city_suggestions
       UserLocation
         .active_for_discovery
-        .select(:city, :city_key)
-        .distinct
-        .order(:city)
+        .select("city_key, MIN(city) AS city")
+        .group(:city_key)
+        .order("MIN(city)")
         .limit(20)
         .map { |location| { city: location.city, city_key: location.city_key } }
     end
