@@ -21,7 +21,8 @@ module WhereIsMyFriends
                location: location_metadata(location),
                active_participants: active_participants,
                city_suggestions: city_suggestions,
-               settings: client_settings
+               settings: client_settings,
+               profile_location: current_user.user_profile&.location.presence
              }
     end
 
@@ -69,7 +70,12 @@ module WhereIsMyFriends
           .where(city_key: nearby_keys)
           .where.not(user_id: current_user.id)
           .includes(user: :user_profile)
-          .order(updated_at: :desc)
+          .joins(:user)
+          .order(
+            Arel.sql(
+              "CASE WHEN user_locations.updated_at > #{ActiveRecord::Base.connection.quote(7.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST"
+            )
+          )
           .limit(
             UserLocation.discovery_limit(
               SiteSetting.where_is_my_friends_max_users_display
@@ -84,7 +90,21 @@ module WhereIsMyFriends
           )
         end
 
-      render json: { state: users.empty? ? "empty" : "ready", users: users }
+      if users.empty?
+        nearby_city_count =
+          UserLocation
+            .active_for_discovery
+            .where(city_key: nearby_keys - [origin.city_key])
+            .count
+
+        render json: {
+                 state: "empty",
+                 users: [],
+                 nearby_city_count: nearby_city_count
+               }
+      else
+        render json: { state: "ready", users: users }
+      end
     end
 
     def destroy

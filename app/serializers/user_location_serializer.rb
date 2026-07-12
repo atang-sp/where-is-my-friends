@@ -11,6 +11,7 @@ class UserLocationSerializer < ApplicationSerializer
              :distance_band,
              :message_url,
              :is_recent,
+             :last_seen_at,
              :bio_excerpt
 
   def id
@@ -43,6 +44,10 @@ class UserLocationSerializer < ApplicationSerializer
 
   def is_recent
     location.updated_at > 7.days.ago
+  end
+
+  def last_seen_at
+    user.last_seen_at&.iso8601
   end
 
   def bio_excerpt
