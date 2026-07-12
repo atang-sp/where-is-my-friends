@@ -78,7 +78,9 @@ export default class WhereIsMyFriendsPage extends Component {
   }
 
   get chatEnabled() {
-    return this.siteSettings.chat_enabled;
+    return (
+      this.siteSettings.chat_enabled && this.currentUser?.has_chat_enabled
+    );
   }
 
   get visibleUsers() {
