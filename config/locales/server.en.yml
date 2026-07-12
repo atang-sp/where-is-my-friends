@@ -43,3 +43,4 @@ en:
     where_is_my_friends_seed_cities: "Suggested cities for autocomplete, separated by | (e.g. Shanghai|Beijing|New York|Tokyo)"
     where_is_my_friends_default_discovery_radius_km: "Default discovery radius in kilometers. Members can choose 50/100/200."
     where_is_my_friends_target_category_slug: "Slug of the local-meetup category. Shows a stronger callout in this category."
+    where_is_my_friends_filterable_user_fields: "Custom user field names to enable as discovery filters (dropdown type only), separated by |"

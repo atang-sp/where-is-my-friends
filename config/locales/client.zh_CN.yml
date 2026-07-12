@@ -100,6 +100,8 @@ zh_CN:
       composer_hint: "想让更多同城人找到你？加入同城朋友，让 %{city} 的成员直接看到你。"
       composer_hint_cta: "加入同城朋友"
       composer_hint_no_city: "小贴士：加入同城朋友，让同城的人更容易找到你"
+      filter_all: "全部"
+      no_results_with_filters: "没有成员符合当前筛选条件，试试减少筛选项。"
       sidebar_widget_title: "同城朋友"
       sidebar_widget_new_members: "你附近新增了 %{count} 位成员"
       sidebar_widget_view: "查看全部"

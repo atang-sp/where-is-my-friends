@@ -100,6 +100,8 @@ en:
       composer_hint: "Want more visibility? Join Local Friends to let %{city} members find you directly."
       composer_hint_cta: "Join Local Friends"
       composer_hint_no_city: "Tip: Join Local Friends so others can find you more easily"
+      filter_all: "All"
+      no_results_with_filters: "No members match your current filters. Try selecting fewer criteria."
       sidebar_widget_title: "Local Friends"
       sidebar_widget_new_members: "%{count} new members near you"
       sidebar_widget_view: "View all"

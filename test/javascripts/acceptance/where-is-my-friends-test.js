@@ -15,6 +15,7 @@ function setupApi(needs, state) {
           active_participants: { suppressed: true },
           city_suggestions: [],
           settings: {},
+          filterable_fields: [],
         }
       )
     );
@@ -38,12 +39,13 @@ function setupApi(needs, state) {
       });
     });
 
-    server.get("/where-is-my-friends/locations/nearby.json", () => {
+    server.get("/where-is-my-friends/locations/nearby.json", (request) => {
       if (state.nearbyError) {
         return helper.response(500, { errors: [] });
       }
 
       state.nearbyRequests += 1;
+      state.lastNearbyParams = request.queryParams;
       return helper.response(state.nearby ?? { state: "empty", users: [] });
     }, state.nearbyDelay);
 
@@ -84,6 +86,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       nearbyError: false,
       savedLocations: [],
       deleteRequests: 0,
+      lastNearbyParams: null,
     });
   });
 
@@ -539,6 +542,105 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .hasText("Weekend cyclist and tea drinker.");
   });
 
+  test("attribute filters render from filterable_fields and send params on selection", async function (assert) {
+    api.initial = readyState({}, {
+      filterable_fields: [
+        { name: "性别", key: "user_field_3", options: ["男", "女", "其他"] },
+        { name: "属性", key: "user_field_5", options: ["主动", "被动", "双"] },
+      ],
+    });
+    api.nearby = {
+      state: "ready",
+      users: [
+        {
+          ...localUser("alice", "Alice"),
+          custom_fields: { "性别": "女", "属性": "被动" },
+        },
+        {
+          ...localUser("bob", "Bob"),
+          custom_fields: { "性别": "男", "属性": "主动" },
+        },
+      ],
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert.dom("[data-test-attribute-filters]").exists();
+    assert.dom("[data-test-filter-group='user_field_3']").exists();
+    assert.dom("[data-test-filter-group='user_field_5']").exists();
+
+    assert
+      .dom("[data-test-filter-group='user_field_3'] [data-test-filter-option='all']")
+      .hasClass("btn-primary");
+
+    await click("[data-test-filter-group='user_field_3'] [data-test-filter-option='男']");
+
+    assert.strictEqual(api.nearbyRequests, 2);
+    assert.strictEqual(api.lastNearbyParams["filters[user_field_3]"], "男");
+
+    assert
+      .dom("[data-test-filter-group='user_field_3'] [data-test-filter-option='男']")
+      .hasClass("btn-primary");
+    assert
+      .dom("[data-test-filter-group='user_field_3'] [data-test-filter-option='all']")
+      .doesNotHaveClass("btn-primary");
+  });
+
+  test("clicking 'All' clears the filter for that field", async function (assert) {
+    api.initial = readyState({}, {
+      filterable_fields: [
+        { name: "性别", key: "user_field_3", options: ["男", "女"] },
+      ],
+    });
+    api.nearby = {
+      state: "ready",
+      users: [localUser("alice", "Alice")],
+    };
+
+    await visit("/where-is-my-friends");
+
+    await click("[data-test-filter-group='user_field_3'] [data-test-filter-option='男']");
+    assert.strictEqual(api.lastNearbyParams["filters[user_field_3]"], "男");
+
+    await click("[data-test-filter-group='user_field_3'] [data-test-filter-option='all']");
+    assert.strictEqual(api.nearbyRequests, 3);
+    assert.strictEqual(api.lastNearbyParams["filters[user_field_3]"], undefined);
+  });
+
+  test("custom field values are shown on user cards", async function (assert) {
+    api.initial = readyState({}, {
+      filterable_fields: [
+        { name: "性别", key: "user_field_3", options: ["男", "女"] },
+        { name: "属性", key: "user_field_5", options: ["主动", "被动", "双"] },
+      ],
+    });
+    api.nearby = {
+      state: "ready",
+      users: [
+        {
+          ...localUser("alice", "Alice"),
+          custom_fields: { "性别": "女", "属性": "被动" },
+        },
+      ],
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert.dom("[data-test-user-card='alice'] [data-test-user-attrs]").hasText("女 / 被动");
+  });
+
+  test("filter UI is hidden when no filterable fields are configured", async function (assert) {
+    api.initial = readyState();
+    api.nearby = {
+      state: "ready",
+      users: [localUser("alice", "Alice")],
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert.dom("[data-test-attribute-filters]").doesNotExist();
+  });
+
   test("discovery radius can be changed and reloads nearby results", async function (assert) {
     api.initial = readyState();
     api.nearby = { state: "ready", users: [localUser("alice", "Alice")] };
@@ -559,7 +661,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
   });
 });
 
-function readyState(settings = {}) {
+function readyState(settings = {}, extras = {}) {
   return {
     state: "ready",
     current_user: { id: 1, username: "current-user" },
@@ -578,6 +680,8 @@ function readyState(settings = {}) {
       discovery_radius_options_km: [50, 100, 200],
       ...settings,
     },
+    filterable_fields: [],
+    ...extras,
   };
 }
 

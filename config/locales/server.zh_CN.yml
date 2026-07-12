@@ -43,3 +43,4 @@ zh_CN:
     where_is_my_friends_seed_cities: "补全推荐城市列表，用竖线分隔（如 上海|北京|深圳|New York|Tokyo）"
     where_is_my_friends_default_discovery_radius_km: "默认发现半径（公里）。用户可在 50/100/200 中自选。"
     where_is_my_friends_target_category_slug: "同城相关分区的 slug。在该分区中显示更强的引导组件。"
+    where_is_my_friends_filterable_user_fields: "允许在发现结果中筛选的自定义用户字段名称（仅限下拉类型），用竖线分隔"
