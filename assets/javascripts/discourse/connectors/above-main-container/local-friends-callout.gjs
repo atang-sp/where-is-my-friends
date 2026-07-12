@@ -39,12 +39,8 @@ function writeCalloutState(state) {
 }
 
 function shouldHideCallout(state) {
-  if (state.views >= MAX_VIEWS && !state.open) {
-    return true;
-  }
-
   if (!state.cooldownUntil) {
-    return false;
+    return state.views >= MAX_VIEWS && !state.open;
   }
 
   const cooldownUntil = Date.parse(state.cooldownUntil);
@@ -53,6 +49,10 @@ function shouldHideCallout(state) {
   }
 
   return Date.now() < cooldownUntil;
+}
+
+function shouldCompact(state) {
+  return state.views >= MAX_VIEWS;
 }
 
 export default class LocalFriendsCallout extends Component {
@@ -65,17 +65,16 @@ export default class LocalFriendsCallout extends Component {
   @tracked error = null;
   @tracked justJoined = false;
   @tracked dismissed = false;
+  @tracked compact = false;
   calloutState = readCalloutState();
 
   constructor() {
     super(...arguments);
-    this.dismissed = shouldHideCallout(this.calloutState);
+    this.compact = shouldCompact(this.calloutState);
   }
 
   get shouldLoad() {
-    return Boolean(
-      this.currentUser && !this.dismissed && this.isTopicListRoute
-    );
+    return Boolean(this.currentUser && this.isTopicListRoute);
   }
 
   get isTopicListRoute() {
@@ -121,11 +120,6 @@ export default class LocalFriendsCallout extends Component {
   }
 
   recordView() {
-    if (shouldHideCallout(this.calloutState)) {
-      this.dismissed = true;
-      return;
-    }
-
     if (this.calloutState.open) {
       return;
     }
@@ -136,6 +130,7 @@ export default class LocalFriendsCallout extends Component {
       open: true,
     };
     writeCalloutState(this.calloutState);
+    this.compact = shouldCompact(this.calloutState);
   }
 
   @action
@@ -176,102 +171,130 @@ export default class LocalFriendsCallout extends Component {
 
   @action
   dismiss() {
-    this.dismissed = true;
-    const views = Math.max(this.calloutState.views, 1);
+    const views = Math.max(this.calloutState.views, MAX_VIEWS);
     this.calloutState = {
       views,
       open: false,
-      cooldownUntil:
-        views >= MAX_VIEWS
-          ? null
-          : new Date(
-              Date.now() + DISMISS_DAYS * 24 * 60 * 60 * 1000
-            ).toISOString(),
+      cooldownUntil: this.hasLocation
+        ? new Date(
+            Date.now() + DISMISS_DAYS * 24 * 60 * 60 * 1000
+          ).toISOString()
+        : null,
     };
     writeCalloutState(this.calloutState);
+
+    if (this.hasLocation) {
+      this.dismissed = true;
+    } else {
+      this.compact = true;
+    }
   }
 
   <template>
     {{#if this.shouldLoad}}
       <span hidden {{didInsert this.load}}></span>
       {{#if this.data}}
-        <section
-          class="local-friends-callout-banner"
-          data-test-local-friends-callout
-        >
-          <div class="local-friends-callout-banner__content">
-            {{#if this.justJoined}}
-              <strong>{{i18n "where_is_my_friends.callout_joined_title"}}</strong>
-              <p>{{i18n
-                  "where_is_my_friends.callout_joined_description"
-                  city=this.joinedCity
-                }}</p>
-            {{else}}
-              <strong>{{i18n "where_is_my_friends.callout_title"}}</strong>
-              <p>{{i18n
-                  (if
-                    this.hasLocation
-                    "where_is_my_friends.callout_returning_description"
-                    "where_is_my_friends.callout_setup_description"
-                  )
-                }}</p>
-              <span data-test-local-friends-callout-proof>{{this.proof}}</span>
-            {{/if}}
-            {{#if this.error}}
-              <p
-                class="local-friends-callout-banner__error"
-                data-test-callout-error
+        {{#unless this.dismissed}}
+          {{#if this.compact}}
+            <section
+              class="local-friends-callout-banner local-friends-callout-banner--compact"
+              data-test-local-friends-callout
+            >
+              <div class="local-friends-callout-banner__content">
+                <strong>{{i18n "where_is_my_friends.callout_title"}}</strong>
+              </div>
+              <LinkTo
+                @route="where-is-my-friends"
+                class="btn btn-primary btn-small"
+                data-test-local-friends-callout-cta
               >
-                {{this.error}}
-              </p>
-            {{/if}}
-          </div>
-
-          {{#if this.hasLocation}}
-            <LinkTo
-              @route="where-is-my-friends"
-              class="btn btn-primary"
-              data-test-local-friends-callout-cta
-            >
-              {{i18n "where_is_my_friends.callout_view_members"}}
-            </LinkTo>
+                {{i18n "where_is_my_friends.callout_set_city"}}
+              </LinkTo>
+            </section>
           {{else}}
-            <form
-              class="local-friends-callout-banner__setup"
-              data-test-local-friends-callout-setup
-              {{on "submit" this.saveCity}}
+            <section
+              class="local-friends-callout-banner"
+              data-test-local-friends-callout
             >
-              <input
-                type="text"
-                value={{this.city}}
-                placeholder={{i18n
-                  "where_is_my_friends.callout_city_placeholder"
-                }}
-                autocomplete="address-level2"
-                aria-label={{i18n "where_is_my_friends.city"}}
-                data-test-callout-city-input
-                {{on "input" this.updateCity}}
-              />
-              <DButton
-                @action={{this.saveCity}}
-                @label="where_is_my_friends.callout_save_city"
-                @icon="location-dot"
-                @disabled={{this.saving}}
-                class="btn-primary"
-                data-test-callout-save-city
-              />
-            </form>
-          {{/if}}
+              <div class="local-friends-callout-banner__content">
+                {{#if this.justJoined}}
+                  <strong>{{i18n
+                      "where_is_my_friends.callout_joined_title"
+                    }}</strong>
+                  <p>{{i18n
+                      "where_is_my_friends.callout_joined_description"
+                      city=this.joinedCity
+                    }}</p>
+                {{else}}
+                  <strong>{{i18n "where_is_my_friends.callout_title"}}</strong>
+                  <p>{{i18n
+                      (if
+                        this.hasLocation
+                        "where_is_my_friends.callout_returning_description"
+                        "where_is_my_friends.callout_setup_description"
+                      )
+                    }}</p>
+                  <span
+                    data-test-local-friends-callout-proof
+                  >{{this.proof}}</span>
+                {{/if}}
+                {{#if this.error}}
+                  <p
+                    class="local-friends-callout-banner__error"
+                    data-test-callout-error
+                  >
+                    {{this.error}}
+                  </p>
+                {{/if}}
+              </div>
 
-          <DButton
-            @action={{this.dismiss}}
-            @icon="xmark"
-            @ariaLabel="where_is_my_friends.callout_dismiss"
-            @title="where_is_my_friends.callout_dismiss"
-            class="btn-flat no-text local-friends-callout-banner__dismiss"
-            data-test-dismiss-local-friends
-          />
-        </section>
+              {{#if this.hasLocation}}
+                <LinkTo
+                  @route="where-is-my-friends"
+                  class="btn btn-primary"
+                  data-test-local-friends-callout-cta
+                >
+                  {{i18n "where_is_my_friends.callout_view_members"}}
+                </LinkTo>
+              {{else}}
+                <form
+                  class="local-friends-callout-banner__setup"
+                  data-test-local-friends-callout-setup
+                  {{on "submit" this.saveCity}}
+                >
+                  <input
+                    type="text"
+                    value={{this.city}}
+                    placeholder={{i18n
+                      "where_is_my_friends.callout_city_placeholder"
+                    }}
+                    autocomplete="address-level2"
+                    aria-label={{i18n "where_is_my_friends.city"}}
+                    data-test-callout-city-input
+                    {{on "input" this.updateCity}}
+                  />
+                  <DButton
+                    @action={{this.saveCity}}
+                    @label="where_is_my_friends.callout_save_city"
+                    @icon="location-dot"
+                    @disabled={{this.saving}}
+                    class="btn-primary"
+                    data-test-callout-save-city
+                  />
+                </form>
+              {{/if}}
+
+              <DButton
+                @action={{this.dismiss}}
+                @icon="xmark"
+                @ariaLabel="where_is_my_friends.callout_dismiss"
+                @title="where_is_my_friends.callout_dismiss"
+                class="btn-flat no-text local-friends-callout-banner__dismiss"
+                data-test-dismiss-local-friends
+              />
+            </section>
+          {{/if}}
+        {{/unless}}
       {{/if}}
     {{/if}}
   </template>

@@ -9,6 +9,7 @@ import { next } from "@ember/runloop";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { clipboardCopy } from "discourse/lib/utilities";
+import { relativeAge } from "discourse/lib/formatter";
 import DButton from "discourse/ui-kit/d-button";
 import dAvatar from "discourse/ui-kit/helpers/d-avatar";
 import { i18n } from "discourse-i18n";
@@ -20,6 +21,7 @@ import VirtualLocationPicker from "./virtual-location-picker";
 export default class WhereIsMyFriendsPage extends Component {
   @service currentUser;
   @service modal;
+  @service siteSettings;
 
   @tracked city;
   @tracked region;
@@ -32,14 +34,21 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked memberFilter = "";
   @tracked showRegion;
   @tracked inviteFeedback = null;
+  @tracked notifyCity;
+  @tracked nearbyCityCount = 0;
 
   constructor() {
     super(...arguments);
-    this.city = this.args.model.location?.city ?? "";
+    this.city =
+      this.args.model.location?.city ??
+      this.args.model.profile_location ??
+      "";
     this.region = this.args.model.location?.region ?? "";
     this.showRegion = Boolean(this.region);
     this.location = this.args.model.location;
     this.discoveryState = this.args.model.state;
+    this.notifyCity =
+      this.currentUser?.user_option?.where_is_my_friends_notify_city ?? true;
   }
 
   get isSetup() {
@@ -68,6 +77,10 @@ export default class WhereIsMyFriendsPage extends Component {
     return this.availableUsers.length >= 10;
   }
 
+  get chatEnabled() {
+    return this.siteSettings.chat_enabled;
+  }
+
   get visibleUsers() {
     const bandOrder = {
       same_city: 0,
@@ -87,6 +100,7 @@ export default class WhereIsMyFriendsPage extends Component {
         )
       : this.availableUsers;
 
+    const useChat = this.chatEnabled;
     return [...users]
       .sort(
         (a, b) =>
@@ -98,6 +112,12 @@ export default class WhereIsMyFriendsPage extends Component {
         distance_label: i18n(
           `where_is_my_friends.distance_bands.${user.distance_band ?? "same_city"}`
         ),
+        action_url: useChat
+          ? `/chat/draft-channel?usernames=${encodeURIComponent(user.username)}`
+          : user.message_url,
+        last_active_label: user.last_seen_at
+          ? relativeAge(new Date(user.last_seen_at), { format: "tiny" })
+          : null,
       }));
   }
 
@@ -267,6 +287,7 @@ export default class WhereIsMyFriendsPage extends Component {
         "/where-is-my-friends/locations/nearby.json"
       );
       this.users = response.users ?? [];
+      this.nearbyCityCount = response.nearby_city_count ?? 0;
       this.discoveryState = this.availableUsers.length > 0 ? "ready" : "empty";
       void this.recordEvent("results_viewed", {
         location_mode: this.location?.discovery_mode ?? "city",
@@ -426,6 +447,21 @@ export default class WhereIsMyFriendsPage extends Component {
       this.inviteFeedback = i18n("where_is_my_friends.invite_copied");
     } catch {
       this.inviteFeedback = i18n("where_is_my_friends.invite_copy_failed");
+    }
+  }
+
+  @action
+  async toggleNotifyCity() {
+    this.notifyCity = !this.notifyCity;
+    try {
+      await ajax(`/u/${this.currentUser.username}.json`, {
+        type: "PUT",
+        data: {
+          where_is_my_friends_notify_city: this.notifyCity,
+        },
+      });
+    } catch {
+      this.notifyCity = !this.notifyCity;
     }
   }
 
@@ -675,7 +711,9 @@ export default class WhereIsMyFriendsPage extends Component {
                     <LinkTo @route="user" @model={{user.username}}>
                       @{{user.username}}
                     </LinkTo>
-                    <p>{{user.city}} · {{user.distance_label}}</p>
+                    <p>{{user.city}} · {{user.distance_label}}{{#if
+                        user.last_active_label
+                      }} · {{user.last_active_label}}{{/if}}</p>
                     {{#if user.bio_excerpt}}
                       <p
                         class="where-is-my-friends__bio"
@@ -698,10 +736,10 @@ export default class WhereIsMyFriendsPage extends Component {
                         (fn this.trackConnection "profile_clicked")
                       }}
                     >{{i18n "where_is_my_friends.view_profile"}}</LinkTo>
-                    {{#if user.message_url}}
+                    {{#if user.action_url}}
                       <a
                         class="btn btn-primary"
-                        href={{user.message_url}}
+                        href={{user.action_url}}
                         aria-label={{i18n
                           "where_is_my_friends.message_user"
                           username=user.username
@@ -711,7 +749,13 @@ export default class WhereIsMyFriendsPage extends Component {
                           "click"
                           (fn this.trackConnection "message_started")
                         }}
-                      >{{i18n "where_is_my_friends.send_message"}}</a>
+                      >{{i18n
+                          (if
+                            this.chatEnabled
+                            "where_is_my_friends.start_chat"
+                            "where_is_my_friends.send_message"
+                          )
+                        }}</a>
                     {{/if}}
                   </div>
                 </article>
@@ -722,6 +766,29 @@ export default class WhereIsMyFriendsPage extends Component {
           <section class="where-is-my-friends__empty" data-test-empty-state>
             <h2>{{i18n "where_is_my_friends.empty_title" city=this.location.city}}</h2>
             <p>{{i18n "where_is_my_friends.empty_description"}}</p>
+            {{#if this.nearbyCityCount}}
+              <p
+                class="where-is-my-friends__nearby-count"
+                data-test-nearby-city-count
+              >{{i18n
+                  "where_is_my_friends.empty_nearby_count"
+                  count=this.nearbyCityCount
+                }}</p>
+            {{/if}}
+            <label
+              class="where-is-my-friends__notify-toggle"
+              data-test-notify-toggle
+            >
+              <input
+                type="checkbox"
+                checked={{this.notifyCity}}
+                {{on "change" this.toggleNotifyCity}}
+              />
+              {{i18n
+                "where_is_my_friends.empty_notify_prompt"
+                city=this.location.city
+              }}
+            </label>
             <LinkTo
               @route="full-page-search"
               @query={{hash q=this.location.city}}
