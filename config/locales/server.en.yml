@@ -2,9 +2,35 @@ en:
   where_is_my_friends:
     invalid_location: "Please provide a valid city and location."
     invalid_event: "This activity cannot be recorded."
+    invite_pm_title: "Discover local community members near you"
+    invite_pm_cta: "Join Local Friends now"
+    announcement:
+      title: "Local Friends — Find people near you in one click"
+      body: |
+        **Local Friends** helps you discover forum members in your city and nearby areas.
+
+        **How it works:**
+        1. Set your city (no GPS needed, no precise location shared)
+        2. Instantly see everyone nearby
+        3. Message them or arrange meetups
+
+        Currently **%{count} members** across **%{city_count} cities** are already participating.
+
+        :point_right: **[Join Local Friends now](%{link})** — takes 10 seconds.
+
+        Your city is the only thing shown to other members. Privacy first, always.
+      category_title: "Use Local Friends to find people in your city"
+      category_body: |
+        Looking for someone nearby? Instead of posting every time, try **Local Friends** — set your city once and see all nearby members instantly.
+
+        **%{count} members** in **%{city_count} cities** are already using it.
+
+        :point_right: **[Join now](%{link})** — one click, forever visible to nearby members.
+
+        Still prefer posting here? Totally fine! But Local Friends gives you a permanent directory that's always up to date.
     notification:
       member_joined_description: "also joined local discovery in %{city}"
-      profile_location_invite: "Did you know %{count} members are near %{city}? Join local discovery!"
+      profile_location_invite: "Your profile shows you're in %{city} — did you know %{count} forum members are nearby? Join Local Friends to connect with them!"
       monthly_digest: "%{count} new members joined near you last month"
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
@@ -16,3 +42,4 @@ en:
     where_is_my_friends_aggregate_privacy_threshold: "Minimum participants before showing an exact aggregate count"
     where_is_my_friends_seed_cities: "Suggested cities for autocomplete, separated by | (e.g. Shanghai|Beijing|New York|Tokyo)"
     where_is_my_friends_default_discovery_radius_km: "Default discovery radius in kilometers. Members can choose 50/100/200."
+    where_is_my_friends_target_category_slug: "Slug of the local-meetup category. Shows a stronger callout in this category."

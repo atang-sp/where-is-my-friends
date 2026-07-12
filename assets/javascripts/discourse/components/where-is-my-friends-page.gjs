@@ -39,13 +39,19 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked expandedRadius = false;
   @tracked originalRadiusKm = null;
   @tracked expandedRadiusKm = null;
+  @tracked autoCity = null;
 
   constructor() {
     super(...arguments);
+    const autoCity = new URLSearchParams(window.location.search).get(
+      "auto_city"
+    );
     this.city =
       this.args.model.location?.city ??
+      autoCity ??
       this.args.model.profile_location ??
       "";
+    this.autoCity = autoCity && !this.args.model.location ? autoCity : null;
     this.region = this.args.model.location?.region ?? "";
     this.showRegion = Boolean(this.region);
     this.location = this.args.model.location;
@@ -447,7 +453,11 @@ export default class WhereIsMyFriendsPage extends Component {
   @action
   async copyInvite() {
     try {
-      await clipboardCopy(new URL("/where-is-my-friends", window.location).href);
+      const url = new URL("/where-is-my-friends", window.location);
+      if (this.location?.city) {
+        url.searchParams.set("auto_city", this.location.city);
+      }
+      await clipboardCopy(url.href);
       this.inviteFeedback = i18n("where_is_my_friends.invite_copied");
     } catch {
       this.inviteFeedback = i18n("where_is_my_friends.invite_copy_failed");
@@ -520,6 +530,15 @@ export default class WhereIsMyFriendsPage extends Component {
               <option value={{suggestion.city}}></option>
             {{/each}}
           </datalist>
+          {{#if this.autoCity}}
+            <p
+              class="where-is-my-friends__auto-city-hint"
+              data-test-auto-city-hint
+            >{{i18n
+                "where_is_my_friends.auto_city_hint"
+                city=this.autoCity
+              }}</p>
+          {{/if}}
           {{#if this.cityPreview}}
             <p
               class="where-is-my-friends__city-preview"

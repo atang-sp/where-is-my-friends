@@ -58,6 +58,7 @@ function shouldCompact(state) {
 export default class LocalFriendsCallout extends Component {
   @service currentUser;
   @service router;
+  @service siteSettings;
 
   @tracked data = null;
   @tracked city = "";
@@ -87,8 +88,39 @@ export default class LocalFriendsCallout extends Component {
     );
   }
 
+  get isTargetCategory() {
+    const slug =
+      this.siteSettings.where_is_my_friends_target_category_slug?.trim();
+    if (!slug) {
+      return false;
+    }
+    const routeName = this.router.currentRouteName ?? "";
+    if (!routeName.startsWith("category.")) {
+      return false;
+    }
+    const currentSlug =
+      this.router.currentRoute?.attributes?.category?.slug ?? "";
+    return currentSlug === slug;
+  }
+
+  get isCategoryMode() {
+    return this.isTargetCategory && !this.hasLocation;
+  }
+
   get hasLocation() {
     return Boolean(this.data?.location) || this.justJoined;
+  }
+
+  get newMemberCount() {
+    return this.data?.new_nearby_count ?? 0;
+  }
+
+  get returningWidgetText() {
+    const count = this.newMemberCount;
+    if (count > 0) {
+      return i18n("where_is_my_friends.sidebar_widget_new_members", { count });
+    }
+    return i18n("where_is_my_friends.sidebar_widget_no_new");
   }
 
   get proof() {
@@ -99,6 +131,18 @@ export default class LocalFriendsCallout extends Component {
 
     return i18n("where_is_my_friends.callout_proof_count", {
       count: participants.count,
+    });
+  }
+
+  get categoryProof() {
+    const participants = this.data?.active_participants;
+    if (!participants || participants.suppressed) {
+      return null;
+    }
+
+    return i18n("where_is_my_friends.category_callout_description", {
+      count: participants.count,
+      city_count: participants.city_count ?? 1,
     });
   }
 
@@ -199,7 +243,68 @@ export default class LocalFriendsCallout extends Component {
     {{#if this.shouldLoad}}
       <span hidden {{didInsert this.load}}></span>
       {{#if this.data}}
-        {{#unless this.dismissed}}
+        {{#if this.isCategoryMode}}
+          <section
+            class="local-friends-callout-banner local-friends-callout-banner--category"
+            data-test-local-friends-category-callout
+          >
+            <div class="local-friends-callout-banner__content">
+              <strong>{{i18n
+                  "where_is_my_friends.category_callout_title"
+                }}</strong>
+              {{#if this.categoryProof}}
+                <p>{{this.categoryProof}}</p>
+              {{/if}}
+              {{#if this.error}}
+                <p
+                  class="local-friends-callout-banner__error"
+                  data-test-callout-error
+                >{{this.error}}</p>
+              {{/if}}
+            </div>
+            <form
+              class="local-friends-callout-banner__setup"
+              data-test-local-friends-callout-setup
+              {{on "submit" this.saveCity}}
+            >
+              <input
+                type="text"
+                value={{this.city}}
+                placeholder={{i18n
+                  "where_is_my_friends.callout_city_placeholder"
+                }}
+                autocomplete="address-level2"
+                aria-label={{i18n "where_is_my_friends.city"}}
+                data-test-callout-city-input
+                {{on "input" this.updateCity}}
+              />
+              <DButton
+                @action={{this.saveCity}}
+                @label="where_is_my_friends.category_callout_cta"
+                @icon="location-dot"
+                @disabled={{this.saving}}
+                class="btn-primary"
+                data-test-callout-save-city
+              />
+            </form>
+          </section>
+        {{else if this.hasLocation}}
+          <section
+            class="local-friends-callout-banner local-friends-callout-banner--returning"
+            data-test-local-friends-returning
+          >
+            <div class="local-friends-callout-banner__content">
+              <strong>{{this.returningWidgetText}}</strong>
+            </div>
+            <LinkTo
+              @route="where-is-my-friends"
+              class="btn btn-primary btn-small"
+              data-test-local-friends-callout-cta
+            >
+              {{i18n "where_is_my_friends.sidebar_widget_view"}}
+            </LinkTo>
+          </section>
+        {{else unless this.dismissed}}
           {{#if this.compact}}
             <section
               class="local-friends-callout-banner local-friends-callout-banner--compact"
@@ -232,11 +337,7 @@ export default class LocalFriendsCallout extends Component {
                     }}</p>
                 {{else}}
                   <strong>{{i18n "where_is_my_friends.callout_title"}}</strong>
-                  <p>{{#if this.hasLocation}}
-                      {{i18n
-                        "where_is_my_friends.callout_returning_description"
-                      }}
-                    {{else if this.hasSuggestion}}
+                  <p>{{#if this.hasSuggestion}}
                       {{i18n
                         "where_is_my_friends.callout_suggestion"
                         city=this.city
@@ -260,41 +361,31 @@ export default class LocalFriendsCallout extends Component {
                 {{/if}}
               </div>
 
-              {{#if this.hasLocation}}
-                <LinkTo
-                  @route="where-is-my-friends"
-                  class="btn btn-primary"
-                  data-test-local-friends-callout-cta
-                >
-                  {{i18n "where_is_my_friends.callout_view_members"}}
-                </LinkTo>
-              {{else}}
-                <form
-                  class="local-friends-callout-banner__setup"
-                  data-test-local-friends-callout-setup
-                  {{on "submit" this.saveCity}}
-                >
-                  <input
-                    type="text"
-                    value={{this.city}}
-                    placeholder={{i18n
-                      "where_is_my_friends.callout_city_placeholder"
-                    }}
-                    autocomplete="address-level2"
-                    aria-label={{i18n "where_is_my_friends.city"}}
-                    data-test-callout-city-input
-                    {{on "input" this.updateCity}}
-                  />
-                  <DButton
-                    @action={{this.saveCity}}
-                    @label="where_is_my_friends.callout_save_city"
-                    @icon="location-dot"
-                    @disabled={{this.saving}}
-                    class="btn-primary"
-                    data-test-callout-save-city
-                  />
-                </form>
-              {{/if}}
+              <form
+                class="local-friends-callout-banner__setup"
+                data-test-local-friends-callout-setup
+                {{on "submit" this.saveCity}}
+              >
+                <input
+                  type="text"
+                  value={{this.city}}
+                  placeholder={{i18n
+                    "where_is_my_friends.callout_city_placeholder"
+                  }}
+                  autocomplete="address-level2"
+                  aria-label={{i18n "where_is_my_friends.city"}}
+                  data-test-callout-city-input
+                  {{on "input" this.updateCity}}
+                />
+                <DButton
+                  @action={{this.saveCity}}
+                  @label="where_is_my_friends.callout_save_city"
+                  @icon="location-dot"
+                  @disabled={{this.saving}}
+                  class="btn-primary"
+                  data-test-callout-save-city
+                />
+              </form>
 
               <DButton
                 @action={{this.dismiss}}

@@ -78,6 +78,29 @@
       }
     }
   }
+
+  &--category {
+    border-color: var(--tertiary);
+    border-width: 2px;
+    background: var(--tertiary-very-low);
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    .local-friends-callout-banner__content strong {
+      font-size: var(--font-up-1);
+    }
+  }
+
+  &--returning {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0.5rem 1rem;
+    border-color: var(--primary-low);
+    background: var(--primary-very-low);
+
+    .local-friends-callout-banner__content strong {
+      font-size: var(--font-0);
+      color: var(--primary-high);
+    }
+  }
 }
 
 .where-is-my-friends {
@@ -202,6 +225,16 @@
   color: var(--primary-medium);
   font-size: var(--font-down-1);
   font-style: italic;
+}
+
+.where-is-my-friends__auto-city-hint {
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.4rem;
+  background: var(--tertiary-very-low);
+  color: var(--tertiary);
+  font-size: var(--font-down-1);
+  font-weight: 600;
 }
 
 .where-is-my-friends__add-region.btn {
@@ -664,5 +697,27 @@
     &:hover {
       background: var(--tertiary-very-low);
     }
+  }
+}
+
+.local-friends-composer-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--tertiary-low);
+  border-radius: 0.5rem;
+  background: var(--tertiary-very-low);
+  font-size: var(--font-down-1);
+
+  &__text {
+    flex: 1;
+    color: var(--primary-high);
+  }
+
+  &__dismiss {
+    color: var(--primary-medium);
+    font-size: var(--font-down-2);
   }
 }

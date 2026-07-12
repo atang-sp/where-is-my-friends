@@ -22,7 +22,8 @@ module WhereIsMyFriends
                active_participants: active_participants,
                city_suggestions: city_suggestions,
                settings: client_settings,
-               profile_location: current_user.user_profile&.location.presence
+               profile_location: current_user.user_profile&.location.presence,
+               new_nearby_count: new_nearby_count(location)
              }
     end
 
@@ -305,6 +306,24 @@ module WhereIsMyFriends
 
     def location_totals(scope)
       { total: scope.count, by_mode: scope.group(:discovery_mode).count }
+    end
+
+    def new_nearby_count(location)
+      return 0 if location.blank?
+
+      radius = location.effective_discovery_radius_km
+      nearby_keys =
+        WhereIsMyFriends::CityCentroidLookup.instance.city_keys_within_radius(
+          location.city_key,
+          radius
+        )
+
+      UserLocation
+        .active_for_discovery
+        .where(city_key: nearby_keys)
+        .where.not(user_id: current_user.id)
+        .where("user_locations.updated_at > ?", 7.days.ago)
+        .count
     end
 
     def ensure_plugin_enabled

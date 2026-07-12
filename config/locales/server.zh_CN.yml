@@ -2,9 +2,35 @@ zh_CN:
   where_is_my_friends:
     invalid_location: "请提供有效的城市和位置信息"
     invalid_event: "无法记录此活动"
+    invite_pm_title: "发现你身边的同城社区成员"
+    invite_pm_cta: "立即加入同城朋友"
+    announcement:
+      title: "同城朋友——一键找到你身边的人"
+      body: |
+        **同城朋友** 帮你发现论坛里跟你同城或附近的成员。
+
+        **使用方法：**
+        1. 填写你的城市（无需 GPS，不暴露精确位置）
+        2. 立即看到附近所有人
+        3. 给他们发消息或约线下
+
+        目前已有 **%{count} 位成员** 覆盖 **%{city_count} 个城市** 参与了同城发现。
+
+        :point_right: **[立即加入同城朋友](%{link})** —— 只需 10 秒。
+
+        只有城市会展示给其他成员，隐私优先。
+      category_title: "用「同城朋友」一键查看你附近的所有人"
+      category_body: |
+        想找同城的人？不用每次都发帖啦——试试 **同城朋友**，设置一次城市就能随时看到附近所有成员。
+
+        已有 **%{count} 人** 覆盖 **%{city_count} 个城市** 在使用。
+
+        :point_right: **[立即加入](%{link})** —— 一次设置，永久可见。
+
+        当然，你仍然可以在这里发帖找人。但同城朋友给你一个永远在线的同城目录。
     notification:
       member_joined_description: "也加入了 %{city} 的同城发现"
-      profile_location_invite: "你知道 %{city} 附近有 %{count} 位论坛成员吗？快来加入同城发现！"
+      profile_location_invite: "你的资料显示你在 %{city}——你知道附近有 %{count} 位论坛成员吗？加入同城朋友，与他们建立连接！"
       monthly_digest: "上个月有 %{count} 位新成员加入了你附近的同城发现"
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
@@ -16,3 +42,4 @@ zh_CN:
     where_is_my_friends_aggregate_privacy_threshold: "显示精确聚合人数所需的最少参与者"
     where_is_my_friends_seed_cities: "补全推荐城市列表，用竖线分隔（如 上海|北京|深圳|New York|Tokyo）"
     where_is_my_friends_default_discovery_radius_km: "默认发现半径（公里）。用户可在 50/100/200 中自选。"
+    where_is_my_friends_target_category_slug: "同城相关分区的 slug。在该分区中显示更强的引导组件。"
