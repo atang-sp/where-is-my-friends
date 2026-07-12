@@ -615,3 +615,54 @@
     animation: none;
   }
 }
+
+.local-friends-profile-city {
+  margin-top: 0.5em;
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: var(--font-down-1);
+    color: var(--tertiary);
+    text-decoration: none;
+
+    &::before {
+      content: "\f3c5";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 0.9em;
+    }
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.local-friends-city-badge {
+  margin-top: 0.25em;
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: var(--font-down-2);
+    color: var(--tertiary);
+    padding: 0.15em 0.5em;
+    border: 1px solid var(--tertiary-low);
+    border-radius: var(--d-border-radius);
+    text-decoration: none;
+
+    &::before {
+      content: "\f3c5";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 0.85em;
+    }
+
+    &:hover {
+      background: var(--tertiary-very-low);
+    }
+  }
+}

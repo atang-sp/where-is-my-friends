@@ -4,6 +4,8 @@ zh_CN:
     invalid_event: "无法记录此活动"
     notification:
       member_joined_description: "也加入了 %{city} 的同城发现"
+      profile_location_invite: "你知道 %{city} 附近有 %{count} 位论坛成员吗？快来加入同城发现！"
+      monthly_digest: "上个月有 %{count} 位新成员加入了你附近的同城发现"
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
     where_is_my_friends_enable_virtual_location: "允许可选的 GPS 和地图距离范围"
@@ -11,7 +13,6 @@ zh_CN:
     where_is_my_friends_amap_api_key: "限制到论坛域名的高德浏览器密钥"
     where_is_my_friends_baidu_api_key: "限制到论坛域名的百度浏览器密钥"
     where_is_my_friends_max_users_display: "同城用户列表的最大显示数量"
-    where_is_my_friends_location_ttl_days: "发现位置自动过期的天数"
     where_is_my_friends_aggregate_privacy_threshold: "显示精确聚合人数所需的最少参与者"
     where_is_my_friends_seed_cities: "补全推荐城市列表，用竖线分隔（如 上海|北京|深圳|New York|Tokyo）"
     where_is_my_friends_default_discovery_radius_km: "默认发现半径（公里）。用户可在 50/100/200 中自选。"
