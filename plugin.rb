@@ -19,6 +19,34 @@ after_initialize do
     object.where_is_my_friends_notify_city
   end
 
+  add_to_serializer(:user_card, :where_is_my_friends_city) do
+    UserLocation.active_for_discovery.find_by(user_id: object.id)&.city
+  end
+
+  add_to_serializer(:user, :where_is_my_friends_city) do
+    UserLocation.active_for_discovery.find_by(user_id: object.id)&.city
+  end
+
+  Badge.seed(:name) do |badge|
+    badge.name = "Local Explorer"
+    badge.badge_type_id = BadgeType::Bronze
+    badge.icon = "location-dot"
+    badge.description = "Joined local discovery to connect with nearby community members"
+    badge.badge_grouping_id = BadgeGrouping::Community
+    badge.enabled = true
+    badge.listable = true
+    badge.target_posts = false
+    badge.auto_revoke = false
+    badge.system = false
+  end
+
+  on(:where_is_my_friends_location_saved) do |user|
+    badge = Badge.find_by(name: "Local Explorer")
+    if badge&.enabled
+      BadgeGranter.grant(badge, user)
+    end
+  end
+
   # Render the Discourse application for the client route, then mount the JSON API.
   Discourse::Application.routes.append do
     get "/where-is-my-friends.json" => "where_is_my_friends/locations#index",

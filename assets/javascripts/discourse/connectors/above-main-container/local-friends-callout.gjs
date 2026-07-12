@@ -62,6 +62,7 @@ export default class LocalFriendsCallout extends Component {
   @tracked data = null;
   @tracked city = "";
   @tracked saving = false;
+  @tracked hasSuggestion = false;
   @tracked error = null;
   @tracked justJoined = false;
   @tracked dismissed = false;
@@ -113,6 +114,10 @@ export default class LocalFriendsCallout extends Component {
 
     try {
       this.data = await ajax("/where-is-my-friends.json");
+      if (!this.data.location && this.data.profile_location) {
+        this.city = this.data.profile_location;
+        this.hasSuggestion = true;
+      }
       this.recordView();
     } catch {
       // The optional entry must never block topic-list rendering.
@@ -227,13 +232,20 @@ export default class LocalFriendsCallout extends Component {
                     }}</p>
                 {{else}}
                   <strong>{{i18n "where_is_my_friends.callout_title"}}</strong>
-                  <p>{{i18n
-                      (if
-                        this.hasLocation
+                  <p>{{#if this.hasLocation}}
+                      {{i18n
                         "where_is_my_friends.callout_returning_description"
+                      }}
+                    {{else if this.hasSuggestion}}
+                      {{i18n
+                        "where_is_my_friends.callout_suggestion"
+                        city=this.city
+                      }}
+                    {{else}}
+                      {{i18n
                         "where_is_my_friends.callout_setup_description"
-                      )
-                    }}</p>
+                      }}
+                    {{/if}}</p>
                   <span
                     data-test-local-friends-callout-proof
                   >{{this.proof}}</span>

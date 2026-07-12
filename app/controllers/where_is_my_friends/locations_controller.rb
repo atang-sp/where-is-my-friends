@@ -42,6 +42,7 @@ module WhereIsMyFriends
 
       location = upsert_location!
       enqueue_member_joined_notification(location, previous_city_key)
+      DiscourseEvent.trigger(:where_is_my_friends_location_saved, current_user)
 
       render json: { state: "ready", location: location_metadata(location) }
     rescue ActiveRecord::RecordInvalid
@@ -58,6 +59,64 @@ module WhereIsMyFriends
       end
 
       radius = origin.effective_discovery_radius_km
+      users, expanded = discover_nearby(origin, radius)
+
+      if users.empty? && radius < 200
+        users, _ = discover_nearby(origin, 200)
+        expanded = true if users.any?
+      end
+
+      if users.empty?
+        nearby_city_count =
+          UserLocation
+            .active_for_discovery
+            .where.not(city_key: origin.city_key)
+            .where.not(user_id: current_user.id)
+            .count
+
+        render json: {
+                 state: "empty",
+                 users: [],
+                 nearby_city_count: nearby_city_count
+               }
+      else
+        result = { state: "ready", users: users }
+        if expanded
+          result[:expanded_radius] = true
+          result[:original_radius_km] = radius
+          result[:expanded_radius_km] = 200
+        end
+        render json: result
+      end
+    end
+
+    def destroy
+      UserLocation.find_by(user_id: current_user.id)&.destroy!
+      render json: success_json.merge(state: "setup")
+    end
+
+    def debug_stats
+      raise Discourse::InvalidAccess unless current_user.admin?
+
+      active_locations = UserLocation.active_for_discovery
+
+      render json: {
+               window_days: report_window_days,
+               active: active_locations.count,
+               by_mode: active_locations.group(:discovery_mode).count,
+               locations: {
+                 active: location_totals(active_locations),
+               },
+               funnel:
+                 WhereIsMyFriendsEvent.aggregate(
+                   since: report_window_days.days.ago
+                 )
+             }
+    end
+
+    private
+
+    def discover_nearby(origin, radius)
       nearby_keys =
         WhereIsMyFriends::CityCentroidLookup.instance.city_keys_within_radius(
           origin.city_key,
@@ -90,51 +149,8 @@ module WhereIsMyFriends
           )
         end
 
-      if users.empty?
-        nearby_city_count =
-          UserLocation
-            .active_for_discovery
-            .where(city_key: nearby_keys - [origin.city_key])
-            .count
-
-        render json: {
-                 state: "empty",
-                 users: [],
-                 nearby_city_count: nearby_city_count
-               }
-      else
-        render json: { state: "ready", users: users }
-      end
+      [users, false]
     end
-
-    def destroy
-      UserLocation.find_by(user_id: current_user.id)&.destroy!
-      render json: success_json.merge(state: "setup")
-    end
-
-    def debug_stats
-      raise Discourse::InvalidAccess unless current_user.admin?
-
-      active_locations = UserLocation.active_for_discovery
-      expired_locations = UserLocation.where("expires_at <= ?", Time.current)
-
-      render json: {
-               window_days: report_window_days,
-               active: active_locations.count,
-               expired: expired_locations.count,
-               by_mode: active_locations.group(:discovery_mode).count,
-               locations: {
-                 active: location_totals(active_locations),
-                 expired: location_totals(expired_locations)
-               },
-               funnel:
-                 WhereIsMyFriendsEvent.aggregate(
-                   since: report_window_days.days.ago
-                 )
-             }
-    end
-
-    private
 
     def current_location
       UserLocation.active_for_discovery.find_by(user_id: current_user.id)
@@ -143,7 +159,7 @@ module WhereIsMyFriends
     def state_for(location)
       return "ready" if location.present?
 
-      UserLocation.exists?(user_id: current_user.id) ? "expired" : "setup"
+      "setup"
     end
 
     def discovery_mode
@@ -202,7 +218,6 @@ module WhereIsMyFriends
         region: location.region,
         discovery_mode: location.discovery_mode,
         discovery_radius_km: location.effective_discovery_radius_km,
-        expires_at: location.expires_at&.iso8601
       }
     end
 
@@ -247,7 +262,6 @@ module WhereIsMyFriends
         virtual_location_enabled:
           SiteSetting.where_is_my_friends_enable_virtual_location,
         map_provider: SiteSetting.where_is_my_friends_map_provider,
-        location_ttl_days: UserLocation.ttl_days,
         aggregate_privacy_threshold:
           SiteSetting.where_is_my_friends_aggregate_privacy_threshold.to_i.clamp(
             2,
@@ -272,7 +286,8 @@ module WhereIsMyFriends
     end
 
     def active_participants
-      count = UserLocation.active_for_discovery.count
+      scope = UserLocation.active_for_discovery
+      count = scope.count
       threshold =
         SiteSetting.where_is_my_friends_aggregate_privacy_threshold.to_i.clamp(
           2,
@@ -280,7 +295,7 @@ module WhereIsMyFriends
         )
       return { suppressed: true } if count < threshold
 
-      { suppressed: false, count: count }
+      { suppressed: false, count: count, city_count: scope.distinct.count(:city_key) }
     end
 
     def report_window_days

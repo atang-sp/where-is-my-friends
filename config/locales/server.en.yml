@@ -4,6 +4,8 @@ en:
     invalid_event: "This activity cannot be recorded."
     notification:
       member_joined_description: "also joined local discovery in %{city}"
+      profile_location_invite: "Did you know %{count} members are near %{city}? Join local discovery!"
+      monthly_digest: "%{count} new members joined near you last month"
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
     where_is_my_friends_enable_virtual_location: "Allow optional GPS and map distance bands"
@@ -11,7 +13,6 @@ en:
     where_is_my_friends_amap_api_key: "Amap browser key restricted to this forum domain"
     where_is_my_friends_baidu_api_key: "Baidu browser key restricted to this forum domain"
     where_is_my_friends_max_users_display: "Maximum number of users to display in the local list"
-    where_is_my_friends_location_ttl_days: "Days before stored discovery locations expire"
     where_is_my_friends_aggregate_privacy_threshold: "Minimum participants before showing an exact aggregate count"
     where_is_my_friends_seed_cities: "Suggested cities for autocomplete, separated by | (e.g. Shanghai|Beijing|New York|Tokyo)"
     where_is_my_friends_default_discovery_radius_km: "Default discovery radius in kilometers. Members can choose 50/100/200."

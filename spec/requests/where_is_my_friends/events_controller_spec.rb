@@ -85,16 +85,6 @@ RSpec.describe WhereIsMyFriends::EventsController do
         result_bucket: "one_to_four"
       )
       UserLocation.upsert_city_location(admin.id, city: "上海")
-      expired_user = Fabricate(:user)
-      expired =
-        UserLocation.upsert_precise_location(
-          expired_user.id,
-          city: "上海",
-          discovery_mode: "map",
-          latitude: 31.2304,
-          longitude: 121.4737
-        )
-      expired.update_column(:expires_at, 1.minute.ago)
 
       get "/where-is-my-friends/debug-stats.json", params: { days: 7 }
 
@@ -110,12 +100,6 @@ RSpec.describe WhereIsMyFriends::EventsController do
           "total" => 1,
           "by_mode" => {
             "city" => 1
-          }
-        },
-        "expired" => {
-          "total" => 1,
-          "by_mode" => {
-            "map" => 1
           }
         }
       )
