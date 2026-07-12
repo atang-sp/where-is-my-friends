@@ -22,7 +22,12 @@ module WhereIsMyFriends
                active_participants: active_participants,
                city_suggestions: city_suggestions,
                settings: client_settings,
-               profile_location: current_user.user_profile&.location.presence
+               profile_location: current_user.user_profile&.location.presence,
+               new_nearby_count: new_nearby_count(location),
+               filterable_fields:
+                 resolved_filterable_fields.map do |f|
+                   f.slice(:name, :key, :options)
+                 end
              }
     end
 
@@ -59,10 +64,11 @@ module WhereIsMyFriends
       end
 
       radius = origin.effective_discovery_radius_km
-      users, expanded = discover_nearby(origin, radius)
+      filters = validated_filters
+      users, expanded = discover_nearby(origin, radius, filters)
 
       if users.empty? && radius < 200
-        users, _ = discover_nearby(origin, 200)
+        users, _ = discover_nearby(origin, 200, filters)
         expanded = true if users.any?
       end
 
@@ -116,7 +122,7 @@ module WhereIsMyFriends
 
     private
 
-    def discover_nearby(origin, radius)
+    def discover_nearby(origin, radius, filters = {})
       nearby_keys =
         WhereIsMyFriends::CityCentroidLookup.instance.city_keys_within_radius(
           origin.city_key,
@@ -130,6 +136,25 @@ module WhereIsMyFriends
           .where.not(user_id: current_user.id)
           .includes(user: :user_profile)
           .joins(:user)
+
+      filters.each_with_index do |(key, value), index|
+        table_alias = "ucf_filter_#{index}"
+        locations =
+          locations.joins(
+            ActiveRecord::Base.sanitize_sql_array(
+              [
+                "INNER JOIN user_custom_fields #{table_alias} " \
+                  "ON #{table_alias}.user_id = user_locations.user_id " \
+                  "AND #{table_alias}.name = ? AND #{table_alias}.value = ?",
+                key,
+                value
+              ]
+            )
+          )
+      end
+
+      locations =
+        locations
           .order(
             Arel.sql(
               "CASE WHEN user_locations.updated_at > #{ActiveRecord::Base.connection.quote(7.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST"
@@ -141,10 +166,18 @@ module WhereIsMyFriends
             )
           )
 
+      fields = resolved_filterable_fields
+      cf_map = load_custom_field_values(locations.map(&:user_id), fields)
+
       users =
         locations.map do |location|
           UserLocationSerializer.new(
-            { user: location.user, location: location, origin: origin },
+            {
+              user: location.user,
+              location: location,
+              origin: origin,
+              custom_field_values: cf_map[location.user_id] || {}
+            },
             root: false
           )
         end
@@ -305,6 +338,65 @@ module WhereIsMyFriends
 
     def location_totals(scope)
       { total: scope.count, by_mode: scope.group(:discovery_mode).count }
+    end
+
+    def new_nearby_count(location)
+      return 0 if location.blank?
+
+      radius = location.effective_discovery_radius_km
+      nearby_keys =
+        WhereIsMyFriends::CityCentroidLookup.instance.city_keys_within_radius(
+          location.city_key,
+          radius
+        )
+
+      UserLocation
+        .active_for_discovery
+        .where(city_key: nearby_keys)
+        .where.not(user_id: current_user.id)
+        .where("user_locations.updated_at > ?", 7.days.ago)
+        .count
+    end
+
+    def resolved_filterable_fields
+      @resolved_filterable_fields ||=
+        WhereIsMyFriends::FilterableFields.resolve
+    end
+
+    def validated_filters
+      raw = params[:filters]
+      return {} if raw.blank? || !raw.respond_to?(:to_unsafe_h)
+
+      allowed =
+        resolved_filterable_fields.each_with_object({}) do |f, h|
+          h[f[:key]] = f[:options].to_set
+        end
+
+      raw
+        .to_unsafe_h
+        .each_with_object({}) do |(key, value), result|
+          val = value.to_s.strip
+          next if val.blank?
+          result[key] = val if allowed[key]&.include?(val)
+        end
+    end
+
+    def load_custom_field_values(user_ids, fields)
+      return {} if fields.empty? || user_ids.empty?
+
+      keys = fields.map { |f| f[:key] }
+      name_map =
+        fields.each_with_object({}) { |f, h| h[f[:key]] = f[:name] }
+
+      UserCustomField
+        .where(user_id: user_ids, name: keys)
+        .pluck(:user_id, :name, :value)
+        .group_by(&:first)
+        .transform_values do |rows|
+          rows.each_with_object({}) do |(_uid, key, val), h|
+            h[name_map[key]] = val if val.present?
+          end
+        end
     end
 
     def ensure_plugin_enabled

@@ -218,8 +218,10 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "distance_band",
         "message_url",
         "is_recent",
-        "bio_excerpt"
+        "bio_excerpt",
+        "custom_fields"
       )
+      expect(result["custom_fields"]).to eq({})
       expect(response.body).not_to include(
         "latitude",
         "longitude",
@@ -371,6 +373,175 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       expect do
         post "/where-is-my-friends/locations.json", params: { city: "上海" }
       end.not_to change { Jobs::WhereIsMyFriendsNotifyCityMembers.jobs.size }
+    end
+  end
+
+  describe "attribute filtering" do
+    fab!(:gender_field) do
+      field = UserField.create!(name: "性别", field_type: "dropdown", editable: true)
+      %w[男 女 其他].each { |v| field.user_field_options.create!(value: v) }
+      field
+    end
+
+    fab!(:role_field) do
+      field = UserField.create!(name: "属性", field_type: "dropdown", editable: true)
+      %w[主动 被动 双].each { |v| field.user_field_options.create!(value: v) }
+      field
+    end
+
+    before do
+      sign_in(user)
+      SiteSetting.where_is_my_friends_filterable_user_fields = "性别|属性"
+      UserLocation.upsert_city_location(user.id, city: "上海")
+    end
+
+    it "exposes filterable fields in the index response" do
+      get "/where-is-my-friends.json"
+
+      fields = response.parsed_body.fetch("filterable_fields")
+      expect(fields.length).to eq(2)
+
+      gender = fields.find { |f| f["name"] == "性别" }
+      expect(gender["key"]).to eq("user_field_#{gender_field.id}")
+      expect(gender["options"]).to contain_exactly("男", "女", "其他")
+
+      role = fields.find { |f| f["name"] == "属性" }
+      expect(role["key"]).to eq("user_field_#{role_field.id}")
+      expect(role["options"]).to contain_exactly("主动", "被动", "双")
+    end
+
+    it "returns empty filterable_fields when no fields are configured" do
+      SiteSetting.where_is_my_friends_filterable_user_fields = ""
+      get "/where-is-my-friends.json"
+
+      expect(response.parsed_body.fetch("filterable_fields")).to eq([])
+    end
+
+    it "ignores non-dropdown user fields in the whitelist" do
+      text_field = UserField.create!(name: "bio_extra", field_type: "text", editable: true)
+      SiteSetting.where_is_my_friends_filterable_user_fields = "性别|bio_extra"
+
+      get "/where-is-my-friends.json"
+
+      fields = response.parsed_body.fetch("filterable_fields")
+      expect(fields.map { |f| f["name"] }).to eq(["性别"])
+    end
+
+    it "filters nearby results by a single custom field" do
+      male_user = Fabricate(:user)
+      male_user.custom_fields["user_field_#{gender_field.id}"] = "男"
+      male_user.save_custom_fields
+      UserLocation.upsert_city_location(male_user.id, city: "上海")
+
+      female_user = Fabricate(:user)
+      female_user.custom_fields["user_field_#{gender_field.id}"] = "女"
+      female_user.save_custom_fields
+      UserLocation.upsert_city_location(female_user.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json",
+          params: { filters: { "user_field_#{gender_field.id}" => "男" } }
+
+      usernames = response.parsed_body.fetch("users").pluck("username")
+      expect(usernames).to contain_exactly(male_user.username)
+    end
+
+    it "applies AND logic across multiple filter fields" do
+      user_a = Fabricate(:user)
+      user_a.custom_fields["user_field_#{gender_field.id}"] = "男"
+      user_a.custom_fields["user_field_#{role_field.id}"] = "被动"
+      user_a.save_custom_fields
+      UserLocation.upsert_city_location(user_a.id, city: "上海")
+
+      user_b = Fabricate(:user)
+      user_b.custom_fields["user_field_#{gender_field.id}"] = "男"
+      user_b.custom_fields["user_field_#{role_field.id}"] = "主动"
+      user_b.save_custom_fields
+      UserLocation.upsert_city_location(user_b.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json",
+          params: {
+            filters: {
+              "user_field_#{gender_field.id}" => "男",
+              "user_field_#{role_field.id}" => "被动"
+            }
+          }
+
+      usernames = response.parsed_body.fetch("users").pluck("username")
+      expect(usernames).to contain_exactly(user_a.username)
+    end
+
+    it "excludes users who have not filled in the filtered field" do
+      filled_user = Fabricate(:user)
+      filled_user.custom_fields["user_field_#{gender_field.id}"] = "男"
+      filled_user.save_custom_fields
+      UserLocation.upsert_city_location(filled_user.id, city: "上海")
+
+      empty_user = Fabricate(:user)
+      UserLocation.upsert_city_location(empty_user.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json",
+          params: { filters: { "user_field_#{gender_field.id}" => "男" } }
+
+      usernames = response.parsed_body.fetch("users").pluck("username")
+      expect(usernames).to contain_exactly(filled_user.username)
+    end
+
+    it "rejects filter keys not in the whitelist" do
+      secret_field = UserField.create!(name: "secret", field_type: "dropdown", editable: true)
+      secret_field.user_field_options.create!(value: "yes")
+
+      other_user = Fabricate(:user)
+      other_user.custom_fields["user_field_#{secret_field.id}"] = "yes"
+      other_user.save_custom_fields
+      UserLocation.upsert_city_location(other_user.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json",
+          params: { filters: { "user_field_#{secret_field.id}" => "yes" } }
+
+      usernames = response.parsed_body.fetch("users").pluck("username")
+      expect(usernames).to include(other_user.username)
+    end
+
+    it "rejects filter values not in the field's options" do
+      other_user = Fabricate(:user)
+      other_user.custom_fields["user_field_#{gender_field.id}"] = "男"
+      other_user.save_custom_fields
+      UserLocation.upsert_city_location(other_user.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json",
+          params: { filters: { "user_field_#{gender_field.id}" => "invalid_value" } }
+
+      usernames = response.parsed_body.fetch("users").pluck("username")
+      expect(usernames).to include(other_user.username)
+    end
+
+    it "serializes whitelisted custom field values on each user" do
+      nearby_user = Fabricate(:user)
+      nearby_user.custom_fields["user_field_#{gender_field.id}"] = "男"
+      nearby_user.custom_fields["user_field_#{role_field.id}"] = "主动"
+      nearby_user.custom_fields["secret_token"] = "must-not-leak"
+      nearby_user.save_custom_fields
+      UserLocation.upsert_city_location(nearby_user.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      result = response.parsed_body.fetch("users").first
+      expect(result["custom_fields"]).to eq(
+        "性别" => "男",
+        "属性" => "主动"
+      )
+      expect(response.body).not_to include("secret_token", "must-not-leak")
+    end
+
+    it "returns all users when no filters are applied" do
+      3.times do
+        u = Fabricate(:user)
+        UserLocation.upsert_city_location(u.id, city: "上海")
+      end
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      expect(response.parsed_body.fetch("users").length).to eq(3)
     end
   end
 

@@ -12,7 +12,8 @@ class UserLocationSerializer < ApplicationSerializer
              :message_url,
              :is_recent,
              :last_seen_at,
-             :bio_excerpt
+             :bio_excerpt,
+             :custom_fields
 
   def id
     user.id
@@ -55,6 +56,10 @@ class UserLocationSerializer < ApplicationSerializer
     return nil if raw.blank?
 
     raw.to_s.gsub(/\s+/, " ").strip.truncate(80)
+  end
+
+  def custom_fields
+    object[:custom_field_values] || {}
   end
 
   private

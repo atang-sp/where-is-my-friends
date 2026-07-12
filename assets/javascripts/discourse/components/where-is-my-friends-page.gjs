@@ -39,13 +39,20 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked expandedRadius = false;
   @tracked originalRadiusKm = null;
   @tracked expandedRadiusKm = null;
+  @tracked autoCity = null;
+  @tracked activeFilters = {};
 
   constructor() {
     super(...arguments);
+    const autoCity = new URLSearchParams(window.location.search).get(
+      "auto_city"
+    );
     this.city =
       this.args.model.location?.city ??
+      autoCity ??
       this.args.model.profile_location ??
       "";
+    this.autoCity = autoCity && !this.args.model.location ? autoCity : null;
     this.region = this.args.model.location?.region ?? "";
     this.showRegion = Boolean(this.region);
     this.location = this.args.model.location;
@@ -102,6 +109,7 @@ export default class WhereIsMyFriendsPage extends Component {
       : this.availableUsers;
 
     const useChat = this.chatEnabled;
+    const fields = this.filterableFields;
     return [...users]
       .sort(
         (a, b) =>
@@ -119,6 +127,10 @@ export default class WhereIsMyFriendsPage extends Component {
         last_active_label: user.last_seen_at
           ? relativeAge(new Date(user.last_seen_at), { format: "tiny" })
           : null,
+        custom_field_label: fields
+          .map((f) => user.custom_fields?.[f.name])
+          .filter(Boolean)
+          .join(" / "),
       }));
   }
 
@@ -155,6 +167,36 @@ export default class WhereIsMyFriendsPage extends Component {
       radius,
       selected: radius === this.discoveryRadiusKm,
       label: i18n("where_is_my_friends.discovery_radius_option", { radius }),
+    }));
+  }
+
+  get filterableFields() {
+    return this.args.model.filterable_fields ?? [];
+  }
+
+  get hasFilterableFields() {
+    return this.filterableFields.length > 0;
+  }
+
+  get hasActiveFilters() {
+    return Object.keys(this.activeFilters).length > 0;
+  }
+
+  get filterGroups() {
+    return this.filterableFields.map((field) => ({
+      ...field,
+      buttons: [
+        {
+          value: null,
+          label: i18n("where_is_my_friends.filter_all"),
+          selected: !this.activeFilters[field.key],
+        },
+        ...field.options.map((option) => ({
+          value: option,
+          label: option,
+          selected: this.activeFilters[field.key] === option,
+        })),
+      ],
     }));
   }
 
@@ -249,6 +291,18 @@ export default class WhereIsMyFriendsPage extends Component {
   }
 
   @action
+  async selectFilter(fieldKey, value) {
+    const newFilters = { ...this.activeFilters };
+    if (value === null) {
+      delete newFilters[fieldKey];
+    } else {
+      newFilters[fieldKey] = value;
+    }
+    this.activeFilters = newFilters;
+    await this.loadResults();
+  }
+
+  @action
   async saveCity() {
     if (!this.city.trim() || this.loading) {
       return;
@@ -284,8 +338,13 @@ export default class WhereIsMyFriendsPage extends Component {
     this.error = null;
 
     try {
+      const data = {};
+      for (const [key, value] of Object.entries(this.activeFilters)) {
+        data[`filters[${key}]`] = value;
+      }
       const response = await ajax(
-        "/where-is-my-friends/locations/nearby.json"
+        "/where-is-my-friends/locations/nearby.json",
+        { data }
       );
       this.users = response.users ?? [];
       this.nearbyCityCount = response.nearby_city_count ?? 0;
@@ -399,6 +458,7 @@ export default class WhereIsMyFriendsPage extends Component {
     this.showRegion = Boolean(this.region);
     this.users = [];
     this.memberFilter = "";
+    this.activeFilters = {};
     this.gpsFallback = false;
   }
 
@@ -419,6 +479,7 @@ export default class WhereIsMyFriendsPage extends Component {
       this.users = [];
       this.discoveryState = "setup";
       this.memberFilter = "";
+      this.activeFilters = {};
     } catch (error) {
       this.error = this.errorMessage(error);
     } finally {
@@ -447,7 +508,11 @@ export default class WhereIsMyFriendsPage extends Component {
   @action
   async copyInvite() {
     try {
-      await clipboardCopy(new URL("/where-is-my-friends", window.location).href);
+      const url = new URL("/where-is-my-friends", window.location);
+      if (this.location?.city) {
+        url.searchParams.set("auto_city", this.location.city);
+      }
+      await clipboardCopy(url.href);
       this.inviteFeedback = i18n("where_is_my_friends.invite_copied");
     } catch {
       this.inviteFeedback = i18n("where_is_my_friends.invite_copy_failed");
@@ -520,6 +585,15 @@ export default class WhereIsMyFriendsPage extends Component {
               <option value={{suggestion.city}}></option>
             {{/each}}
           </datalist>
+          {{#if this.autoCity}}
+            <p
+              class="where-is-my-friends__auto-city-hint"
+              data-test-auto-city-hint
+            >{{i18n
+                "where_is_my_friends.auto_city_hint"
+                city=this.autoCity
+              }}</p>
+          {{/if}}
           {{#if this.cityPreview}}
             <p
               class="where-is-my-friends__city-preview"
@@ -673,6 +747,46 @@ export default class WhereIsMyFriendsPage extends Component {
                 }}
               >{{i18n "where_is_my_friends.browse_local_topics"}}</LinkTo>
             </div>
+            {{#if this.hasFilterableFields}}
+              <div
+                class="where-is-my-friends__attribute-filters"
+                data-test-attribute-filters
+              >
+                {{#each this.filterGroups as |group|}}
+                  <div
+                    class="where-is-my-friends__filter-group"
+                    data-test-filter-group={{group.key}}
+                  >
+                    <span
+                      class="where-is-my-friends__filter-label"
+                    >{{group.name}}</span>
+                    <div
+                      class="where-is-my-friends__filter-options"
+                      role="group"
+                      aria-label={{group.name}}
+                    >
+                      {{#each group.buttons as |btn|}}
+                        <DButton
+                          @action={{fn
+                            this.selectFilter
+                            group.key
+                            btn.value
+                          }}
+                          @translatedLabel={{btn.label}}
+                          @disabled={{this.loading}}
+                          class={{if btn.selected "btn-primary" "btn-flat"}}
+                          data-test-filter-option={{if
+                            btn.value
+                            btn.value
+                            "all"
+                          }}
+                        />
+                      {{/each}}
+                    </div>
+                  </div>
+                {{/each}}
+              </div>
+            {{/if}}
             {{#if this.showMemberFilter}}
               <label class="where-is-my-friends__filter">
                 <span>{{i18n "where_is_my_friends.filter_members"}}</span>
@@ -714,7 +828,12 @@ export default class WhereIsMyFriendsPage extends Component {
                     </LinkTo>
                     <p>{{user.city}} · {{user.distance_label}}{{#if
                         user.last_active_label
-                      }} · {{user.last_active_label}}{{/if}}</p>
+                      }} · {{user.last_active_label}}{{/if}}{{#if
+                        user.custom_field_label
+                      }} · <span
+                          class="where-is-my-friends__user-attrs"
+                          data-test-user-attrs
+                        >{{user.custom_field_label}}</span>{{/if}}</p>
                     {{#if user.bio_excerpt}}
                       <p
                         class="where-is-my-friends__bio"
@@ -765,6 +884,12 @@ export default class WhereIsMyFriendsPage extends Component {
           </section>
         {{else if this.isEmpty}}
           <section class="where-is-my-friends__empty" data-test-empty-state>
+            {{#if this.hasActiveFilters}}
+              <p
+                class="alert alert-info"
+                data-test-filter-empty-hint
+              >{{i18n "where_is_my_friends.no_results_with_filters"}}</p>
+            {{/if}}
             <h2>{{i18n "where_is_my_friends.empty_title" city=this.location.city}}</h2>
             <p>{{this.participantProof}}</p>
             <p>{{i18n
