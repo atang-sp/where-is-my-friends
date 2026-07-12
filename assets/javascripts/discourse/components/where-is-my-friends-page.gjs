@@ -118,9 +118,12 @@ export default class WhereIsMyFriendsPage extends Component {
       )
       .map((user) => ({
         ...user,
-        distance_label: i18n(
-          `where_is_my_friends.distance_bands.${user.distance_band ?? "same_city"}`
-        ),
+        distance_label:
+          (user.distance_band ?? "same_city") === "same_city"
+            ? null
+            : i18n(
+                `where_is_my_friends.distance_bands.${user.distance_band}`
+              ),
         action_url: useChat
           ? `/chat/new-message?recipients=${encodeURIComponent(user.username)}`
           : user.message_url,
@@ -826,7 +829,9 @@ export default class WhereIsMyFriendsPage extends Component {
                     <LinkTo @route="user" @model={{user.username}}>
                       @{{user.username}}
                     </LinkTo>
-                    <p>{{user.city}} · {{user.distance_label}}{{#if
+                    <p>{{user.city}}{{#if
+                        user.distance_label
+                      }} · {{user.distance_label}}{{/if}}{{#if
                         user.last_active_label
                       }} · {{user.last_active_label}}{{/if}}{{#if
                         user.custom_field_label

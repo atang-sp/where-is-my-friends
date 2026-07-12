@@ -86,7 +86,7 @@ plugins:
     translated: true
 
   where_is_my_friends_filterable_user_fields:
-    default: ""
+    default: "性别|属性"
     type: list
     list_type: simple
     description: "允许在发现结果中筛选的 Discourse 自定义用户字段名称（仅限下拉类型），用竖线分隔"

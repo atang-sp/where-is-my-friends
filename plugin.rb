@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: City-first local member discovery with optional private distance bands
-# version: 1.0.0
+# version: 1.0.1
 # authors: atang
 # url: https://github.com/atang/where-is-my-friends
 # required_version: 2026.7.0.beta1
