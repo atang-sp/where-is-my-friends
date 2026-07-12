@@ -36,6 +36,9 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked inviteFeedback = null;
   @tracked notifyCity;
   @tracked nearbyCityCount = 0;
+  @tracked expandedRadius = false;
+  @tracked originalRadiusKm = null;
+  @tracked expandedRadiusKm = null;
 
   constructor() {
     super(...arguments);
@@ -52,11 +55,7 @@ export default class WhereIsMyFriendsPage extends Component {
   }
 
   get isSetup() {
-    return this.discoveryState === "setup" || this.discoveryState === "expired";
-  }
-
-  get isExpired() {
-    return this.discoveryState === "expired";
+    return this.discoveryState === "setup";
   }
 
   get isEmpty() {
@@ -123,13 +122,6 @@ export default class WhereIsMyFriendsPage extends Component {
       }));
   }
 
-  get formattedExpiry() {
-    if (!this.location?.expires_at) {
-      return null;
-    }
-    return new Date(this.location.expires_at).toLocaleDateString();
-  }
-
   get resultsSummary() {
     const count = this.availableUsers.length;
     return i18n(
@@ -170,6 +162,13 @@ export default class WhereIsMyFriendsPage extends Component {
     const participants = this.args.model.active_participants;
     if (!participants || participants.suppressed) {
       return i18n("where_is_my_friends.participant_proof_generic");
+    }
+
+    if (participants.city_count) {
+      return i18n("where_is_my_friends.global_stats", {
+        count: participants.count,
+        city_count: participants.city_count,
+      });
     }
 
     return i18n("where_is_my_friends.participant_proof_count", {
@@ -290,6 +289,9 @@ export default class WhereIsMyFriendsPage extends Component {
       );
       this.users = response.users ?? [];
       this.nearbyCityCount = response.nearby_city_count ?? 0;
+      this.expandedRadius = response.expanded_radius ?? false;
+      this.originalRadiusKm = response.original_radius_km ?? null;
+      this.expandedRadiusKm = response.expanded_radius_km ?? null;
       this.discoveryState = this.availableUsers.length > 0 ? "ready" : "empty";
       void this.recordEvent("results_viewed", {
         location_mode: this.location?.discovery_mode ?? "city",
@@ -494,11 +496,6 @@ export default class WhereIsMyFriendsPage extends Component {
 
       {{#if this.isSetup}}
         <section class="where-is-my-friends__setup">
-          {{#if this.isExpired}}
-            <p class="alert alert-info">{{i18n
-                "where_is_my_friends.expired_notice"
-              }}</p>
-          {{/if}}
           <h2>{{i18n "where_is_my_friends.setup_title"}}</h2>
           <p>{{i18n "where_is_my_friends.setup_description"}}</p>
           <p
@@ -576,13 +573,6 @@ export default class WhereIsMyFriendsPage extends Component {
           <div>
             <span>{{i18n "where_is_my_friends.your_city"}}</span>
             <strong>{{this.location.city}}</strong>
-            {{#if this.formattedExpiry}}
-              <span>{{i18n "where_is_my_friends.expires_on"}}
-                <time
-                  datetime={{this.location.expires_at}}
-                  data-test-location-expiry
-                >{{this.formattedExpiry}}</time></span>
-            {{/if}}
           </div>
           <div
             class="where-is-my-friends__radius"
@@ -657,6 +647,15 @@ export default class WhereIsMyFriendsPage extends Component {
           </div>
         {{else if this.hasUsers}}
           <section class="where-is-my-friends__results">
+            {{#if this.expandedRadius}}
+              <p class="alert alert-info" data-test-expanded-radius>
+                {{i18n
+                  "where_is_my_friends.expanded_radius_notice"
+                  original_radius=this.originalRadiusKm
+                  expanded_radius=this.expandedRadiusKm
+                }}
+              </p>
+            {{/if}}
             <div class="where-is-my-friends__results-heading">
               <h2 data-test-results-summary>{{this.resultsSummary}}</h2>
               <LinkTo
@@ -767,7 +766,11 @@ export default class WhereIsMyFriendsPage extends Component {
         {{else if this.isEmpty}}
           <section class="where-is-my-friends__empty" data-test-empty-state>
             <h2>{{i18n "where_is_my_friends.empty_title" city=this.location.city}}</h2>
-            <p>{{i18n "where_is_my_friends.empty_description"}}</p>
+            <p>{{this.participantProof}}</p>
+            <p>{{i18n
+                "where_is_my_friends.global_stats_pioneer"
+                city=this.location.city
+              }}</p>
             {{#if this.nearbyCityCount}}
               <p
                 class="where-is-my-friends__nearby-count"
