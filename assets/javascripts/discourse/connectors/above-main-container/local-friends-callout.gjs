@@ -397,7 +397,7 @@ export default class LocalFriendsCallout extends Component {
               />
             </section>
           {{/if}}
-        {{/unless}}
+        {{/if}}
       {{/if}}
     {{/if}}
   </template>
