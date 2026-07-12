@@ -115,7 +115,7 @@ export default class WhereIsMyFriendsPage extends Component {
           `where_is_my_friends.distance_bands.${user.distance_band ?? "same_city"}`
         ),
         action_url: useChat
-          ? `/chat/draft-channel?usernames=${encodeURIComponent(user.username)}`
+          ? `/chat/new-message?recipients=${encodeURIComponent(user.username)}`
           : user.message_url,
         last_active_label: user.last_seen_at
           ? relativeAge(new Date(user.last_seen_at), { format: "tiny" })
