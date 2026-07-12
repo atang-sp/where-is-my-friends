@@ -156,7 +156,7 @@ RSpec.describe WhereIsMyFriends::LocationsController do
   describe "GET /where-is-my-friends/locations/nearby.json" do
     before { sign_in(user) }
 
-    it "uses the signed-in user's stored city, excludes self and expired users" do
+    it "uses the signed-in user's stored city, excludes self and disabled users" do
       UserLocation.upsert_precise_location(
         user.id,
         city: "上海",
@@ -168,9 +168,9 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       UserLocation.upsert_city_location(nearby_user.id, city: "上海市")
       outside_user = Fabricate(:user)
       UserLocation.upsert_city_location(outside_user.id, city: "北京")
-      expired_user = Fabricate(:user)
-      expired = UserLocation.upsert_city_location(expired_user.id, city: "上海")
-      expired.update_column(:expires_at, 1.minute.ago)
+      disabled_user = Fabricate(:user)
+      disabled = UserLocation.upsert_city_location(disabled_user.id, city: "上海")
+      disabled.update_column(:enabled, false)
 
       get "/where-is-my-friends/locations/nearby.json",
           params: {

@@ -25,7 +25,6 @@ RSpec.describe UserLocation do
         longitude: nil,
         enabled: true
       )
-      expect(location.expires_at).to be_within(1.second).of(30.days.from_now)
     end
   end
 
@@ -68,17 +67,14 @@ RSpec.describe UserLocation do
   end
 
   describe ".active_for_discovery" do
-    it "includes only enabled, unexpired locations with a city" do
-      current =
+    it "includes only enabled locations with a city" do
+      active =
         described_class.upsert_city_location(Fabricate(:user).id, city: "上海")
-      expired =
-        described_class.upsert_city_location(Fabricate(:user).id, city: "上海")
-      expired.update_column(:expires_at, 1.minute.ago)
       disabled =
         described_class.upsert_city_location(Fabricate(:user).id, city: "上海")
       disabled.update_column(:enabled, false)
 
-      expect(described_class.active_for_discovery).to contain_exactly(current)
+      expect(described_class.active_for_discovery).to contain_exactly(active)
     end
   end
 

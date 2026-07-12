@@ -33,7 +33,6 @@ users = {
 SiteSetting.where_is_my_friends_enabled = true
 SiteSetting.where_is_my_friends_enable_virtual_location = true
 SiteSetting.where_is_my_friends_map_provider = "openstreetmap"
-SiteSetting.where_is_my_friends_location_ttl_days = 30
 SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 3
 SiteSetting.default_locale = "en"
 SiteSetting.login_required = false

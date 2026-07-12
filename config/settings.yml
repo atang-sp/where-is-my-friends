@@ -51,15 +51,6 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
-  where_is_my_friends_location_ttl_days:
-    default: 30
-    min: 1
-    max: 365
-    type: integer
-    description: "位置在多少天后自动过期并删除"
-    category: "where_is_my_friends"
-    translated: true
-
   where_is_my_friends_aggregate_privacy_threshold:
     default: 3
     min: 2

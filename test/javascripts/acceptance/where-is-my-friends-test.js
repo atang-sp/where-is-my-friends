@@ -14,7 +14,7 @@ function setupApi(needs, state) {
           location: null,
           active_participants: { suppressed: true },
           city_suggestions: [],
-          settings: { location_ttl_days: 30 },
+          settings: {},
         }
       )
     );
@@ -34,7 +34,6 @@ function setupApi(needs, state) {
           region: location.region || "",
           discovery_mode: location.discovery_mode || "city",
           discovery_radius_km: Number(location.discovery_radius_km || 100),
-          expires_at: "2026-08-10T12:00:00Z",
         },
       });
     });
@@ -111,7 +110,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       location: null,
       active_participants: { suppressed: false, count: 12 },
       city_suggestions: [],
-      settings: { location_ttl_days: 30 },
+      settings: {},
     };
 
     await visit("/");
@@ -180,7 +179,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
         { city: "上海", city_key: "上海" },
         { city: "北京", city_key: "北京" },
       ],
-      settings: { location_ttl_days: 30 },
+      settings: {},
     };
 
     await visit("/where-is-my-friends");
@@ -253,11 +252,10 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       location: {
         city: "上海",
         discovery_mode: "city",
-        expires_at: "2026-08-10T12:00:00Z",
       },
       active_participants: { suppressed: false, count: 12 },
       city_suggestions: [],
-      settings: { location_ttl_days: 30 },
+      settings: {},
     };
     api.nearby = { state: "empty", users: [] };
 
@@ -275,7 +273,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       location: { city: "成都", discovery_mode: "city" },
       active_participants: { suppressed: true },
       city_suggestions: [],
-      settings: { location_ttl_days: 30 },
+      settings: {},
     };
 
     await visit("/where-is-my-friends");
@@ -326,7 +324,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       location: { city: "上海", discovery_mode: "city" },
       active_participants: { suppressed: true },
       city_suggestions: [],
-      settings: { location_ttl_days: 30 },
+      settings: {},
     };
     api.nearby = {
       state: "ready",
@@ -452,14 +450,11 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.dom("[data-test-user-card='member-0']").doesNotExist();
   });
 
-  test("expiry, update, and removal controls are visible and removal is measured", async function (assert) {
+  test("update and removal controls are visible and removal is measured", async function (assert) {
     api.initial = readyState();
 
     await visit("/where-is-my-friends");
 
-    assert
-      .dom("[data-test-location-expiry]")
-      .hasAttribute("datetime", "2026-08-10T12:00:00Z");
     assert.dom("[data-test-location-settings-toggle]").hasText("Location settings");
     assert.dom("[data-test-location-settings]").exists();
     assert.dom("[data-test-location-settings]").doesNotHaveAttribute("open");
@@ -573,12 +568,10 @@ function readyState(settings = {}) {
       region: "",
       discovery_mode: "city",
       discovery_radius_km: 100,
-      expires_at: "2026-08-10T12:00:00Z",
     },
     active_participants: { suppressed: true },
     city_suggestions: [],
     settings: {
-      location_ttl_days: 30,
       virtual_location_enabled: true,
       map_provider: "openstreetmap",
       default_discovery_radius_km: 100,

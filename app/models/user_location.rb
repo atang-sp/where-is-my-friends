@@ -40,7 +40,6 @@ class UserLocation < ActiveRecord::Base
         -> do
           where(enabled: true)
             .where.not(city_key: [nil, ""])
-            .where("expires_at > ?", Time.current)
         end
 
   def self.normalize_city(value)
@@ -78,7 +77,6 @@ class UserLocation < ActiveRecord::Base
       location_source: "unknown",
       location_accuracy: nil,
       enabled: true,
-      expires_at: ttl_days.days.from_now
     }
     radius = normalize_discovery_radius_km(discovery_radius_km)
     attrs[:discovery_radius_km] = radius if radius
@@ -120,17 +118,12 @@ class UserLocation < ActiveRecord::Base
       location_source: map_mode ? "virtual" : "gps",
       location_accuracy: map_mode ? nil : location_accuracy,
       enabled: true,
-      expires_at: ttl_days.days.from_now
     }
     radius = normalize_discovery_radius_km(discovery_radius_km)
     attrs[:discovery_radius_km] = radius if radius
     location.assign_attributes(attrs)
     location.save!
     location
-  end
-
-  def self.ttl_days
-    SiteSetting.where_is_my_friends_location_ttl_days.to_i.clamp(1, 365)
   end
 
   def self.discovery_limit(requested)
