@@ -11,13 +11,12 @@ export default {
     }
 
     withPluginApi((api) => {
-      api.addNavigationBarItem({
+      api.addCommunitySectionLink({
         name: "where-is-my-friends",
-        displayName: i18n("where_is_my_friends.title"),
-        href: "/where-is-my-friends",
-        customHref: () => "/where-is-my-friends",
-        forceActive: (_category, _args, router) =>
-          router.currentRouteName?.startsWith("where-is-my-friends"),
+        route: "where-is-my-friends",
+        title: i18n("where_is_my_friends.title"),
+        text: i18n("where_is_my_friends.title"),
+        icon: "location-dot",
       });
 
       api.addSaveableUserOption("where_is_my_friends_notify_city", {
