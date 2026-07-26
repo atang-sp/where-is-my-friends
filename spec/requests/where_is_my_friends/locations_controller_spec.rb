@@ -285,7 +285,7 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       expect(bands[nearby_city.username]["distance_band"]).to eq("moderate")
     end
 
-    it "respects a tighter discovery radius" do
+    it "expands a tighter discovery radius when it would otherwise be empty" do
       UserLocation.upsert_city_location(
         user.id,
         city: "上海",
