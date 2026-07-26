@@ -84,7 +84,11 @@ module WhereIsMyFriends
     def load_centroids(path)
       raw = JSON.parse(File.read(path))
       raw.transform_values do |entry|
-        { lat: entry.fetch("lat").to_f, lng: entry.fetch("lng").to_f, region: entry["region"] }
+        {
+          lat: entry.fetch("lat").to_f,
+          lng: entry.fetch("lng").to_f,
+          region: entry["region"]
+        }
       end
     end
 

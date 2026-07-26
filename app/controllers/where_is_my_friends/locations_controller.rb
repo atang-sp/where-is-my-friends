@@ -111,7 +111,7 @@ module WhereIsMyFriends
                active: active_locations.count,
                by_mode: active_locations.group(:discovery_mode).count,
                locations: {
-                 active: location_totals(active_locations),
+                 active: location_totals(active_locations)
                },
                funnel:
                  WhereIsMyFriendsEvent.aggregate(
@@ -154,17 +154,15 @@ module WhereIsMyFriends
       end
 
       locations =
-        locations
-          .order(
-            Arel.sql(
-              "CASE WHEN user_locations.updated_at > #{ActiveRecord::Base.connection.quote(7.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST"
-            )
+        locations.order(
+          Arel.sql(
+            "CASE WHEN user_locations.updated_at > #{ActiveRecord::Base.connection.quote(7.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST"
           )
-          .limit(
-            UserLocation.discovery_limit(
-              SiteSetting.where_is_my_friends_max_users_display
-            )
+        ).limit(
+          UserLocation.discovery_limit(
+            SiteSetting.where_is_my_friends_max_users_display
           )
+        )
 
       fields = resolved_filterable_fields
       cf_map = load_custom_field_values(locations.map(&:user_id), fields)
@@ -203,7 +201,9 @@ module WhereIsMyFriends
       existing = UserLocation.find_by(user_id: current_user.id)
       if radius_only_update?(existing)
         radius =
-          UserLocation.normalize_discovery_radius_km(params[:discovery_radius_km])
+          UserLocation.normalize_discovery_radius_km(
+            params[:discovery_radius_km]
+          )
         raise ActiveRecord::RecordInvalid if radius.blank?
 
         existing.update!(discovery_radius_km: radius)
@@ -235,8 +235,9 @@ module WhereIsMyFriends
       return false if existing.blank?
       return false if params[:discovery_radius_km].blank?
       return false if params[:city].blank?
-      return false unless UserLocation.normalize_city(params[:city]) ==
-                            existing.city_key
+      unless UserLocation.normalize_city(params[:city]) == existing.city_key
+        return false
+      end
       return false unless discovery_mode == existing.discovery_mode
       return true if discovery_mode == "city"
 
@@ -250,7 +251,7 @@ module WhereIsMyFriends
         city: location.city,
         region: location.region,
         discovery_mode: location.discovery_mode,
-        discovery_radius_km: location.effective_discovery_radius_km,
+        discovery_radius_km: location.effective_discovery_radius_km
       }
     end
 
@@ -296,10 +297,10 @@ module WhereIsMyFriends
           SiteSetting.where_is_my_friends_enable_virtual_location,
         map_provider: SiteSetting.where_is_my_friends_map_provider,
         aggregate_privacy_threshold:
-          SiteSetting.where_is_my_friends_aggregate_privacy_threshold.to_i.clamp(
-            2,
-            20
-          ),
+          SiteSetting
+            .where_is_my_friends_aggregate_privacy_threshold
+            .to_i
+            .clamp(2, 20),
         default_discovery_radius_km: UserLocation.default_discovery_radius_km,
         discovery_radius_options_km: UserLocation::DISCOVERY_RADIUS_OPTIONS_KM
       }
@@ -328,7 +329,11 @@ module WhereIsMyFriends
         )
       return { suppressed: true } if count < threshold
 
-      { suppressed: false, count: count, city_count: scope.distinct.count(:city_key) }
+      {
+        suppressed: false,
+        count: count,
+        city_count: scope.distinct.count(:city_key)
+      }
     end
 
     def report_window_days
@@ -359,8 +364,7 @@ module WhereIsMyFriends
     end
 
     def resolved_filterable_fields
-      @resolved_filterable_fields ||=
-        WhereIsMyFriends::FilterableFields.resolve
+      @resolved_filterable_fields ||= WhereIsMyFriends::FilterableFields.resolve
     end
 
     def validated_filters
@@ -385,8 +389,7 @@ module WhereIsMyFriends
       return {} if fields.empty? || user_ids.empty?
 
       keys = fields.map { |f| f[:key] }
-      name_map =
-        fields.each_with_object({}) { |f, h| h[f[:key]] = f[:name] }
+      name_map = fields.each_with_object({}) { |f, h| h[f[:key]] = f[:name] }
 
       UserCustomField
         .where(user_id: user_ids, name: keys)

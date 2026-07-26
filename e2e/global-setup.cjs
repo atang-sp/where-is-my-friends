@@ -9,7 +9,10 @@ module.exports = async function globalSetup(config) {
   const baseURL = config.projects[0].use.baseURL;
   const authDirectory = path.join(__dirname, ".auth");
   await fs.mkdir(authDirectory, { recursive: true });
-  const browser = await chromium.launch();
+  const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+  const browser = await chromium.launch(
+    executablePath ? { executablePath } : {}
+  );
 
   try {
     for (const username of USERS) {

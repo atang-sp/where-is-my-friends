@@ -10,6 +10,14 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     message_started
     local_topics_clicked
     location_removed
+    interest_prompt_viewed
+    interest_onboarding_viewed
+    interest_onboarding_completed
+    interest_onboarding_skipped
+    recommended_topic_opened
+    recommended_user_opened
+    recommendation_dismissed
+    personalization_disabled
   ].freeze
   LOCATION_MODES = %w[city gps map].freeze
   RESULT_BUCKETS = %w[zero one_to_four five_to_nineteen twenty_plus].freeze
@@ -50,6 +58,14 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     messages = users_for(events, "message_started")
     profiles = users_for(events, "profile_clicked")
     local_topics = users_for(events, "local_topics_clicked")
+    interest_onboarding_viewers =
+      users_for(events, "interest_onboarding_viewed")
+    interest_onboarding_completers =
+      users_for(events, "interest_onboarding_completed")
+    recommended_topic_openers = users_for(events, "recommended_topic_opened")
+    recommended_user_openers = users_for(events, "recommended_user_opened")
+    public_interactors = public_interaction_users(events, replies_only: false)
+    first_repliers = public_interaction_users(events, replies_only: true)
 
     {
       unique_page_visitors: viewers.length,
@@ -63,6 +79,25 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
         rate(messages.length, results_with_people.length),
       local_topics_conversion_rate:
         rate(local_topics.length, results_with_people.length),
+      interest_onboarding_completion_rate:
+        rate(
+          interest_onboarding_completers.length,
+          interest_onboarding_viewers.length
+        ),
+      recommended_topic_open_rate:
+        rate(
+          recommended_topic_openers.length,
+          interest_onboarding_completers.length
+        ),
+      recommended_user_open_rate:
+        rate(
+          recommended_user_openers.length,
+          interest_onboarding_completers.length
+        ),
+      seven_day_public_interaction_rate:
+        rate(public_interactors.length, interest_onboarding_completers.length),
+      seven_day_first_reply_rate:
+        rate(first_repliers.length, interest_onboarding_completers.length),
       seven_day_return_rate:
         rate(returning_viewers(events).length, viewers.length),
       result_bucket_distribution:
@@ -92,6 +127,40 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
       end
   end
   private_class_method :returning_viewers
+
+  def self.public_interaction_users(events, replies_only:)
+    completed_at_by_user =
+      events
+        .select { |event| event.event_name == "interest_onboarding_completed" }
+        .group_by(&:user_id)
+        .transform_values { |completions| completions.map(&:created_at).min }
+    return [] if completed_at_by_user.empty?
+
+    earliest = completed_at_by_user.values.min
+    latest = completed_at_by_user.values.max + 7.days
+    posts =
+      Post
+        .joins(:topic)
+        .joins(
+          "LEFT OUTER JOIN categories ON categories.id = topics.category_id"
+        )
+        .where(user_id: completed_at_by_user.keys)
+        .where(created_at: earliest..latest)
+        .where(post_type: Post.types[:regular], hidden: false, deleted_at: nil)
+        .where(topics: { visible: true, deleted_at: nil })
+        .where.not(topics: { archetype: Archetype.private_message })
+        .where("categories.id IS NULL OR categories.read_restricted = FALSE")
+    posts = posts.where("posts.post_number > 1") if replies_only
+
+    posts
+      .pluck(:user_id, :created_at)
+      .filter_map do |user_id, created_at|
+        completed_at = completed_at_by_user.fetch(user_id)
+        user_id if created_at.between?(completed_at, completed_at + 7.days)
+      end
+      .uniq
+  end
+  private_class_method :public_interaction_users
 
   def self.rate(numerator, denominator)
     return 0.0 if denominator.zero?

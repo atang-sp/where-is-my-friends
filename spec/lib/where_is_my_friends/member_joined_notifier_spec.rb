@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe WhereIsMyFriends::MemberJoinedNotifier do
-  fab!(:joiner)
-  fab!(:recipient)
+  fab!(:joiner, :user)
+  fab!(:recipient, :user)
 
   before do
     SiteSetting.where_is_my_friends_enabled = true

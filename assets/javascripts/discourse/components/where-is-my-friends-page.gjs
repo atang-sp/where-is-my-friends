@@ -8,8 +8,8 @@ import { LinkTo } from "@ember/routing";
 import { next } from "@ember/runloop";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
-import { clipboardCopy } from "discourse/lib/utilities";
 import { relativeAge } from "discourse/lib/formatter";
+import { clipboardCopy } from "discourse/lib/utilities";
 import DButton from "discourse/ui-kit/d-button";
 import dAvatar from "discourse/ui-kit/helpers/d-avatar";
 import { i18n } from "discourse-i18n";
@@ -234,7 +234,7 @@ export default class WhereIsMyFriendsPage extends Component {
         suggestion.city_key === normalizedInput
     );
 
-    if (!match || match.count < 1) {
+    if (!Number.isFinite(match?.count) || match.count < 1) {
       return null;
     }
 

@@ -14,7 +14,9 @@ module Jobs
         .active_for_discovery
         .includes(:user)
         .find_each do |location|
-          next unless location.user&.user_option&.where_is_my_friends_notify_city
+          unless location.user&.user_option&.where_is_my_friends_notify_city
+            next
+          end
 
           radius = location.effective_discovery_radius_km
           nearby_keys =
@@ -44,7 +46,7 @@ module Jobs
                   "where_is_my_friends.notification.monthly_digest",
                   count: new_nearby_count,
                   locale: location.user.effective_locale
-                ),
+                )
             }.to_json
           )
         end

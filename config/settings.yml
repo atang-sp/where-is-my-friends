@@ -7,6 +7,22 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
+  where_is_my_friends_interest_onboarding_enabled:
+    default: true
+    client: true
+    type: bool
+    description: "启用兴趣冷启动和个性化成员推荐"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_interest_tags:
+    default: ""
+    type: list
+    list_type: simple
+    description: "用于兴趣冷启动的标签名称，最多20个；留空时从可见近期话题生成"
+    category: "where_is_my_friends"
+    translated: true
+
   where_is_my_friends_enable_virtual_location:
     default: true
     client: true
