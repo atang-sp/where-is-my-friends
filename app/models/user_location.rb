@@ -37,10 +37,7 @@ class UserLocation < ActiveRecord::Base
             allow_nil: true
 
   scope :active_for_discovery,
-        -> do
-          where(enabled: true)
-            .where.not(city_key: [nil, ""])
-        end
+        -> { where(enabled: true).where.not(city_key: [nil, ""]) }
 
   def self.normalize_city(value)
     normalized = value.to_s.strip.gsub(/\s+/, " ").downcase
@@ -49,10 +46,10 @@ class UserLocation < ActiveRecord::Base
   end
 
   def self.default_discovery_radius_km
-    SiteSetting
-      .where_is_my_friends_default_discovery_radius_km
-      .to_i
-      .clamp(20, 500)
+    SiteSetting.where_is_my_friends_default_discovery_radius_km.to_i.clamp(
+      20,
+      500
+    )
   end
 
   def self.normalize_discovery_radius_km(value)
@@ -62,7 +59,12 @@ class UserLocation < ActiveRecord::Base
     DISCOVERY_RADIUS_OPTIONS_KM.include?(radius) ? radius : nil
   end
 
-  def self.upsert_city_location(user_id, city:, region: nil, discovery_radius_km: nil)
+  def self.upsert_city_location(
+    user_id,
+    city:,
+    region: nil,
+    discovery_radius_km: nil
+  )
     location = find_or_initialize_by(user_id: user_id)
     attrs = {
       city: city.to_s.strip,
@@ -76,7 +78,7 @@ class UserLocation < ActiveRecord::Base
       location_type: "real",
       location_source: "unknown",
       location_accuracy: nil,
-      enabled: true,
+      enabled: true
     }
     radius = normalize_discovery_radius_km(discovery_radius_km)
     attrs[:discovery_radius_km] = radius if radius
@@ -117,7 +119,7 @@ class UserLocation < ActiveRecord::Base
       location_type: map_mode ? "virtual" : "real",
       location_source: map_mode ? "virtual" : "gps",
       location_accuracy: map_mode ? nil : location_accuracy,
-      enabled: true,
+      enabled: true
     }
     radius = normalize_discovery_radius_km(discovery_radius_km)
     attrs[:discovery_radius_km] = radius if radius

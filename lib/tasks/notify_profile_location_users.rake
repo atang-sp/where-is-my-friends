@@ -37,7 +37,7 @@ task "where_is_my_friends:notify_profile_location_users" => :environment do
             city: profile_city,
             count: [nearby_count, 1].max,
             locale: user.effective_locale
-          ),
+          )
       }.to_json
     )
     sent += 1

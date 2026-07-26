@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+
 export default defineConfig({
   globalSetup: "./global-setup.cjs",
   testDir: ".",
@@ -11,6 +13,7 @@ export default defineConfig({
   expect: { timeout: 8_000 },
   use: {
     baseURL: process.env.BASE_URL || "http://127.0.0.1:3000",
+    ...(executablePath ? { launchOptions: { executablePath } } : {}),
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

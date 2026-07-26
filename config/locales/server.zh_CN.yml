@@ -2,6 +2,9 @@ zh_CN:
   where_is_my_friends:
     invalid_location: "请提供有效的城市和位置信息"
     invalid_event: "无法记录此活动"
+    invalid_interests: "请选择3至5个当前可见的兴趣"
+    invalid_purpose: "请选择你当前使用论坛的主要目的"
+    invalid_recommendation: "这条推荐已不可用"
     invite_pm_title: "发现你身边的同城社区成员"
     invite_pm_cta: "立即加入同城朋友"
     announcement:
@@ -34,6 +37,8 @@ zh_CN:
       monthly_digest: "上个月有 %{count} 位新成员加入了你附近的同城发现"
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
+    where_is_my_friends_interest_onboarding_enabled: "启用首次兴趣引导和个性化推荐"
+    where_is_my_friends_interest_tags: "兴趣引导使用的标签名称；留空时从用户可见的近期话题自动生成"
     where_is_my_friends_enable_virtual_location: "允许可选的 GPS 和地图距离范围"
     where_is_my_friends_map_provider: "可选地图定位使用的地图服务"
     where_is_my_friends_amap_api_key: "限制到论坛域名的高德浏览器密钥"

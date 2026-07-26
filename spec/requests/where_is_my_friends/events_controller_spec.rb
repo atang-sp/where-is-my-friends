@@ -130,7 +130,8 @@ RSpec.describe WhereIsMyFriends::EventsController do
 
       expect(response.parsed_body["active_participants"]).to eq(
         "suppressed" => false,
-        "count" => 3
+        "count" => 3,
+        "city_count" => 1
       )
     end
   end

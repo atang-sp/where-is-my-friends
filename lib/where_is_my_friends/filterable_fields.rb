@@ -20,7 +20,7 @@ module WhereIsMyFriends
             id: field.id,
             name: field.name,
             key: "user_field_#{field.id}",
-            options: field.user_field_options.map(&:value),
+            options: field.user_field_options.map(&:value)
           }
         end
     end

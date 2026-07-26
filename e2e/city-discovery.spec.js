@@ -19,6 +19,40 @@ async function openDiscovery(context, page, username) {
 }
 
 test.describe.serial("Local Friends against real Discourse", () => {
+  test("interest onboarding introduces visible topics and opted-in contributors", async ({
+    context,
+    page,
+  }) => {
+    await authenticate(context, "admin");
+    await page.goto("/latest");
+
+    await expect(
+      page.locator("[data-test-interest-onboarding-callout]")
+    ).toBeVisible();
+    await page.locator("[data-test-open-interest-onboarding]").click();
+    await expect(page).toHaveURL("/where-is-my-friends/interests");
+
+    await expect(page.locator("[data-test-public-interests]")).not.toBeChecked();
+    await expect(page.locator("[data-test-recommendable]")).toBeChecked();
+    await page.locator("[data-test-interest='ruby']").click();
+    await page.locator("[data-test-interest='design']").click();
+    await page.locator("[data-test-interest='community']").click();
+    await page.locator("[data-test-purpose='learn']").click();
+    await page.locator("[data-test-save-interests]").click();
+
+    const topic = page.locator("[data-test-recommended-topic]");
+    await expect(topic).toContainText(
+      "Practical Ruby patterns for community projects"
+    );
+    await expect(topic).toContainText("ruby");
+    await expect(
+      page.locator("[data-test-recommended-user='shanghai_one']")
+    ).toContainText("Shanghai One");
+
+    await topic.locator("[data-test-dismiss-topic]").click();
+    await expect(topic).toHaveCount(0);
+  });
+
   test("topic lists expose the privacy-safe local discovery entry", async ({
     context,
     page,
@@ -30,12 +64,16 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(callout).toBeVisible();
     await expect(
       page.locator("[data-test-local-friends-callout-proof]")
-    ).toHaveText("3 members are already participating");
-    await page.locator("[data-test-local-friends-callout-cta]").click();
+    ).toHaveText("3 people have joined — are any near you?");
+    await expect(page.locator("[data-test-callout-city-input]")).toBeVisible();
+    await expect(page.locator("[data-test-callout-save-city]")).toBeVisible();
+    await page
+      .getByRole("link", { name: "Local Friends", exact: true })
+      .click();
 
     await expect(page).toHaveURL(PLUGIN_PATH);
     await expect(page.locator("[data-test-participant-proof]")).toHaveText(
-      "3 members have joined local discovery"
+      "3 members across 2 cities have joined local discovery"
     );
     await expect(page.locator("#where-is-my-friends-city-suggestions option")).toHaveCount(2);
     await expect(page.locator("[data-test-region-field]")).toHaveCount(0);
@@ -82,7 +120,7 @@ test.describe.serial("Local Friends against real Discourse", () => {
     const message = page.locator("[data-test-message-link='shanghai_two']");
 
     await expect(page.locator("[data-test-results-summary]")).toHaveText(
-      "2 local members in 上海"
+      "2 members within 100 km of 上海"
     );
     await expect(page.locator("[data-test-local-topics]")).toHaveAttribute(
       "href",
@@ -95,14 +133,14 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(profile).toHaveAttribute("href", "/u/shanghai_two");
     await expect(message).toHaveAttribute(
       "href",
-      "/new-message?username=shanghai_two"
+      "/chat/new-message?recipients=shanghai_two"
     );
     await profile.click();
     await expect(page).toHaveURL(/\/u\/shanghai_two/);
 
     await page.goto(PLUGIN_PATH);
     await page.locator("[data-test-message-link='shanghai_two']").click();
-    await expect(page.locator(".composer-fields")).toBeVisible();
+    await expect(page.locator(".chat-channel")).toBeVisible();
   });
 
   test("GPS denial immediately preserves city discovery", async ({

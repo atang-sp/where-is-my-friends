@@ -19,6 +19,16 @@ export default {
         icon: "location-dot",
       });
 
+      if (siteSettings.where_is_my_friends_interest_onboarding_enabled) {
+        api.addCommunitySectionLink({
+          name: "where-is-my-friends-interests",
+          route: "where-is-my-friends-interests",
+          title: i18n("where_is_my_friends.interests.sidebar_title"),
+          text: i18n("where_is_my_friends.interests.sidebar_title"),
+          icon: "sparkles",
+        });
+      }
+
       api.addSaveableUserOption("where_is_my_friends_notify_city", {
         page: "notifications",
       });

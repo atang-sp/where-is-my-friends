@@ -16,21 +16,23 @@ task "where_is_my_friends:create_announcement" => :environment do
   locale = SiteSetting.default_locale&.to_sym || :en
 
   title = I18n.t("where_is_my_friends.announcement.title", locale: locale)
-  body = I18n.t(
-    "where_is_my_friends.announcement.body",
-    count: total_members,
-    city_count: city_count,
-    link: link,
-    locale: locale
-  )
+  body =
+    I18n.t(
+      "where_is_my_friends.announcement.body",
+      count: total_members,
+      city_count: city_count,
+      link: link,
+      locale: locale
+    )
 
-  post = PostCreator.create!(
-    Discourse.system_user,
-    title: title,
-    raw: body,
-    archetype: Archetype.default,
-    category: SiteSetting.uncategorized_category_id
-  )
+  post =
+    PostCreator.create!(
+      Discourse.system_user,
+      title: title,
+      raw: body,
+      archetype: Archetype.default,
+      category: SiteSetting.uncategorized_category_id
+    )
 
   topic = post.topic
   topic.update!(pinned_globally: true, pinned_at: Time.current)
@@ -40,22 +42,28 @@ task "where_is_my_friends:create_announcement" => :environment do
   if target_slug
     category = Category.find_by(slug: target_slug)
     if category
-      cat_title = I18n.t("where_is_my_friends.announcement.category_title", locale: locale)
-      cat_body = I18n.t(
-        "where_is_my_friends.announcement.category_body",
-        count: total_members,
-        city_count: city_count,
-        link: link,
-        locale: locale
-      )
+      cat_title =
+        I18n.t(
+          "where_is_my_friends.announcement.category_title",
+          locale: locale
+        )
+      cat_body =
+        I18n.t(
+          "where_is_my_friends.announcement.category_body",
+          count: total_members,
+          city_count: city_count,
+          link: link,
+          locale: locale
+        )
 
-      cat_post = PostCreator.create!(
-        Discourse.system_user,
-        title: cat_title,
-        raw: cat_body,
-        archetype: Archetype.default,
-        category: category.id
-      )
+      cat_post =
+        PostCreator.create!(
+          Discourse.system_user,
+          title: cat_title,
+          raw: cat_body,
+          archetype: Archetype.default,
+          category: category.id
+        )
       cat_topic = cat_post.topic
       cat_topic.update!(
         pinned_at: Time.current,

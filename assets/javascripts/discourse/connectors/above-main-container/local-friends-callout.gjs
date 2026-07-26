@@ -38,19 +38,6 @@ function writeCalloutState(state) {
   }
 }
 
-function shouldHideCallout(state) {
-  if (!state.cooldownUntil) {
-    return state.views >= MAX_VIEWS && !state.open;
-  }
-
-  const cooldownUntil = Date.parse(state.cooldownUntil);
-  if (Number.isNaN(cooldownUntil)) {
-    return false;
-  }
-
-  return Date.now() < cooldownUntil;
-}
-
 function shouldCompact(state) {
   return state.views >= MAX_VIEWS;
 }
@@ -289,23 +276,35 @@ export default class LocalFriendsCallout extends Component {
             </form>
           </section>
         {{else if this.hasLocation}}
-          <section
-            class="local-friends-callout-banner local-friends-callout-banner--returning"
-            data-test-local-friends-returning
-          >
-            <div class="local-friends-callout-banner__content">
-              <strong>{{this.returningWidgetText}}</strong>
-            </div>
-            <LinkTo
-              @route="where-is-my-friends"
-              class="btn btn-primary btn-small"
-              data-test-local-friends-callout-cta
+          {{#unless this.dismissed}}
+            <section
+              class="local-friends-callout-banner local-friends-callout-banner--returning"
+              data-test-local-friends-callout
+              data-test-local-friends-returning
             >
-              {{i18n "where_is_my_friends.sidebar_widget_view"}}
-            </LinkTo>
-          </section>
-        {{else unless this.dismissed}}
-          {{#if this.compact}}
+              <div class="local-friends-callout-banner__content">
+                <strong>{{this.returningWidgetText}}</strong>
+              </div>
+              <LinkTo
+                @route="where-is-my-friends"
+                class="btn btn-primary btn-small"
+                data-test-local-friends-callout-cta
+              >
+                {{i18n "where_is_my_friends.sidebar_widget_view"}}
+              </LinkTo>
+              <DButton
+                @action={{this.dismiss}}
+                @icon="xmark"
+                @ariaLabel="where_is_my_friends.callout_dismiss"
+                @title="where_is_my_friends.callout_dismiss"
+                class="btn-flat no-text local-friends-callout-banner__dismiss"
+                data-test-dismiss-local-friends
+              />
+            </section>
+          {{/unless}}
+        {{else}}
+          {{#unless this.dismissed}}
+            {{#if this.compact}}
             <section
               class="local-friends-callout-banner local-friends-callout-banner--compact"
               data-test-local-friends-callout
@@ -321,8 +320,8 @@ export default class LocalFriendsCallout extends Component {
                 {{i18n "where_is_my_friends.callout_set_city"}}
               </LinkTo>
             </section>
-          {{else}}
-            <section
+            {{else}}
+              <section
               class="local-friends-callout-banner"
               data-test-local-friends-callout
             >
@@ -395,8 +394,9 @@ export default class LocalFriendsCallout extends Component {
                 class="btn-flat no-text local-friends-callout-banner__dismiss"
                 data-test-dismiss-local-friends
               />
-            </section>
-          {{/if}}
+              </section>
+            {{/if}}
+          {{/unless}}
         {{/if}}
       {{/if}}
     {{/if}}

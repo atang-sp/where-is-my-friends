@@ -2,6 +2,9 @@ en:
   where_is_my_friends:
     invalid_location: "Please provide a valid city and location."
     invalid_event: "This activity cannot be recorded."
+    invalid_interests: "Choose three to five currently visible interests."
+    invalid_purpose: "Choose your current reason for using the community."
+    invalid_recommendation: "That recommendation is no longer available."
     invite_pm_title: "Discover local community members near you"
     invite_pm_cta: "Join Local Friends now"
     announcement:
@@ -34,6 +37,8 @@ en:
       monthly_digest: "%{count} new members joined near you last month"
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
+    where_is_my_friends_interest_onboarding_enabled: "Enable first-use interest onboarding and personalized recommendations"
+    where_is_my_friends_interest_tags: "Tag names used for interest onboarding; leave empty to derive them from recent topics visible to each member"
     where_is_my_friends_enable_virtual_location: "Allow optional GPS and map distance bands"
     where_is_my_friends_map_provider: "Map provider for optional map selection"
     where_is_my_friends_amap_api_key: "Amap browser key restricted to this forum domain"

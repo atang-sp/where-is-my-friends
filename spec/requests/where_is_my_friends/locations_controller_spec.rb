@@ -218,6 +218,7 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "distance_band",
         "message_url",
         "is_recent",
+        "last_seen_at",
         "bio_excerpt",
         "custom_fields"
       )
@@ -276,7 +277,10 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       expect(usernames).not_to include(far_city.username)
 
       bands =
-        response.parsed_body.fetch("users").index_by { |entry| entry["username"] }
+        response
+          .parsed_body
+          .fetch("users")
+          .index_by { |entry| entry["username"] }
       expect(bands[same_city.username]["distance_band"]).to eq("same_city")
       expect(bands[nearby_city.username]["distance_band"]).to eq("moderate")
     end
@@ -292,7 +296,15 @@ RSpec.describe WhereIsMyFriends::LocationsController do
 
       get "/where-is-my-friends/locations/nearby.json"
 
-      expect(response.parsed_body).to include("state" => "empty", "users" => [])
+      expect(response.parsed_body).to include(
+        "state" => "ready",
+        "expanded_radius" => true,
+        "original_radius_km" => 50,
+        "expanded_radius_km" => 200
+      )
+      expect(
+        response.parsed_body.fetch("users").pluck("username")
+      ).to contain_exactly(nearby_city.username)
     end
   end
 
@@ -378,13 +390,25 @@ RSpec.describe WhereIsMyFriends::LocationsController do
 
   describe "attribute filtering" do
     fab!(:gender_field) do
-      field = UserField.create!(name: "性别", field_type: "dropdown", editable: true)
+      field =
+        UserField.create!(
+          name: "性别",
+          description: "Test gender field",
+          field_type: "dropdown",
+          editable: true
+        )
       %w[男 女 其他].each { |v| field.user_field_options.create!(value: v) }
       field
     end
 
     fab!(:role_field) do
-      field = UserField.create!(name: "属性", field_type: "dropdown", editable: true)
+      field =
+        UserField.create!(
+          name: "属性",
+          description: "Test role field",
+          field_type: "dropdown",
+          editable: true
+        )
       %w[主动 被动 双].each { |v| field.user_field_options.create!(value: v) }
       field
     end
@@ -418,7 +442,13 @@ RSpec.describe WhereIsMyFriends::LocationsController do
     end
 
     it "ignores non-dropdown user fields in the whitelist" do
-      text_field = UserField.create!(name: "bio_extra", field_type: "text", editable: true)
+      text_field =
+        UserField.create!(
+          name: "bio_extra",
+          description: "Test text field",
+          field_type: "text",
+          editable: true
+        )
       SiteSetting.where_is_my_friends_filterable_user_fields = "性别|bio_extra"
 
       get "/where-is-my-friends.json"
@@ -439,7 +469,11 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       UserLocation.upsert_city_location(female_user.id, city: "上海")
 
       get "/where-is-my-friends/locations/nearby.json",
-          params: { filters: { "user_field_#{gender_field.id}" => "男" } }
+          params: {
+            filters: {
+              "user_field_#{gender_field.id}" => "男"
+            }
+          }
 
       usernames = response.parsed_body.fetch("users").pluck("username")
       expect(usernames).to contain_exactly(male_user.username)
@@ -480,14 +514,24 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       UserLocation.upsert_city_location(empty_user.id, city: "上海")
 
       get "/where-is-my-friends/locations/nearby.json",
-          params: { filters: { "user_field_#{gender_field.id}" => "男" } }
+          params: {
+            filters: {
+              "user_field_#{gender_field.id}" => "男"
+            }
+          }
 
       usernames = response.parsed_body.fetch("users").pluck("username")
       expect(usernames).to contain_exactly(filled_user.username)
     end
 
     it "rejects filter keys not in the whitelist" do
-      secret_field = UserField.create!(name: "secret", field_type: "dropdown", editable: true)
+      secret_field =
+        UserField.create!(
+          name: "secret",
+          description: "Test secret field",
+          field_type: "dropdown",
+          editable: true
+        )
       secret_field.user_field_options.create!(value: "yes")
 
       other_user = Fabricate(:user)
@@ -496,7 +540,11 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       UserLocation.upsert_city_location(other_user.id, city: "上海")
 
       get "/where-is-my-friends/locations/nearby.json",
-          params: { filters: { "user_field_#{secret_field.id}" => "yes" } }
+          params: {
+            filters: {
+              "user_field_#{secret_field.id}" => "yes"
+            }
+          }
 
       usernames = response.parsed_body.fetch("users").pluck("username")
       expect(usernames).to include(other_user.username)
@@ -509,7 +557,11 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       UserLocation.upsert_city_location(other_user.id, city: "上海")
 
       get "/where-is-my-friends/locations/nearby.json",
-          params: { filters: { "user_field_#{gender_field.id}" => "invalid_value" } }
+          params: {
+            filters: {
+              "user_field_#{gender_field.id}" => "invalid_value"
+            }
+          }
 
       usernames = response.parsed_body.fetch("users").pluck("username")
       expect(usernames).to include(other_user.username)
@@ -526,10 +578,7 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       get "/where-is-my-friends/locations/nearby.json"
 
       result = response.parsed_body.fetch("users").first
-      expect(result["custom_fields"]).to eq(
-        "性别" => "男",
-        "属性" => "主动"
-      )
+      expect(result["custom_fields"]).to eq("性别" => "男", "属性" => "主动")
       expect(response.body).not_to include("secret_token", "must-not-leak")
     end
 

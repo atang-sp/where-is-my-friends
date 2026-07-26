@@ -121,7 +121,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.dom("[data-test-local-friends-callout]").exists();
     assert
       .dom("[data-test-local-friends-callout-proof]")
-      .hasText("12 members are already participating");
+      .hasText("12 people have joined — are any near you?");
     assert.dom("[data-test-local-friends-callout-setup]").exists();
     assert.dom("[data-test-callout-city-input]").exists();
     assert.dom("[data-test-callout-save-city]").exists();
@@ -132,7 +132,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     assert
       .dom("[data-test-local-friends-callout-proof]")
-      .hasText("Local members are already participating");
+      .hasText("People in your area are already here");
   });
 
   test("topic-list callout can save a city inline without leaving the page", async function (assert) {
@@ -145,7 +145,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.strictEqual(api.savedLocations[0].city, "上海");
     assert
       .dom("[data-test-local-friends-callout-cta]")
-      .hasText("View local members")
+      .hasText("View all")
       .hasAttribute("href", "/where-is-my-friends");
   });
 
@@ -156,13 +156,17 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     assert
       .dom("[data-test-local-friends-callout-cta]")
-      .hasText("View local members");
+      .hasText("View all");
     await click("[data-test-dismiss-local-friends]");
     assert.dom("[data-test-local-friends-callout]").doesNotExist();
 
     await visit("/latest");
     assert.dom("[data-test-local-friends-callout]").doesNotExist();
-    assert.ok(localStorage.getItem(CALLOUT_STORAGE_KEY));
+    assert.notStrictEqual(
+      localStorage.getItem(CALLOUT_STORAGE_KEY),
+      null,
+      "dismissal is persisted"
+    );
   });
 
   test("topic-list callout is not duplicated on the Local Friends page", async function (assert) {

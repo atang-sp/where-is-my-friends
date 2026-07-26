@@ -1,0 +1,107 @@
+import Component from "@glimmer/component";
+import { tracked } from "@glimmer/tracking";
+import { action } from "@ember/object";
+import didInsert from "@ember/render-modifiers/modifiers/did-insert";
+import { LinkTo } from "@ember/routing";
+import { service } from "@ember/service";
+import { ajax } from "discourse/lib/ajax";
+import DButton from "discourse/ui-kit/d-button";
+import { i18n } from "discourse-i18n";
+
+export default class InterestOnboardingCallout extends Component {
+  static shouldRender(_args, { currentUser, siteSettings }) {
+    return Boolean(
+      currentUser &&
+        siteSettings.where_is_my_friends_enabled &&
+        siteSettings.where_is_my_friends_interest_onboarding_enabled
+    );
+  }
+
+  @service currentUser;
+  @service router;
+
+  @tracked dismissed = false;
+
+  get shouldShow() {
+    return (
+      this.currentUser?.where_is_my_friends_interest_onboarding_state ===
+        "pending" &&
+      !this.dismissed &&
+      this.isTopicListRoute
+    );
+  }
+
+  get isTopicListRoute() {
+    const routeName = this.router.currentRouteName ?? "";
+    return (
+      routeName === "discovery" ||
+      routeName.startsWith("discovery.") ||
+      routeName.startsWith("category.")
+    );
+  }
+
+  @action
+  recordPrompt() {
+    void this.recordEvent("interest_prompt_viewed");
+  }
+
+  @action
+  async skip() {
+    try {
+      const response = await ajax(
+        "/where-is-my-friends/recommendations/skip.json",
+        { type: "POST" }
+      );
+      this.currentUser.set(
+        "where_is_my_friends_interest_onboarding_state",
+        response.state
+      );
+      this.dismissed = true;
+    } catch {
+      // A non-critical prompt must never block the topic list.
+    }
+  }
+
+  async recordEvent(eventName) {
+    try {
+      await ajax("/where-is-my-friends/events.json", {
+        type: "POST",
+        data: { event_name: eventName },
+      });
+    } catch {
+      // Analytics must never block the topic list.
+    }
+  }
+
+  <template>
+    {{#if this.shouldShow}}
+      <section
+        class="interest-onboarding-callout"
+        data-test-interest-onboarding-callout
+        {{didInsert this.recordPrompt}}
+      >
+        <div>
+          <strong>{{i18n
+              "where_is_my_friends.interests.callout_title"
+            }}</strong>
+          <p>{{i18n
+              "where_is_my_friends.interests.callout_description"
+            }}</p>
+        </div>
+        <LinkTo
+          @route="where-is-my-friends-interests"
+          class="btn btn-primary"
+          data-test-open-interest-onboarding
+        >
+          {{i18n "where_is_my_friends.interests.callout_cta"}}
+        </LinkTo>
+        <DButton
+          @action={{this.skip}}
+          @label="where_is_my_friends.interests.skip"
+          class="btn-flat"
+          data-test-skip-interest-callout
+        />
+      </section>
+    {{/if}}
+  </template>
+}

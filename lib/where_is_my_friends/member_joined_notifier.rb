@@ -27,9 +27,7 @@ module WhereIsMyFriends
     def recipients
       User
         .joins(:user_option)
-        .joins(
-          "INNER JOIN user_locations ON user_locations.user_id = users.id"
-        )
+        .joins("INNER JOIN user_locations ON user_locations.user_id = users.id")
         .merge(UserLocation.active_for_discovery)
         .where(user_locations: { city_key: @city_key })
         .where.not(users: { id: @joiner.id })
@@ -61,10 +59,7 @@ module WhereIsMyFriends
 
     def daily_count(user)
       Notification
-        .where(
-          user_id: user.id,
-          notification_type: Notification.types[:custom]
-        )
+        .where(user_id: user.id, notification_type: Notification.types[:custom])
         .where("created_at > ?", 1.day.ago)
         .where("data::jsonb->>'message' = ?", MESSAGE_KEY)
         .count
