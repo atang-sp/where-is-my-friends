@@ -39,6 +39,26 @@ function setupApi(needs, state) {
       });
     });
 
+    server.get("/where-is-my-friends/cities/preview.json", (request) => {
+      state.previewRequests += 1;
+      state.lastPreviewParams = request.queryParams;
+      return helper.response(
+        state.preview ?? {
+          city: {
+            city: request.queryParams.city,
+            city_key: request.queryParams.city,
+            canonical: true,
+            recent_active_count: 0,
+            joined_count: 0,
+          },
+          radius_options: [],
+          recommended_radius_km: null,
+          nearby_cities: [],
+          local_topics: [],
+        }
+      );
+    });
+
     server.get("/where-is-my-friends/locations/nearby.json", (request) => {
       if (state.nearbyError) {
         return helper.response(500, { errors: [] });
@@ -87,6 +107,9 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       savedLocations: [],
       deleteRequests: 0,
       lastNearbyParams: null,
+      preview: null,
+      previewRequests: 0,
+      lastPreviewParams: null,
     });
   });
 
@@ -183,8 +206,8 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       location: null,
       active_participants: { suppressed: false, count: 12 },
       city_suggestions: [
-        { city: "上海", city_key: "上海" },
-        { city: "北京", city_key: "北京" },
+        { city: "上海", city_key: "上海", count: 2 },
+        { city: "北京", city_key: "北京", count: 1 },
       ],
       settings: {},
     };
@@ -209,6 +232,118 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     await click("[data-test-save-city]");
 
     assert.strictEqual(api.savedLocations[0].region, "上海");
+  });
+
+  test("setup previews the regional network before an explicit join", async function (assert) {
+    api.initial = {
+      state: "setup",
+      current_user: { id: 1, username: "current-user" },
+      location: null,
+      active_participants: { suppressed: false, count: 12 },
+      city_suggestions: [],
+      city_catalogue: [
+        { city: "上海", city_key: "上海", region: "上海" },
+        { city: "苏州", city_key: "苏州", region: "江苏" },
+      ],
+      city_directory: {
+        active: [
+          {
+            city: "上海",
+            city_key: "上海",
+            recent_active_count: 1,
+            joined_count: 2,
+          },
+        ],
+        growing: [
+          {
+            city: "苏州",
+            city_key: "苏州",
+            recent_active_count: 2,
+            joined_count: 3,
+          },
+        ],
+        cities: [],
+        activity_window_days: 90,
+      },
+      settings: {
+        default_discovery_radius_km: 100,
+        discovery_radius_options_km: [50, 100, 200],
+      },
+      filterable_fields: [],
+    };
+    api.preview = {
+      city: {
+        city: "上海",
+        city_key: "上海",
+        canonical: true,
+        recent_active_count: 1,
+        joined_count: 2,
+      },
+      radius_options: [
+        {
+          radius_km: 50,
+          recent_active_count: 1,
+          joined_count: 2,
+          city_count: 1,
+        },
+        {
+          radius_km: 100,
+          recent_active_count: 3,
+          joined_count: 5,
+          city_count: 2,
+        },
+        {
+          radius_km: 200,
+          recent_active_count: 4,
+          joined_count: 7,
+          city_count: 3,
+        },
+      ],
+      recommended_radius_km: 100,
+      nearby_cities: [
+        {
+          city: "苏州",
+          city_key: "苏州",
+          approximate_distance_km: 90,
+          recent_active_count: 2,
+          joined_count: 3,
+        },
+      ],
+      local_topics: [],
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert.dom("[data-test-city-directory-active]").exists();
+    assert
+      .dom("[data-test-city-card='上海']")
+      .includesText("1 active")
+      .includesText("2 joined");
+    assert.dom("[data-test-city-directory-growing]").exists();
+
+    await click("[data-test-city-card='上海']");
+
+    assert.strictEqual(api.previewRequests, 1);
+    assert.strictEqual(api.lastPreviewParams.city, "上海");
+    assert.strictEqual(api.savedLocations.length, 0);
+    assert
+      .dom("[data-test-city-network-preview]")
+      .includesText("1 active in the last 90 days")
+      .includesText("2 joined");
+    assert
+      .dom("[data-test-preview-radius='100']")
+      .hasClass("btn-primary")
+      .includesText("3 active");
+    assert
+      .dom("[data-test-preview-nearby-city='苏州']")
+      .includesText("about 90 km")
+      .includesText("2 active");
+
+    await click("[data-test-join-city]");
+
+    assert.strictEqual(api.savedLocations.length, 1);
+    assert.strictEqual(api.savedLocations[0].city, "上海");
+    assert.strictEqual(api.savedLocations[0].discovery_radius_km, "100");
   });
 
   test("editing a saved region keeps the optional field visible", async function (assert) {
@@ -544,6 +679,63 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert
       .dom("[data-test-user-bio]")
       .hasText("Weekend cyclist and tea drinker.");
+  });
+
+  test("results group members by city and label inactive profiles", async function (assert) {
+    api.initial = readyState();
+    const activeShanghai = {
+      ...localUser("alice", "Alice"),
+      activity_status: "recent",
+    };
+    const inactiveShanghai = {
+      ...localUser("bob", "Bob"),
+      activity_status: "inactive",
+    };
+    const activeSuzhou = {
+      ...localUser("carol", "Carol"),
+      city: "苏州",
+      distance_band: "moderate",
+      activity_status: "recent",
+    };
+    api.nearby = {
+      state: "ready",
+      users: [activeShanghai, inactiveShanghai, activeSuzhou],
+      city_groups: [
+        {
+          city: "上海",
+          city_key: "上海",
+          distance_band: "same_city",
+          approximate_distance_km: null,
+          recent_active_count: 1,
+          joined_count: 2,
+          users: [activeShanghai, inactiveShanghai],
+        },
+        {
+          city: "苏州",
+          city_key: "苏州",
+          distance_band: "moderate",
+          approximate_distance_km: 90,
+          recent_active_count: 1,
+          joined_count: 1,
+          users: [activeSuzhou],
+        },
+      ],
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert
+      .dom("[data-test-city-group='上海']")
+      .includesText("上海 city")
+      .includesText("1 active")
+      .includesText("2 joined");
+    assert
+      .dom("[data-test-city-group='苏州']")
+      .includesText("about 90 km")
+      .includesText("1 active");
+    assert
+      .dom("[data-test-user-card='bob'] [data-test-inactive-member]")
+      .hasText("Inactive for more than 90 days");
   });
 
   test("attribute filters render from filterable_fields and send params on selection", async function (assert) {
