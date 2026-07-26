@@ -21,6 +21,9 @@ module WhereIsMyFriends
                location: location_metadata(location),
                active_participants: active_participants,
                city_suggestions: city_suggestions,
+               city_directory: WhereIsMyFriends::CityNetwork.new.directory,
+               city_catalogue:
+                 WhereIsMyFriends::CityCentroidLookup.instance.catalogue,
                settings: client_settings,
                profile_location: current_user.user_profile&.location.presence,
                new_nearby_count: new_nearby_count(location),
@@ -57,6 +60,14 @@ module WhereIsMyFriends
       )
     end
 
+    def preview
+      render json:
+               WhereIsMyFriends::CityNetwork.new.preview(
+                 city: params[:city],
+                 exclude_user_id: current_user.id
+               )
+    end
+
     def nearby
       origin = current_location
       if origin.blank?
@@ -65,10 +76,10 @@ module WhereIsMyFriends
 
       radius = origin.effective_discovery_radius_km
       filters = validated_filters
-      users, expanded = discover_nearby(origin, radius, filters)
+      users, city_groups, expanded = discover_nearby(origin, radius, filters)
 
       if users.empty? && radius < 200
-        users, _ = discover_nearby(origin, 200, filters)
+        users, city_groups, _ = discover_nearby(origin, 200, filters)
         expanded = true if users.any?
       end
 
@@ -86,7 +97,7 @@ module WhereIsMyFriends
                  nearby_city_count: nearby_city_count
                }
       else
-        result = { state: "ready", users: users }
+        result = { state: "ready", users: users, city_groups: city_groups }
         if expanded
           result[:expanded_radius] = true
           result[:original_radius_km] = radius
@@ -156,7 +167,7 @@ module WhereIsMyFriends
       locations =
         locations.order(
           Arel.sql(
-            "CASE WHEN user_locations.updated_at > #{ActiveRecord::Base.connection.quote(7.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST"
+            "CASE WHEN users.last_seen_at >= #{ActiveRecord::Base.connection.quote(90.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST"
           )
         ).limit(
           UserLocation.discovery_limit(
@@ -180,7 +191,14 @@ module WhereIsMyFriends
           )
         end
 
-      [users, false]
+      groups =
+        WhereIsMyFriends::CityNetwork.new.group_members(
+          origin_city_key: origin.city_key,
+          locations: locations,
+          serialized_users: users
+        )
+
+      [users, groups, false]
     end
 
     def current_location

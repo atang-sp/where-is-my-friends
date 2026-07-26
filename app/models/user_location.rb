@@ -66,6 +66,7 @@ class UserLocation < ActiveRecord::Base
     discovery_radius_km: nil
   )
     location = find_or_initialize_by(user_id: user_id)
+    previous_city_key = location.city_key
     attrs = {
       city: city.to_s.strip,
       city_key: normalize_city(city),
@@ -80,6 +81,10 @@ class UserLocation < ActiveRecord::Base
       location_accuracy: nil,
       enabled: true
     }
+    if location.new_record? || previous_city_key != attrs[:city_key] ||
+         location.city_joined_at.blank?
+      attrs[:city_joined_at] = Time.current
+    end
     radius = normalize_discovery_radius_km(discovery_radius_km)
     attrs[:discovery_radius_km] = radius if radius
     location.assign_attributes(attrs)
@@ -98,6 +103,7 @@ class UserLocation < ActiveRecord::Base
     discovery_radius_km: nil
   )
     location = find_or_initialize_by(user_id: user_id)
+    previous_city_key = location.city_key
     map_mode = discovery_mode == "map"
     stored_latitude = latitude
     stored_longitude = longitude
@@ -121,6 +127,10 @@ class UserLocation < ActiveRecord::Base
       location_accuracy: map_mode ? nil : location_accuracy,
       enabled: true
     }
+    if location.new_record? || previous_city_key != attrs[:city_key] ||
+         location.city_joined_at.blank?
+      attrs[:city_joined_at] = Time.current
+    end
     radius = normalize_discovery_radius_km(discovery_radius_km)
     attrs[:discovery_radius_km] = radius if radius
     location.assign_attributes(attrs)

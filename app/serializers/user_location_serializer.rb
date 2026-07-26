@@ -11,6 +11,7 @@ class UserLocationSerializer < ApplicationSerializer
              :distance_band,
              :message_url,
              :is_recent,
+             :activity_status,
              :last_seen_at,
              :bio_excerpt,
              :custom_fields
@@ -45,6 +46,11 @@ class UserLocationSerializer < ApplicationSerializer
 
   def is_recent
     location.updated_at > 7.days.ago
+  end
+
+  def activity_status
+    last_seen = user.last_seen_at
+    last_seen.present? && last_seen >= 90.days.ago ? "recent" : "inactive"
   end
 
   def last_seen_at
