@@ -78,12 +78,138 @@
 
   &__form,
   &__results,
-  &__dismissed {
+  &__dismissed,
+  &__invitation-form,
+  &__invitations,
+  &__outgoing-invitations,
+  &__legacy-bookmarks {
     padding: clamp(1.25rem, 4vw, 2rem);
     border: 1px solid var(--interest-border);
     border-radius: 1rem;
     background: var(--interest-surface);
     box-shadow: 0 1rem 3rem rgb(0 0 0 / 6%);
+  }
+
+  &__legacy-bookmarks {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+  }
+
+  &__legacy-bookmark-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: 0.75rem;
+
+    article {
+      display: grid;
+      gap: 0.75rem;
+      padding: 1rem;
+      border: 1px solid var(--primary-low);
+      border-radius: 0.75rem;
+      background: var(--secondary);
+    }
+
+    span {
+      color: var(--primary-medium);
+      font-size: var(--font-down-1);
+    }
+  }
+
+  &__invitation-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    > div:first-child,
+    &__preview,
+    .interest-onboarding__invitation-preview,
+    .interest-onboarding__form-actions {
+      grid-column: 1 / -1;
+    }
+
+    h2,
+    p {
+      margin: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 0.35rem;
+      font-weight: 650;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+    }
+
+    textarea {
+      min-height: 7rem;
+      resize: vertical;
+    }
+  }
+
+  &__invitation-preview {
+    padding: 0.8rem 1rem;
+    border-left: 0.25rem solid var(--tertiary);
+    background: var(--tertiary-very-low);
+    color: var(--primary-high);
+  }
+
+  &__invitations {
+    margin-bottom: 1rem;
+
+    > h2 {
+      margin-top: 0;
+    }
+  }
+
+  &__invitation-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: 0.75rem;
+
+    article {
+      padding: 1rem;
+      border: 1px solid var(--primary-low);
+      border-radius: 0.75rem;
+      background: var(--secondary);
+    }
+
+    h3,
+    p {
+      margin: 0 0 0.6rem;
+    }
+  }
+
+  &__invitation-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  &__invitation-status {
+    color: var(--primary-medium);
+    font-size: var(--font-down-1);
+    font-weight: 650;
+  }
+
+  &__outgoing-invitations {
+    margin-bottom: 1rem;
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
   }
 
   &__form {
@@ -917,12 +1043,21 @@
     margin-top: 1.25rem;
 
     &__form-actions,
-    &__results-header {
+    &__results-header,
+    &__invitation-actions {
       align-items: stretch;
       flex-direction: column;
 
       .btn {
         justify-content: center;
+      }
+    }
+
+    &__invitation-form {
+      grid-template-columns: 1fr;
+
+      > * {
+        grid-column: 1;
       }
     }
   }

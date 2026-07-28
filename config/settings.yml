@@ -23,6 +23,32 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
+  where_is_my_friends_practice_invitations_enabled:
+    default: true
+    client: true
+    type: bool
+    description: "启用严格一对一实践邀请"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_practice_invitation_min_trust_level:
+    default: 1
+    min: 0
+    max: 4
+    type: integer
+    description: "允许发送实践邀请的最低信任等级"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_practice_invitation_daily_limit:
+    default: 5
+    min: 1
+    max: 50
+    type: integer
+    description: "每位成员每天最多发送的实践邀请数"
+    category: "where_is_my_friends"
+    translated: true
+
   where_is_my_friends_enable_virtual_location:
     default: true
     client: true

@@ -120,7 +120,8 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
     recommendation =
       people.find { |entry| entry["username"] == author.username }
     expect(recommendation).to include(
-      "reason_interests" => [{ "id" => ruby_tag.id, "name" => "ruby" }]
+      "reason_interests" => [{ "id" => ruby_tag.id, "name" => "ruby" }],
+      "invitation_interests" => [{ "id" => ruby_tag.id, "name" => "ruby" }]
     )
     expect(
       recommendation.fetch("representative_topics").pluck("id")
@@ -130,6 +131,47 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
       "private_interests",
       "show_interests_publicly"
     )
+  end
+
+  it "keeps opted-out contributors recommendable without offering an invitation" do
+    visible_topic =
+      Fabricate(
+        :topic,
+        user: author,
+        title: "Ruby patterns without invitations",
+        tags: [ruby_tag]
+      )
+    Fabricate(:post, topic: visible_topic, user: author)
+    profile =
+      WhereIsMyFriendsInterestProfile.create!(
+        user: author,
+        purpose: "share",
+        personalization_enabled: true,
+        recommendable: true,
+        completed_at: Time.current
+      )
+    profile.interests.create!(tag: ruby_tag, position: 0)
+    author.user_option.update!(
+      where_is_my_friends_accept_practice_invitations: false
+    )
+
+    put "/where-is-my-friends/recommendations/profile.json",
+        params: {
+          interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+          purpose: "learn",
+          recommendable: true
+        }
+
+    recommendation =
+      response
+        .parsed_body
+        .fetch("recommended_users")
+        .find { |entry| entry["username"] == author.username }
+    expect(recommendation).to be_present
+    expect(recommendation.fetch("reason_interests")).to eq(
+      [{ "id" => ruby_tag.id, "name" => "ruby" }]
+    )
+    expect(recommendation.fetch("invitation_interests")).to eq([])
   end
 
   it "filters restricted and muted tags from the catalogue, profile, and topics" do

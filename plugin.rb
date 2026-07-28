@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.1.0
+# version: 1.2.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0.beta1
@@ -17,9 +17,16 @@ after_initialize do
   require_relative "lib/where_is_my_friends/interest_visibility"
 
   UserUpdater::OPTION_ATTR.push(:where_is_my_friends_notify_city)
+  UserUpdater::OPTION_ATTR.push(
+    :where_is_my_friends_accept_practice_invitations
+  )
   add_to_serializer(:user_option, :where_is_my_friends_notify_city) do
     object.where_is_my_friends_notify_city
   end
+  add_to_serializer(
+    :user_option,
+    :where_is_my_friends_accept_practice_invitations
+  ) { object.where_is_my_friends_accept_practice_invitations }
 
   add_to_serializer(:user_card, :where_is_my_friends_city) do
     UserLocation.active_for_discovery.find_by(user_id: object.id)&.city
@@ -41,11 +48,39 @@ after_initialize do
     )
   end
 
+  add_to_serializer(
+    :user_card,
+    :where_is_my_friends_practice_invitation_interests
+  ) do
+    if scope.user
+      WhereIsMyFriends::PracticeInvitationEligibility
+        .new(sender: scope.user, recipient: object)
+        .public_common_interests
+        .map { |tag| { id: tag.id, name: tag.name } }
+    else
+      []
+    end
+  end
+
   add_to_serializer(:user, :where_is_my_friends_public_interests) do
     WhereIsMyFriends::InterestVisibility.public_interests(
       object,
       guardian: scope
     )
+  end
+
+  add_to_serializer(
+    :user,
+    :where_is_my_friends_practice_invitation_interests
+  ) do
+    if scope.user
+      WhereIsMyFriends::PracticeInvitationEligibility
+        .new(sender: scope.user, recipient: object)
+        .public_common_interests
+        .map { |tag| { id: tag.id, name: tag.name } }
+    else
+      []
+    end
   end
 
   Badge.seed(:name) do |badge|

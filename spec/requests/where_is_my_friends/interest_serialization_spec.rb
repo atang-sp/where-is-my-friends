@@ -41,6 +41,15 @@ RSpec.describe "Where Is My Friends interest serialization" do
   end
 
   it "shows only explicitly public interests on member cards" do
+    viewer_profile =
+      WhereIsMyFriendsInterestProfile.create!(
+        user: viewer,
+        purpose: "connect",
+        personalization_enabled: true,
+        recommendable: true,
+        completed_at: Time.current
+      )
+    viewer_profile.interests.create!(tag: ruby_tag, position: 0)
     profile =
       WhereIsMyFriendsInterestProfile.create!(
         user: member,
@@ -56,6 +65,12 @@ RSpec.describe "Where Is My Friends interest serialization" do
 
     expect(
       response.parsed_body.dig("user", "where_is_my_friends_public_interests")
+    ).to eq([{ "id" => ruby_tag.id, "name" => "ruby" }])
+    expect(
+      response.parsed_body.dig(
+        "user",
+        "where_is_my_friends_practice_invitation_interests"
+      )
     ).to eq([{ "id" => ruby_tag.id, "name" => "ruby" }])
   end
 
@@ -75,6 +90,9 @@ RSpec.describe "Where Is My Friends interest serialization" do
 
     user_json = response.parsed_body.fetch("user")
     expect(user_json["where_is_my_friends_public_interests"]).to eq([])
+    expect(
+      user_json["where_is_my_friends_practice_invitation_interests"]
+    ).to eq([])
     expect(user_json).not_to include(
       "where_is_my_friends_interests",
       "where_is_my_friends_purpose"
@@ -122,6 +140,38 @@ RSpec.describe "Where Is My Friends interest serialization" do
 
     expect(
       response.parsed_body.dig("user", "where_is_my_friends_public_interests")
+    ).to eq([])
+  end
+
+  it "stops exposing invitation interests when practice invitations are disabled" do
+    viewer_profile =
+      WhereIsMyFriendsInterestProfile.create!(
+        user: viewer,
+        purpose: "connect",
+        personalization_enabled: true,
+        recommendable: true,
+        completed_at: Time.current
+      )
+    viewer_profile.interests.create!(tag: ruby_tag, position: 0)
+    profile =
+      WhereIsMyFriendsInterestProfile.create!(
+        user: member,
+        purpose: "connect",
+        personalization_enabled: true,
+        recommendable: true,
+        show_interests_publicly: true,
+        completed_at: Time.current
+      )
+    profile.interests.create!(tag: ruby_tag, position: 0)
+    SiteSetting.where_is_my_friends_practice_invitations_enabled = false
+
+    get "/u/#{member.username}/card.json"
+
+    expect(
+      response.parsed_body.dig(
+        "user",
+        "where_is_my_friends_practice_invitation_interests"
+      )
     ).to eq([])
   end
 end

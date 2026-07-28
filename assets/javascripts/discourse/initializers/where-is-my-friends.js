@@ -1,5 +1,6 @@
 import { withPluginApi } from "discourse/lib/plugin-api";
 import { i18n } from "discourse-i18n";
+import customActionNotificationRenderer from "discourse/plugins/where-is-my-friends/discourse/lib/custom-action-notification-renderer";
 
 export default {
   name: "where-is-my-friends",
@@ -11,6 +12,13 @@ export default {
     }
 
     withPluginApi((api) => {
+      if (siteSettings.where_is_my_friends_practice_invitations_enabled) {
+        api.registerNotificationTypeRenderer(
+          "custom",
+          customActionNotificationRenderer
+        );
+      }
+
       api.addCommunitySectionLink({
         name: "where-is-my-friends",
         route: "where-is-my-friends",
@@ -32,6 +40,10 @@ export default {
       api.addSaveableUserOption("where_is_my_friends_notify_city", {
         page: "notifications",
       });
+      api.addSaveableUserOption(
+        "where_is_my_friends_accept_practice_invitations",
+        { page: "notifications" }
+      );
     });
   },
 };
