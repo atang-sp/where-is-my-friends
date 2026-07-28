@@ -6,6 +6,9 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 
 - 兴趣冷启动：首次或升级后选择 3–5 个兴趣和一个当前目的，立即看到最多 5 个话题和 3 位成员。
 - 可解释推荐：话题显示匹配兴趣，成员推荐只引用用户可见的公开贡献和代表话题。
+- 一对一实践邀请：从推荐卡或公开兴趣资料页选择共同兴趣，可附建议时间和备注；接受后只创建两人私信。
+- 可控收件箱：收件人可接受、拒绝或忽略邀请，也可在通知设置中完全关闭实践邀请。
+- 旧数据接管：近 90 天旧实践意向只迁移为私密、待重新确认的书签；既有互选只保留为静默历史。
 - 用户控制：可跳过、编辑、“不感兴趣”、退出被推荐、公开兴趣或一键清空个性化数据。
 - 城市优先：本地发现只需填写城市，保存后自动加载同城成员。
 - 可选精确模式：GPS 或地图只用于生成“约 5 公里内 / 5–20 公里 / 20 公里以上”等距离范围。
@@ -26,6 +29,10 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 活跃人数低于隐私阈值时不会返回精确总数。
 - 兴趣、使用目的和“不感兴趣”记录默认私密；只有用户主动勾选后，所选兴趣才显示在资料卡。
 - 推荐只使用当前用户原本有权查看的话题；私密分区、静音标签/分区、双方任一方向的忽略或静音关系都会被排除。
+- 实践邀请必须有当前可验证的共同兴趣，并同时经过信任等级、每日额度、双方忽略/静音、私信白名单与权限和收件人 opt-out 检查；接受时会再次验证通信安全。
+- 每条邀请只有一个发起者和一个收件人；接受时创建的私信只包含这两人。
+- 建议时间按发送者浏览器时区转换为 UTC；邀请保留兴趣名称快照，管理员后续删除标签不会破坏历史。
+- 旧意向书签只向原意向所有者返回；迁移、重新确认和历史互选导入都不会自动发送邀请或通知。
 - 只有明确允许“被推荐”且近期活跃的成员才会出现；不会暴露对方的私密兴趣或使用目的。
 - 插件绝不自动订阅标签、分区，也不会改变任何通知级别。
 - 七日公开互动率和首次回复率直接从公开帖子按 onboarding 时间窗聚合；私信、受限分区、内容和目标 ID 均不会进入统计结果。
@@ -40,7 +47,9 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 bundle exec rake db:migrate
 ```
 
-重启 Discourse 后，在管理后台确认 `where_is_my_friends_enabled` 与 `where_is_my_friends_interest_onboarding_enabled` 已启用。管理员可配置最多 20 个兴趣标签；留空时会从每位成员可见的近期话题中生成候选。
+重启 Discourse 后，在管理后台确认 `where_is_my_friends_enabled`、`where_is_my_friends_interest_onboarding_enabled` 与 `where_is_my_friends_practice_invitations_enabled` 已启用。管理员可配置最多 20 个兴趣标签；留空时会从每位成员可见的近期话题中生成候选。
+
+若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
 
 本版本在 Discourse `2026.7.0-latest`（commit `7c06c152`）上开发和验证，插件元数据要求 Discourse `2026.7.0.beta1` 或更高版本。
 
@@ -51,6 +60,9 @@ bundle exec rake db:migrate
 | `where_is_my_friends_enabled` | `true` | 启用插件 |
 | `where_is_my_friends_interest_onboarding_enabled` | `true` | 启用一次性兴趣冷启动和个性化推荐 |
 | `where_is_my_friends_interest_tags` | 空 | 管理员选择的兴趣标签，最多 20 个；空时从用户可见近期话题生成 |
+| `where_is_my_friends_practice_invitations_enabled` | `true` | 启用严格一对一实践邀请 |
+| `where_is_my_friends_practice_invitation_min_trust_level` | `1` | 允许发送邀请的最低信任等级 |
+| `where_is_my_friends_practice_invitation_daily_limit` | `5` | 每位成员每天最多发送的邀请数 |
 | `where_is_my_friends_enable_virtual_location` | `true` | 允许可选 GPS/地图距离范围 |
 | `where_is_my_friends_map_provider` | `openstreetmap` | `openstreetmap`、`amap` 或 `baidu` |
 | `where_is_my_friends_amap_api_key` | 空 | 仅在选择高德时发送到浏览器 |
@@ -76,6 +88,15 @@ OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的�
 | `DELETE` | `/where-is-my-friends/recommendations/profile.json` | 关闭并清空个性化数据 |
 | `POST` | `/where-is-my-friends/recommendations/skip.json` | 跳过一次性引导 |
 | `POST` | `/where-is-my-friends/recommendations/dismiss.json` | 对当前可见推荐标记“不感兴趣” |
+| `GET` | `/where-is-my-friends/practice-invitations.json` | 当前用户的私密收件箱和发件记录 |
+| `GET` | `/where-is-my-friends/practice-invitations/availability.json` | 查询某资料页成员当前可用的共同兴趣 |
+| `POST` | `/where-is-my-friends/practice-invitations.json` | 创建严格一对一邀请 |
+| `PUT` | `/where-is-my-friends/practice-invitations/:id/accept.json` | 收件人接受并创建两人私信 |
+| `PUT` | `/where-is-my-friends/practice-invitations/:id/decline.json` | 收件人拒绝邀请 |
+| `PUT` | `/where-is-my-friends/practice-invitations/:id/ignore.json` | 收件人忽略邀请 |
+| `GET` | `/where-is-my-friends/legacy-practice-bookmarks.json` | 当前用户自己的旧意向书签 |
+| `PUT` | `/where-is-my-friends/legacy-practice-bookmarks/:id/reconfirm.json` | 仅重新确认书签，不发送邀请 |
+| `PUT` | `/where-is-my-friends/legacy-practice-bookmarks/:id/dismiss.json` | 移除旧意向书签 |
 | `POST` | `/where-is-my-friends/events.json` | 写入白名单漏斗事件 |
 | `GET` | `/where-is-my-friends/debug-stats.json` | 管理员聚合诊断 |
 
@@ -96,6 +117,9 @@ d/exec bin/lint plugins/where-is-my-friends
 ## 主要目录
 
 - `lib/where_is_my_friends/recommendation_engine.rb`：权限安全、可解释的话题与成员推荐。
+- `lib/where_is_my_friends/practice_invitation_eligibility.rb`：共同兴趣、信任、屏蔽、opt-out 和私信权限策略。
+- `app/models/where_is_my_friends_practice_invitation.rb`：严格一对一邀请与接受后的私信引用。
+- `app/models/where_is_my_friends_legacy_practice_bookmark.rb`：仅所有者可见、需要重新确认的迁移书签。
 - `app/models/where_is_my_friends_interest_profile.rb`：私密兴趣、目的与用户控制。
 - `app/models/user_location.rb`：城市标准化、有效期和距离范围。
 - `app/controllers/where_is_my_friends/`：认证后的发现和事件 API。

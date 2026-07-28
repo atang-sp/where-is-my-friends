@@ -1,6 +1,6 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { fn } from "@ember/helper";
+import { concat, fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
@@ -12,6 +12,7 @@ import { i18n } from "discourse-i18n";
 
 export default class InterestOnboardingPage extends Component {
   @service currentUser;
+  @service siteSettings;
 
   @tracked state;
   @tracked selectedInterestIds;
@@ -23,6 +24,14 @@ export default class InterestOnboardingPage extends Component {
   @tracked editing;
   @tracked loading = false;
   @tracked error = null;
+  @tracked invitationSuccess = null;
+  @tracked incomingInvitations = [];
+  @tracked outgoingInvitations = [];
+  @tracked legacyPracticeBookmarks = [];
+  @tracked invitationTarget = null;
+  @tracked invitationInterestId = null;
+  @tracked invitationProposedAt = "";
+  @tracked invitationNote = "";
 
   constructor() {
     super(...arguments);
@@ -82,9 +91,40 @@ export default class InterestOnboardingPage extends Component {
     );
   }
 
+  get invitationInterests() {
+    return this.invitationTarget?.invitation_interests ?? [];
+  }
+
+  get selectedInvitationInterest() {
+    return this.invitationInterests.find(
+      (interest) => interest.id === this.invitationInterestId
+    );
+  }
+
+  get invitationPreview() {
+    if (!this.invitationTarget || !this.selectedInvitationInterest) {
+      return "";
+    }
+
+    return i18n(
+      "where_is_my_friends.practice_invitations.preset_message",
+      {
+        username: this.invitationTarget.username,
+        interest: this.selectedInvitationInterest.name,
+      }
+    );
+  }
+
   @action
-  initialize() {
+  async initialize() {
     void this.recordEvent("interest_onboarding_viewed");
+    if (!this.siteSettings.where_is_my_friends_practice_invitations_enabled) {
+      return;
+    }
+
+    await this.loadInvitations();
+    await this.loadLegacyPracticeBookmarks();
+    await this.openInvitationFromQuery();
   }
 
   @action
@@ -236,6 +276,181 @@ export default class InterestOnboardingPage extends Component {
     void this.recordEvent("recommended_user_opened");
   }
 
+  @action
+  openInvitation(user) {
+    const interests = user.invitation_interests ?? [];
+    if (interests.length === 0) {
+      return;
+    }
+
+    this.invitationTarget = user;
+    this.invitationInterestId = interests[0].id;
+    this.invitationProposedAt = "";
+    this.invitationNote = "";
+    this.invitationSuccess = null;
+    this.error = null;
+  }
+
+  @action
+  closeInvitation() {
+    this.invitationTarget = null;
+    this.invitationInterestId = null;
+    this.invitationProposedAt = "";
+    this.invitationNote = "";
+  }
+
+  @action
+  updateInvitationInterest(event) {
+    this.invitationInterestId = Number(event.target.value);
+  }
+
+  @action
+  updateInvitationProposedAt(event) {
+    this.invitationProposedAt = event.target.value;
+  }
+
+  @action
+  updateInvitationNote(event) {
+    this.invitationNote = event.target.value;
+  }
+
+  @action
+  async sendInvitation() {
+    if (
+      this.loading ||
+      !this.invitationTarget ||
+      !this.invitationInterestId
+    ) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+    try {
+      const response = await ajax(
+        "/where-is-my-friends/practice-invitations.json",
+        {
+          type: "POST",
+          data: {
+            recipient_id: this.invitationTarget.id,
+            tag_id: this.invitationInterestId,
+            proposed_at: this.invitationProposedAt
+              ? new Date(this.invitationProposedAt).toISOString()
+              : null,
+            note: this.invitationNote,
+          },
+        }
+      );
+      this.outgoingInvitations = [
+        response.invitation,
+        ...this.outgoingInvitations,
+      ];
+      this.invitationSuccess = i18n(
+        "where_is_my_friends.practice_invitations.sent"
+      );
+      this.closeInvitation();
+    } catch (error) {
+      this.error = this.errorMessage(error);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  @action
+  async respondToInvitation(invitation, responseName) {
+    if (this.loading || invitation.status !== "pending") {
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+    try {
+      const response = await ajax(
+        `/where-is-my-friends/practice-invitations/${invitation.id}/${responseName}.json`,
+        { type: "PUT" }
+      );
+      this.incomingInvitations = this.incomingInvitations.map((entry) =>
+        entry.id === invitation.id ? response.invitation : entry
+      );
+    } catch (error) {
+      this.error = this.errorMessage(error);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async loadInvitations() {
+    try {
+      const response = await ajax(
+        "/where-is-my-friends/practice-invitations.json"
+      );
+      this.incomingInvitations = response.incoming ?? [];
+      this.outgoingInvitations = response.outgoing ?? [];
+    } catch {
+      // Invitations are additive; recommendations remain usable if unavailable.
+    }
+  }
+
+  async loadLegacyPracticeBookmarks() {
+    try {
+      const response = await ajax(
+        "/where-is-my-friends/legacy-practice-bookmarks.json"
+      );
+      this.legacyPracticeBookmarks = response.bookmarks ?? [];
+    } catch {
+      // The legacy table may not exist on a fresh installation.
+    }
+  }
+
+  @action
+  async respondToLegacyBookmark(bookmark, responseName) {
+    if (this.loading || bookmark.state !== "needs_reconfirmation") {
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+    try {
+      const response = await ajax(
+        `/where-is-my-friends/legacy-practice-bookmarks/${bookmark.id}/${responseName}.json`,
+        { type: "PUT" }
+      );
+      this.legacyPracticeBookmarks = this.legacyPracticeBookmarks.map(
+        (entry) => (entry.id === bookmark.id ? response.bookmark : entry)
+      );
+    } catch (error) {
+      this.error = this.errorMessage(error);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async openInvitationFromQuery() {
+    const username = new URLSearchParams(window.location.search).get(
+      "invite_to"
+    );
+    if (!username) {
+      return;
+    }
+
+    try {
+      const response = await ajax(
+        "/where-is-my-friends/practice-invitations/availability.json",
+        { data: { username } }
+      );
+      if (response.available) {
+        this.openInvitation({
+          id: response.recipient_id,
+          username: response.username,
+          name: response.name,
+          invitation_interests: response.interests,
+        });
+      }
+    } catch {
+      // The target may no longer be available; keep the main page usable.
+    }
+  }
+
   applyResponse(response) {
     this.state = response.state;
     this.recommendedTopics = response.recommended_topics ?? [];
@@ -301,6 +516,266 @@ export default class InterestOnboardingPage extends Component {
         >
           {{i18n "where_is_my_friends.interests.loading"}}
         </div>
+      {{/if}}
+
+      {{#if this.invitationSuccess}}
+        <div
+          class="alert alert-success"
+          role="status"
+          data-test-practice-invitation-success
+        >
+          {{this.invitationSuccess}}
+        </div>
+      {{/if}}
+
+      {{#if this.legacyPracticeBookmarks.length}}
+        <section class="interest-onboarding__legacy-bookmarks">
+          <div>
+            <p class="interest-onboarding__eyebrow">{{i18n
+                "where_is_my_friends.legacy_practice_bookmarks.eyebrow"
+              }}</p>
+            <h2>{{i18n
+                "where_is_my_friends.legacy_practice_bookmarks.title"
+              }}</h2>
+            <p>{{i18n
+                "where_is_my_friends.legacy_practice_bookmarks.description"
+              }}</p>
+          </div>
+          <div class="interest-onboarding__legacy-bookmark-list">
+            {{#each this.legacyPracticeBookmarks as |bookmark|}}
+              <article data-test-legacy-practice-bookmark={{bookmark.id}}>
+                <div>
+                  <h3>@{{bookmark.target.username}}</h3>
+                  {{#if bookmark.mutual_history}}
+                    <span>{{i18n
+                        "where_is_my_friends.legacy_practice_bookmarks.mutual_history"
+                      }}</span>
+                  {{/if}}
+                </div>
+                {{#if (eq bookmark.state "needs_reconfirmation")}}
+                  <p>{{i18n
+                      "where_is_my_friends.legacy_practice_bookmarks.no_auto_invite"
+                    }}</p>
+                  <div class="interest-onboarding__invitation-actions">
+                    <DButton
+                      @action={{fn
+                        this.respondToLegacyBookmark
+                        bookmark
+                        "reconfirm"
+                      }}
+                      @label="where_is_my_friends.legacy_practice_bookmarks.reconfirm"
+                      @icon="check"
+                      @disabled={{this.loading}}
+                      class="btn-primary"
+                      data-test-reconfirm-legacy-practice={{bookmark.id}}
+                    />
+                    <DButton
+                      @action={{fn
+                        this.respondToLegacyBookmark
+                        bookmark
+                        "dismiss"
+                      }}
+                      @label="where_is_my_friends.legacy_practice_bookmarks.dismiss"
+                      @disabled={{this.loading}}
+                      class="btn-flat"
+                      data-test-dismiss-legacy-practice={{bookmark.id}}
+                    />
+                  </div>
+                {{else}}
+                  <span class="interest-onboarding__invitation-status">
+                    {{i18n
+                      (concat
+                        "where_is_my_friends.legacy_practice_bookmarks.status."
+                        bookmark.state
+                      )
+                    }}
+                  </span>
+                {{/if}}
+              </article>
+            {{/each}}
+          </div>
+        </section>
+      {{/if}}
+
+      {{#if this.invitationTarget}}
+        <section
+          class="interest-onboarding__invitation-form"
+          data-test-practice-invitation-form
+        >
+          <div>
+            <p class="interest-onboarding__eyebrow">{{i18n
+                "where_is_my_friends.practice_invitations.eyebrow"
+              }}</p>
+            <h2>{{i18n
+                "where_is_my_friends.practice_invitations.form_title"
+                username=this.invitationTarget.username
+              }}</h2>
+            <p>{{i18n
+                "where_is_my_friends.practice_invitations.one_to_one_notice"
+              }}</p>
+          </div>
+
+          <label>
+            <span>{{i18n
+                "where_is_my_friends.practice_invitations.interest"
+              }}</span>
+            <select
+              value={{this.invitationInterestId}}
+              data-test-practice-invitation-interest
+              {{on "change" this.updateInvitationInterest}}
+            >
+              {{#each this.invitationInterests as |interest|}}
+                <option value={{interest.id}}>{{interest.name}}</option>
+              {{/each}}
+            </select>
+          </label>
+
+          <label>
+            <span>{{i18n
+                "where_is_my_friends.practice_invitations.proposed_time"
+              }}</span>
+            <input
+              type="datetime-local"
+              value={{this.invitationProposedAt}}
+              data-test-practice-invitation-time
+              {{on "input" this.updateInvitationProposedAt}}
+            />
+          </label>
+
+          <label>
+            <span>{{i18n
+                "where_is_my_friends.practice_invitations.note"
+              }}</span>
+            <textarea
+              maxlength="500"
+              value={{this.invitationNote}}
+              data-test-practice-invitation-note
+              {{on "input" this.updateInvitationNote}}
+            ></textarea>
+          </label>
+
+          <p
+            class="interest-onboarding__invitation-preview"
+            data-test-practice-invitation-preview
+          >
+            {{this.invitationPreview}}
+          </p>
+
+          <div class="interest-onboarding__form-actions">
+            <DButton
+              @action={{this.sendInvitation}}
+              @label="where_is_my_friends.practice_invitations.send"
+              @icon="paper-plane"
+              @disabled={{this.loading}}
+              class="btn-primary"
+              data-test-send-practice-invitation
+            />
+            <DButton
+              @action={{this.closeInvitation}}
+              @label="where_is_my_friends.practice_invitations.cancel"
+              @disabled={{this.loading}}
+              class="btn-flat"
+              data-test-cancel-practice-invitation
+            />
+          </div>
+        </section>
+      {{/if}}
+
+      {{#if this.incomingInvitations.length}}
+        <section class="interest-onboarding__invitations">
+          <h2>{{i18n
+              "where_is_my_friends.practice_invitations.incoming"
+            }}</h2>
+          <div class="interest-onboarding__invitation-list">
+            {{#each this.incomingInvitations as |invitation|}}
+              <article data-test-incoming-invitation={{invitation.id}}>
+                <h3>@{{invitation.sender.username}}</h3>
+                <p>{{invitation.preset_message}}</p>
+                {{#if invitation.proposed_at}}
+                  <p>{{i18n
+                      "where_is_my_friends.practice_invitations.proposed_time_value"
+                      time=invitation.proposed_at
+                    }}</p>
+                {{/if}}
+                {{#if invitation.note}}
+                  <blockquote>{{invitation.note}}</blockquote>
+                {{/if}}
+                {{#if (eq invitation.status "pending")}}
+                  <div class="interest-onboarding__invitation-actions">
+                    <DButton
+                      @action={{fn
+                        this.respondToInvitation
+                        invitation
+                        "accept"
+                      }}
+                      @label="where_is_my_friends.practice_invitations.accept"
+                      @icon="check"
+                      @disabled={{this.loading}}
+                      class="btn-primary"
+                      data-test-accept-practice-invitation={{invitation.id}}
+                    />
+                    <DButton
+                      @action={{fn
+                        this.respondToInvitation
+                        invitation
+                        "decline"
+                      }}
+                      @label="where_is_my_friends.practice_invitations.decline"
+                      @disabled={{this.loading}}
+                      class="btn-default"
+                      data-test-decline-practice-invitation={{invitation.id}}
+                    />
+                    <DButton
+                      @action={{fn
+                        this.respondToInvitation
+                        invitation
+                        "ignore"
+                      }}
+                      @label="where_is_my_friends.practice_invitations.ignore"
+                      @disabled={{this.loading}}
+                      class="btn-flat"
+                      data-test-ignore-practice-invitation={{invitation.id}}
+                    />
+                  </div>
+                {{else if invitation.pm_url}}
+                  <a href={{invitation.pm_url}}>{{i18n
+                      "where_is_my_friends.practice_invitations.open_pm"
+                    }}</a>
+                {{else}}
+                  <span class="interest-onboarding__invitation-status">
+                    {{i18n
+                      (concat
+                        "where_is_my_friends.practice_invitations.status."
+                        invitation.status
+                      )
+                    }}
+                  </span>
+                {{/if}}
+              </article>
+            {{/each}}
+          </div>
+        </section>
+      {{/if}}
+
+      {{#if this.outgoingInvitations.length}}
+        <details class="interest-onboarding__outgoing-invitations">
+          <summary>{{i18n
+              "where_is_my_friends.practice_invitations.outgoing"
+            }}</summary>
+          {{#each this.outgoingInvitations as |invitation|}}
+            <p data-test-outgoing-invitation={{invitation.id}}>
+              @{{invitation.recipient.username}} ·
+              {{invitation.interest.name}}
+              ·
+              {{i18n
+                (concat
+                  "where_is_my_friends.practice_invitations.status."
+                  invitation.status
+                )
+              }}
+            </p>
+          {{/each}}
+        </details>
       {{/if}}
 
       {{#if this.editing}}
@@ -530,6 +1005,20 @@ export default class InterestOnboardingPage extends Component {
                           </li>
                         {{/each}}
                       </ul>
+                    {{/if}}
+                    {{#if
+                      this.siteSettings.where_is_my_friends_practice_invitations_enabled
+                    }}
+                      {{#if user.invitation_interests.length}}
+                        <DButton
+                          @action={{fn this.openInvitation user}}
+                          @label="where_is_my_friends.practice_invitations.invite"
+                          @icon="user-plus"
+                          @disabled={{this.loading}}
+                          class="btn-primary"
+                          data-test-invite-user={{user.id}}
+                        />
+                      {{/if}}
                     {{/if}}
                     <DButton
                       @action={{fn this.dismiss "user" user.id}}

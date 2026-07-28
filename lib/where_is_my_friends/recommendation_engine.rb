@@ -292,6 +292,11 @@ module WhereIsMyFriends
           .flat_map(&:tags)
           .select { |tag| interest_names.include?(tag.name) }
           .uniq(&:id)
+      invitation_tags =
+        PracticeInvitationEligibility.new(
+          sender: @user,
+          recipient: candidate
+        ).common_interests
 
       {
         id: candidate.id,
@@ -309,6 +314,7 @@ module WhereIsMyFriends
             .truncate(120)
             .presence,
         reason_interests: matching_tags.map { |tag| serialize_tag(tag) },
+        invitation_interests: invitation_tags.map { |tag| serialize_tag(tag) },
         representative_topics:
           representative_topics.map do |topic|
             serialize_topic(topic, interest_names)
