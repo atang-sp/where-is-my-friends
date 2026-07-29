@@ -64,3 +64,30 @@ At the end of the window, repeat the production verification queries, confirm
 that the running commit is still the 1.2.1 release commit, confirm there are no
 plugin-related error log entries, and take a new backup before editing
 `app.yml`.
+
+## Old-plugin removal and rollback
+
+Prepare version 1.2.2 before the observation window closes, but deploy it only
+in the old-plugin removal rebuild. Version 1.2.2 owns an HTML fallback from
+`/practice-matching` to `/where-is-my-friends/interests` only when
+`discourse-plugin-matching` is not installed. This keeps old notification and
+bookmark links useful without preserving the old plugin.
+
+After every observation gate passes:
+
+1. Take a new Discourse backup, record its size and SHA-256 checksum, and keep
+   the earlier pre-migration backups.
+2. Copy `app.yml` to a timestamped rollback file.
+3. Pin `where-is-my-friends` to 1.2.2 and remove only the exact
+   `discourse-plugin-matching` clone line.
+4. Rebuild `app` with the full launcher output written to a root-only log.
+5. Confirm that the new plugin is at the 1.2.2 release commit, the old plugin
+   directory is absent, `/practice-matching` redirects to interest
+   recommendations, the legacy write API no longer has a route, and the new
+   invitation API remains healthy.
+6. Repeat the migration, privacy, notification, and PM-participant checks.
+   Keep `practice_interests` and all backups.
+
+For a code-only rollback, restore the timestamped `app.yml` and rebuild. Do not
+restore the database unless a data-integrity failure requires it: a full
+database restore would discard legitimate activity created after the backup.
