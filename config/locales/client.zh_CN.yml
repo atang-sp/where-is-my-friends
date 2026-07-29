@@ -119,6 +119,7 @@ zh_CN:
         search_label: "搜索兴趣"
         search_placeholder: "例如：游戏、轻度、安全、小说"
         search_empty: "没有找到这个兴趣，换个关键词试试。"
+        community_group: "社区原有标签"
         selection_count: "已选择 %{count} / %{maximum} 个"
         choose_purpose: "你现在最想做什么？"
         purposes:

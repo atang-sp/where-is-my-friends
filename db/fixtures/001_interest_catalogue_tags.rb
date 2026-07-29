@@ -12,9 +12,4 @@ interest_names =
       group.fetch("interests").map { |interest| interest.fetch("name") }
     end
 
-interest_names.each do |name|
-  Tag.seed(:name) do |tag|
-    tag.name = name
-    tag.slug = ""
-  end
-end
+interest_names.each { |name| Tag.seed(:name) { |tag| tag.name = name } }

@@ -11,6 +11,7 @@ module WhereIsMyFriends
     MAX_TOPIC_CANDIDATES = 100
     MAX_TOPICS = 5
     MAX_USERS = 6
+    MAX_MEMBER_CANDIDATES = 250
     MEMBER_ACTIVE_WINDOW = 90.days
     COMPLEMENTARY_PURPOSES = {
       "learn" => %w[share help],
@@ -151,11 +152,24 @@ module WhereIsMyFriends
 
       topics = scored_topic_candidates(profile).map(&:first)
       contributions = contribution_topics(topics)
-      profile_scope =
+      similar_tag_ids =
+        visible_interest_tags.where(
+          name:
+            InterestCatalogue.member_candidate_names(viewer_tags.map(&:name))
+        ).select(:id)
+      matching_profile_ids =
+        WhereIsMyFriendsUserInterest.where(tag_id: similar_tag_ids).select(
+          :user_id
+        )
+      base_profile_scope =
         WhereIsMyFriendsInterestProfile
           .where(personalization_enabled: true, recommendable: true)
           .where.not(completed_at: nil)
           .where.not(user_id: relationship_exclusions)
+      profile_scope =
+        base_profile_scope.where(user_id: matching_profile_ids).or(
+          base_profile_scope.where(user_id: contributions.keys)
+        )
       excluded_ids = relationship_exclusions
       users =
         User
@@ -167,6 +181,8 @@ module WhereIsMyFriends
           .where("last_seen_at >= ?", MEMBER_ACTIVE_WINDOW.ago)
           .where.not(id: excluded_ids)
           .includes(:user_profile, :user_option, :user_stat)
+          .order(last_seen_at: :desc)
+          .limit(MAX_MEMBER_CANDIDATES)
           .select { |candidate| @guardian.can_see_profile?(candidate) }
       eligible_profiles =
         profile_scope
@@ -432,18 +448,27 @@ module WhereIsMyFriends
     end
 
     def serialize_catalogue_group(group)
+      key = group.fetch("key")
       {
-        key: group.fetch("key"),
-        name: group.fetch("name"),
-        description: group.fetch("description")
+        key: key,
+        name: catalogue_group_translation(key, "name"),
+        description: catalogue_group_translation(key, "description")
       }
     end
 
     def serialize_catalogue_tag(tag, entry)
       group_key = entry["group_key"] || entry.fetch("key")
-      group_name = entry["group_name"] || entry.fetch("name")
 
-      serialize_tag(tag).merge(group_key: group_key, group_name: group_name)
+      serialize_tag(tag).merge(
+        group_key: group_key,
+        group_name: catalogue_group_translation(group_key, "name")
+      )
+    end
+
+    def catalogue_group_translation(group_key, field)
+      I18n.t(
+        "where_is_my_friends.interest_catalogue.groups.#{group_key}.#{field}"
+      )
     end
 
     def serialize_tag(tag)

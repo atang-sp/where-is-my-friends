@@ -5,11 +5,7 @@ require "yaml"
 module WhereIsMyFriends
   class InterestCatalogue
     Match = Struct.new(:score, :reason_names, :strength, keyword_init: true)
-    COMMUNITY_GROUP = {
-      "key" => "community",
-      "name" => "社区原有标签",
-      "description" => "管理员补充的标签，或你之前已经选择的论坛标签。"
-    }.freeze
+    COMMUNITY_GROUP = { "key" => "community" }.freeze
 
     class << self
       def groups
@@ -23,11 +19,7 @@ module WhereIsMyFriends
               group
                 .fetch("interests")
                 .map do |entry|
-                  entry.merge(
-                    "group_key" => group.fetch("key"),
-                    "group_name" => group.fetch("name"),
-                    "group_description" => group.fetch("description")
-                  ).freeze
+                  entry.merge("group_key" => group.fetch("key")).freeze
                 end
             end
             .freeze
@@ -90,9 +82,38 @@ module WhereIsMyFriends
             if matching_entries.empty?
               name
             else
-              matching_entries.flat_map do |entry|
+              query_entries =
+                matching_entries +
+                  matching_entries.flat_map do |entry|
+                    related_keys_for(entry.fetch("key")).map do |key|
+                      entries_by_key.fetch(key)
+                    end
+                  end
+              query_entries.flat_map do |entry|
                 [entry.fetch("name")] + Array(entry["aliases"]) +
                   Array(entry["topic_tags"]) + Array(entry["topic_query_tags"])
+              end
+            end
+          end
+          .uniq
+      end
+
+      def member_candidate_names(selected_names)
+        selected_names
+          .flat_map do |name|
+            matching_entries = entries_for_name(name)
+            if matching_entries.empty?
+              name
+            else
+              candidate_entries =
+                matching_entries +
+                  matching_entries.flat_map do |entry|
+                    related_keys_for(entry.fetch("key")).map do |key|
+                      entries_by_key.fetch(key)
+                    end
+                  end
+              candidate_entries.flat_map do |entry|
+                [entry.fetch("name")] + Array(entry["aliases"])
               end
             end
           end

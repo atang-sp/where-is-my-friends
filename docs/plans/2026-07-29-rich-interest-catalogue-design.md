@@ -26,6 +26,10 @@ truth. Each entry has:
 - optional legacy topic-tag aliases;
 - optional public topic-title keywords.
 
+Group labels and descriptions are translated under
+`where_is_my_friends.interest_catalogue.groups` in the server locale files;
+interest names remain Discourse tag data.
+
 The data migration inserts the tag rows on existing sites. The matching plugin
 fixture inserts the same rows on fresh installs. Administrators can supplement
 the built-in catalogue with up to 20 forum tags through

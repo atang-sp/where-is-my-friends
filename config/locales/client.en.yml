@@ -119,6 +119,7 @@ en:
         search_label: "Search interests"
         search_placeholder: "For example: games, light, safety, stories"
         search_empty: "No interest matches that search. Try another term."
+        community_group: "Existing community tags"
         selection_count: "%{count} / %{maximum} selected"
         choose_purpose: "What would you like to do now?"
         purposes:

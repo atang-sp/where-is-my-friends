@@ -1,7 +1,5 @@
 groups:
   - key: interaction_style
-    name: 互动类型
-    description: 你更感兴趣的互动框架和整体氛围。
     interests:
       - key: pure_practice
         name: 纯实践
@@ -32,8 +30,6 @@ groups:
         topic_keywords: [严肃, 严格]
 
   - key: intensity
-    name: 强度偏好
-    description: 用宽泛区间表达舒适范围，具体边界仍需单独沟通。
     interests:
       - key: light_intensity
         name: 轻度
@@ -53,8 +49,6 @@ groups:
         topic_keywords: [重度, 重口]
 
   - key: interaction_role
-    name: 互动角色
-    description: 角色可以随关系和场景变化，不代表固定身份。
     interests:
       - key: active_role
         name: 主动
@@ -76,8 +70,6 @@ groups:
         topic_keywords: [brat, 调皮]
 
   - key: emotional_experience
-    name: 感受主题
-    description: 描述你想讨论的心理体验，而不是替任何人作判断。
     interests:
       - key: ritual
         name: 仪式感
@@ -111,8 +103,6 @@ groups:
         topic_keywords: [安全感, 信任]
 
   - key: additional_elements
-    name: 附加元素
-    description: 可用于查找更细分的经验、复盘和创作讨论。
     interests:
       - key: rules
         name: 规则约定
@@ -162,8 +152,6 @@ groups:
         topic_keywords: [多人, 群体实践]
 
   - key: tools
-    name: 工具偏好
-    description: 只用于兴趣发现；具体使用必须建立在成年、同意和安全沟通之上。
     interests:
       - key: hand
         name: 徒手
@@ -195,8 +183,6 @@ groups:
         topic_keywords: [软质工具, 橡胶]
 
   - key: focus_area
-    name: 关注部位
-    description: 帮助查找对应经验；不表示对任何具体行为的同意。
     interests:
       - key: buttocks
         name: 臀部
@@ -220,8 +206,6 @@ groups:
         topic_keywords: [脚心]
 
   - key: content_interest
-    name: 内容兴趣
-    description: 选择你更想在论坛里阅读或参与的内容。
     interests:
       - key: beginner
         name: 新手入门
@@ -263,8 +247,6 @@ groups:
         topic_keywords: [安全, 边界, 同意, 安全词, 风险]
 
   - key: communication_style
-    name: 交流方式
-    description: 表达你希望如何参与社区，不会自动发起联系或邀请。
     interests:
       - key: local_exchange
         name: 同城交流

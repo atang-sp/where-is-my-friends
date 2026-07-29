@@ -86,7 +86,10 @@ export default class InterestOnboardingPage extends Component {
           interest.group_key ?? "community",
           {
             key: interest.group_key ?? "community",
-            name: interest.group_name ?? interest.group_key ?? "Community",
+            name:
+              interest.group_name ??
+              interest.group_key ??
+              i18n("where_is_my_friends.interests.community_group"),
             description: "",
           },
         ])

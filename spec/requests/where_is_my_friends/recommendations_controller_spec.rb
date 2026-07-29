@@ -76,7 +76,10 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
     expect(response.parsed_body.fetch("catalogue_groups")).to include(
       include(
         "key" => "interaction_style",
-        "name" => "互动类型",
+        "name" =>
+          I18n.t(
+            "where_is_my_friends.interest_catalogue.groups.interaction_style.name"
+          ),
         "description" => be_present
       )
     )
@@ -84,12 +87,18 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
       include(
         "name" => "纯实践",
         "group_key" => "interaction_style",
-        "group_name" => "互动类型"
+        "group_name" =>
+          I18n.t(
+            "where_is_my_friends.interest_catalogue.groups.interaction_style.name"
+          )
       ),
       include(
         "name" => "惩戒管教",
         "group_key" => "interaction_style",
-        "group_name" => "互动类型"
+        "group_name" =>
+          I18n.t(
+            "where_is_my_friends.interest_catalogue.groups.interaction_style.name"
+          )
       )
     )
     expect(
@@ -131,6 +140,49 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
     expect(recommendation).to be_present
     expect(recommendation.fetch("matching_interests")).to include(
       include("id" => interaction_tag.id, "name" => "游戏互动")
+    )
+  end
+
+  it "retrieves an older topic through a related catalogue tag" do
+    pure_practice_tag = Tag.find_by!(name: "纯实践")
+    light_tag = Tag.find_by!(name: "轻度")
+    safety_tag = Tag.find_by!(name: "安全与边界")
+    discipline_tag = Tag.find_by!(name: "惩戒管教")
+    old_topic =
+      Fabricate(
+        :topic,
+        user: author,
+        title: "An archived neighboring preference discussion",
+        tags: [discipline_tag],
+        created_at: 1.year.ago,
+        bumped_at: 1.year.ago
+      )
+    101.times do |index|
+      Fabricate(
+        :topic,
+        title: "Unrelated recent catalogue filler topic #{index}",
+        created_at: index.seconds.ago,
+        bumped_at: index.seconds.ago
+      )
+    end
+    SiteSetting.where_is_my_friends_interest_tags = ""
+
+    put "/where-is-my-friends/recommendations/profile.json",
+        params: {
+          interest_ids: [pure_practice_tag.id, light_tag.id, safety_tag.id],
+          purpose: "browse",
+          recommendable: true
+        }
+
+    expect(response.status).to eq(200)
+    recommendation =
+      response
+        .parsed_body
+        .fetch("recommended_topics")
+        .find { |entry| entry["id"] == old_topic.id }
+    expect(recommendation).to be_present
+    expect(recommendation.fetch("matching_interests")).to include(
+      include("id" => pure_practice_tag.id, "name" => "纯实践")
     )
   end
 
