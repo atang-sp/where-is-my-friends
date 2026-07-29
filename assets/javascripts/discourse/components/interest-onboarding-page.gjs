@@ -426,9 +426,7 @@ export default class InterestOnboardingPage extends Component {
   }
 
   async openInvitationFromQuery() {
-    const username = new URLSearchParams(window.location.search).get(
-      "invite_to"
-    );
+    const username = this.args.inviteTo;
     if (!username) {
       return;
     }
