@@ -2,9 +2,41 @@ en:
   where_is_my_friends:
     invalid_location: "Please provide a valid city and location."
     invalid_event: "This activity cannot be recorded."
-    invalid_interests: "Choose three to five currently visible interests."
+    invalid_interests: "Choose 3 to 12 currently visible interests."
     invalid_purpose: "Choose your current reason for using the community."
     invalid_recommendation: "That recommendation is no longer available."
+    interest_catalogue:
+      groups:
+        interaction_style:
+          name: "Interaction style"
+          description: "The interaction framework and overall tone that interest you."
+        intensity:
+          name: "Intensity"
+          description: "Use broad ranges for discovery; specific boundaries still require a separate conversation."
+        interaction_role:
+          name: "Interaction role"
+          description: "Roles can change with a relationship or scene and do not define a fixed identity."
+        emotional_experience:
+          name: "Experience"
+          description: "Describe themes you want to discuss without labeling anyone."
+        additional_elements:
+          name: "Additional elements"
+          description: "Find more detailed experience, debrief, and creative discussions."
+        tools:
+          name: "Tool preferences"
+          description: "For discovery only. Any use requires adults, consent, and safety communication."
+        focus_area:
+          name: "Focus area"
+          description: "Find relevant experiences without implying consent to any activity."
+        content_interest:
+          name: "Content interests"
+          description: "Choose what you would like to read or discuss in the forum."
+        communication_style:
+          name: "Communication"
+          description: "Describe how you want to participate; this never starts contact or an invitation."
+        community:
+          name: "Existing community tags"
+          description: "Tags added by an administrator or preserved from your earlier selections."
     practice_invitations:
       preset_message: "Invite @%{username} to a one-to-one practice session about %{interest}."
       accepted_message: "Hi @%{username}, I accepted your one-to-one practice invitation about %{interest}. Let's continue here."
@@ -56,7 +88,7 @@ en:
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
     where_is_my_friends_interest_onboarding_enabled: "Enable first-use interest onboarding and personalized recommendations"
-    where_is_my_friends_interest_tags: "Tag names used for interest onboarding; leave empty to derive them from recent topics visible to each member"
+    where_is_my_friends_interest_tags: "Up to 20 forum tags to add alongside the plugin's built-in detailed interest catalogue"
     where_is_my_friends_practice_invitations_enabled: "Enable strictly one-to-one practice invitations"
     where_is_my_friends_practice_invitation_min_trust_level: "Minimum trust level required to send practice invitations"
     where_is_my_friends_practice_invitation_daily_limit: "Maximum practice invitations each member can send per day"

@@ -6,11 +6,44 @@ function pendingModel() {
   return {
     state: "pending",
     catalogue: [
-      { id: 1, name: "ruby" },
-      { id: 2, name: "design" },
-      { id: 3, name: "community" },
-      { id: 4, name: "writing" },
+      {
+        id: 1,
+        name: "ruby",
+        group_key: "content_interest",
+        group_name: "Content interests",
+      },
+      {
+        id: 2,
+        name: "design",
+        group_key: "content_interest",
+        group_name: "Content interests",
+      },
+      {
+        id: 3,
+        name: "community",
+        group_key: "communication_style",
+        group_name: "Communication",
+      },
+      {
+        id: 4,
+        name: "writing",
+        group_key: "content_interest",
+        group_name: "Content interests",
+      },
     ],
+    catalogue_groups: [
+      {
+        key: "content_interest",
+        name: "Content interests",
+        description: "What you want to read and discuss.",
+      },
+      {
+        key: "communication_style",
+        name: "Communication",
+        description: "How you want to participate.",
+      },
+    ],
+    selection_limits: { minimum: 3, maximum: 12 },
     purposes: ["learn", "share", "connect", "ask", "help", "browse"],
     profile: {
       purpose: null,
@@ -301,6 +334,25 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-recommended-topic='101']").exists();
     assert.dom("[data-test-recommended-user='alice']").exists();
     assert.dom("[data-test-recommended-topic='101']").includesText("ruby");
+  });
+
+  test("the rich catalogue is grouped and searchable", async function (assert) {
+    await visit("/where-is-my-friends/interests");
+
+    assert
+      .dom("[data-test-interest-group='content_interest']")
+      .includesText("Content interests");
+    assert
+      .dom("[data-test-interest-group='communication_style']")
+      .includesText("Communication");
+
+    await fillIn("[data-test-interest-search]", "design");
+
+    assert.dom("[data-test-interest='design']").exists();
+    assert.dom("[data-test-interest='ruby']").doesNotExist();
+    assert
+      .dom("[data-test-interest-group='communication_style']")
+      .doesNotExist();
   });
 
   test("members can dismiss, edit, and fully clear personalization", async function (assert) {

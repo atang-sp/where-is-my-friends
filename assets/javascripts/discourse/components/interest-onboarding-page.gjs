@@ -32,6 +32,7 @@ export default class InterestOnboardingPage extends Component {
   @tracked invitationInterestId = null;
   @tracked invitationProposedAt = "";
   @tracked invitationNote = "";
+  @tracked interestSearch = "";
 
   constructor() {
     super(...arguments);
@@ -72,8 +73,48 @@ export default class InterestOnboardingPage extends Component {
     }));
   }
 
+  get interestGroups() {
+    const query = this.interestSearch.trim().toLocaleLowerCase();
+    const options = this.interestOptions.filter(
+      (interest) =>
+        !query || interest.name.toLocaleLowerCase().includes(query)
+    );
+    const configuredGroups = this.args.model.catalogue_groups ?? [];
+    const fallbackGroups = [
+      ...new Map(
+        options.map((interest) => [
+          interest.group_key ?? "community",
+          {
+            key: interest.group_key ?? "community",
+            name:
+              interest.group_name ??
+              interest.group_key ??
+              i18n("where_is_my_friends.interests.community_group"),
+            description: "",
+          },
+        ])
+      ).values(),
+    ];
+
+    return (configuredGroups.length ? configuredGroups : fallbackGroups)
+      .map((group) => ({
+        ...group,
+        interests: options.filter(
+          (interest) => interest.group_key === group.key
+        ),
+      }))
+      .filter((group) => group.interests.length > 0);
+  }
+
   get minimumInterests() {
-    return Math.min(3, this.catalogue.length);
+    return Math.min(
+      this.args.model.selection_limits?.minimum ?? 3,
+      this.catalogue.length
+    );
+  }
+
+  get maximumInterests() {
+    return this.args.model.selection_limits?.maximum ?? 5;
   }
 
   get canSave() {
@@ -81,7 +122,7 @@ export default class InterestOnboardingPage extends Component {
       !this.loading &&
       this.purpose &&
       this.selectedInterestIds.size >= this.minimumInterests &&
-      this.selectedInterestIds.size <= 5
+      this.selectedInterestIds.size <= this.maximumInterests
     );
   }
 
@@ -132,11 +173,16 @@ export default class InterestOnboardingPage extends Component {
     const next = new Set(this.selectedInterestIds);
     if (next.has(interestId)) {
       next.delete(interestId);
-    } else if (next.size < 5) {
+    } else if (next.size < this.maximumInterests) {
       next.add(interestId);
     }
     this.selectedInterestIds = next;
     this.error = null;
+  }
+
+  @action
+  updateInterestSearch(event) {
+    this.interestSearch = event.target.value;
   }
 
   @action
@@ -789,28 +835,79 @@ export default class InterestOnboardingPage extends Component {
               <p>{{i18n
                   "where_is_my_friends.interests.choose_interests_help"
                 }}</p>
-              <div
-                class="interest-onboarding__chips"
-                data-test-interest-options
-              >
-                {{#each this.interestOptions as |interest|}}
-                  <DButton
-                    @action={{fn this.toggleInterest interest.id}}
-                    @translatedLabel={{interest.name}}
-                    @icon={{if interest.selected "check" "plus"}}
-                    @disabled={{this.loading}}
-                    class={{if interest.selected "btn-primary" "btn-default"}}
-                    aria-pressed={{if interest.selected "true" "false"}}
-                    data-test-interest={{interest.name}}
-                  />
-                {{/each}}
-              </div>
+              <label class="interest-onboarding__search">
+                <span>{{i18n
+                    "where_is_my_friends.interests.search_label"
+                  }}</span>
+                <input
+                  type="search"
+                  value={{this.interestSearch}}
+                  placeholder={{i18n
+                    "where_is_my_friends.interests.search_placeholder"
+                  }}
+                  data-test-interest-search
+                  {{on "input" this.updateInterestSearch}}
+                />
+              </label>
+
+              {{#if this.interestGroups.length}}
+                <div
+                  class="interest-onboarding__interest-groups"
+                  data-test-interest-options
+                >
+                  {{#each this.interestGroups as |group|}}
+                    <section
+                      class="interest-onboarding__interest-group"
+                      data-test-interest-group={{group.key}}
+                    >
+                      <div>
+                        <h3>{{group.name}}</h3>
+                        {{#if group.description}}
+                          <p>{{group.description}}</p>
+                        {{/if}}
+                      </div>
+                      <div class="interest-onboarding__chips">
+                        {{#each group.interests as |interest|}}
+                          <DButton
+                            @action={{fn
+                              this.toggleInterest
+                              interest.id
+                            }}
+                            @translatedLabel={{interest.name}}
+                            @icon={{if interest.selected "check" "plus"}}
+                            @disabled={{this.loading}}
+                            class={{if
+                              interest.selected
+                              "btn-primary"
+                              "btn-default"
+                            }}
+                            aria-pressed={{if
+                              interest.selected
+                              "true"
+                              "false"
+                            }}
+                            data-test-interest={{interest.name}}
+                          />
+                        {{/each}}
+                      </div>
+                    </section>
+                  {{/each}}
+                </div>
+              {{else}}
+                <p
+                  class="interest-onboarding__search-empty"
+                  data-test-interest-search-empty
+                >{{i18n
+                    "where_is_my_friends.interests.search_empty"
+                  }}</p>
+              {{/if}}
               <p
                 class="interest-onboarding__selection-count"
                 data-test-interest-count
               >{{i18n
                   "where_is_my_friends.interests.selection_count"
                   count=this.selectedInterestIds.size
+                  maximum=this.maximumInterests
                 }}</p>
             </fieldset>
 

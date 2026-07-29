@@ -18,10 +18,12 @@ module WhereIsMyFriends
           .catalogue_for(current_user)
           .map { |entry| entry[:id] }
       interest_ids = Array(params[:interest_ids]).map(&:to_i).uniq
-      minimum = [3, catalogue_ids.length].min
+      minimum = [RecommendationEngine::MIN_INTERESTS, catalogue_ids.length].min
 
-      unless interest_ids.length.between?(minimum, 5) &&
-               (interest_ids - catalogue_ids).empty?
+      unless interest_ids.length.between?(
+               minimum,
+               RecommendationEngine::MAX_INTERESTS
+             ) && (interest_ids - catalogue_ids).empty?
         return(
           render_json_error(
             I18n.t("where_is_my_friends.invalid_interests"),
