@@ -170,6 +170,7 @@ en:
         topic_reason: "Related to"
         person_reason: "You share context around"
         interest_reason: "%{topicCount} discussions, %{newCount} new this week, and %{memberCount} active members."
+        interest_reason_private: "%{topicCount} discussions, %{newCount} new this week; the active member count stays private until more people participate."
         exploration_reason: "One step beyond %{from}: explore %{to}."
         join_discussion: "Open and reply"
         view_profile: "View profile"

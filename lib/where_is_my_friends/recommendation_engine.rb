@@ -11,6 +11,9 @@ module WhereIsMyFriends
     MAX_TOPIC_CANDIDATES = 100
     MAX_TOPICS = 5
     MAX_USERS = 6
+    REFRESH_TOPIC_POOL = 12
+    REFRESH_MEMBER_POOL = 12
+    REFRESH_INTEREST_POOL = 6
     MAX_INTEREST_ENTRANCES = 2
     MAX_MEMBER_CANDIDATES = 250
     MEMBER_ACTIVE_WINDOW = 90.days
@@ -158,6 +161,7 @@ module WhereIsMyFriends
 
       scored_topic_candidates(profile)
         .reject { |topic, _matches, _score| dismissed_ids.include?(topic.id) }
+        .then { |candidates| refresh_topic_candidates(candidates) }
         .then { |candidates| mixed_topic_candidates(candidates) }
         .each_with_index
         .map do |(topic, matches, _score), index|
@@ -260,6 +264,7 @@ module WhereIsMyFriends
             diversity_key(candidate.id)
           ]
         end
+        .then { |candidates| refresh_record_candidates(candidates) }
         .first(MAX_USERS)
         .each_with_index
         .map do |candidate, index|
@@ -303,6 +308,7 @@ module WhereIsMyFriends
             )
           end
           .sort_by { |entry| interest_entrance_sort_key(entry) }
+          .then { |entries| refresh_hash_candidates(entries) }
       selected_by_name = selected_tags.index_by(&:name)
       exploration_candidates =
         InterestCatalogue.exploration_candidates(selected_by_name.keys)
@@ -328,6 +334,7 @@ module WhereIsMyFriends
             )
           end
           .sort_by { |entry| interest_entrance_sort_key(entry) }
+          .then { |entries| refresh_hash_candidates(entries) }
 
       entries = [exact_entries.first, exploration_entries.first].compact
       (exact_entries.drop(1) + exploration_entries.drop(1)).each do |entry|
@@ -351,6 +358,15 @@ module WhereIsMyFriends
       return if candidates.empty?
 
       topics = candidates.map(&:first).uniq(&:id)
+      active_member_count = active_contributor_count(topics)
+      privacy_threshold =
+        SiteSetting.where_is_my_friends_aggregate_privacy_threshold.to_i.clamp(
+          2,
+          20
+        )
+      active_member_count_suppressed = active_member_count < privacy_threshold
+      visible_active_member_count = active_member_count
+      visible_active_member_count = nil if active_member_count_suppressed
       {
         id: tag.id,
         name: tag.name,
@@ -360,7 +376,8 @@ module WhereIsMyFriends
         topic_count: topics.length,
         new_topic_count:
           topics.count { |topic| topic.created_at >= 1.week.ago },
-        active_member_count: active_contributor_count(topics)
+        active_member_count: visible_active_member_count,
+        active_member_count_suppressed: active_member_count_suppressed
       }
     end
 
@@ -455,19 +472,20 @@ module WhereIsMyFriends
       if relationship_bridge_author_ids.include?(topic.user_id)
         score += TOPIC_WEIGHTS.fetch(:relationship_bridge)
       end
-      if new_member_author_ids.include?(topic.user_id)
-        score += TOPIC_WEIGHTS.fetch(:new_member)
-      end
-      if matches.all? { |_tag, match| match == 1 }
-        score += TOPIC_WEIGHTS.fetch(:exploration)
-      end
+      score +=
+        TOPIC_WEIGHTS.fetch(:new_member) if new_member_author_ids.include?(
+        topic.user_id
+      )
+      score += TOPIC_WEIGHTS.fetch(:exploration) if matches.all? { |_tag, match|
+        match == 1
+      }
       score += 3 if topic.title.to_s.match?(OPEN_DISCUSSION_PATTERN)
       score -= 24 if viewer_replied?(topic)
       score -= 10 unless topic_unread?(topic) || viewer_replied?(topic)
+      score -= repeated_view_penalty(topic)
       score -= same_author_concentration_penalty(topic)
-      if topic.created_at < 30.days.ago && topic.posts_count.to_i <= 1
-        score -= 12
-      end
+      score -= 12 if topic.created_at < 30.days.ago &&
+        topic.posts_count.to_i <= 1
       score
     end
 
@@ -475,6 +493,14 @@ module WhereIsMyFriends
       duplicate_count =
         candidate_topic_count_by_author.fetch(topic.user_id, 1) - 1
       [duplicate_count, 3].min * 4
+    end
+
+    def repeated_view_penalty(topic)
+      viewed_msecs = topic_user_lookup[topic.id]&.total_msecs_viewed.to_i
+      return 12 if viewed_msecs >= 20.minutes.in_milliseconds
+      return 8 if viewed_msecs >= 5.minutes.in_milliseconds
+
+      0
     end
 
     def candidate_topic_count_by_author
@@ -592,22 +618,48 @@ module WhereIsMyFriends
     end
 
     def mixed_topic_candidates(candidates)
-      selected = candidates.first(3)
-      remaining = candidates.reject { |candidate| selected.include?(candidate) }
       waiting =
-        remaining.find { |topic, _matches, _score| awaiting_response?(topic) }
-      selected << waiting if waiting
+        candidates.find { |topic, _matches, _score| awaiting_response?(topic) }
       exploration =
-        remaining.find do |_topic, matches, _score|
-          matches.all? { |_tag, score| score == 1 }
+        candidates.find do |topic, matches, _score|
+          matches.all? { |_tag, score| score == 1 } && topic != waiting&.first
         end
-      selected << exploration if exploration && !selected.include?(exploration)
+      reserved = [waiting, exploration].compact
+      selected =
+        candidates.reject { |candidate| reserved.include?(candidate) }.first(3)
+      selected.concat(reserved)
       candidates.each do |candidate|
         break if selected.length >= MAX_TOPICS
         selected << candidate if selected.exclude?(candidate)
       end
 
       selected.compact.first(MAX_TOPICS)
+    end
+
+    def refresh_topic_candidates(candidates)
+      refresh_candidates(
+        candidates,
+        pool_size: REFRESH_TOPIC_POOL
+      ) { |candidate| candidate.first.id }
+    end
+
+    def refresh_record_candidates(candidates)
+      refresh_candidates(candidates, pool_size: REFRESH_MEMBER_POOL, &:id)
+    end
+
+    def refresh_hash_candidates(candidates)
+      refresh_candidates(
+        candidates,
+        pool_size: REFRESH_INTEREST_POOL
+      ) { |entry| entry.fetch(:id) }
+    end
+
+    def refresh_candidates(candidates, pool_size:)
+      return candidates if @diversity_seed.blank? || candidates.length < 2
+
+      pool = candidates.first(pool_size)
+      pool.sort_by { |candidate| diversity_key(yield(candidate)) } +
+        candidates.drop(pool_size)
     end
 
     def contribution_topics(topics)

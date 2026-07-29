@@ -241,7 +241,11 @@ export default class CommunityDiscoveryPanel extends Component {
                     data-test-community-person-action
                     {{on
                       "click"
-                      (fn this.trackOpen "recommended_user_opened" person)
+                      (fn
+                        this.trackOpen
+                        "recommended_user_profile_opened"
+                        person
+                      )
                     }}
                   >
                     <h4>{{if person.name person.name person.username}}</h4>
@@ -264,11 +268,12 @@ export default class CommunityDiscoveryPanel extends Component {
                         <li>
                           <a
                             href={{topic.url}}
+                            data-test-community-person-topic-action
                             {{on
                               "click"
                               (fn
                                 this.trackOpen
-                                "recommended_user_opened"
+                                "recommended_user_related_topic_opened"
                                 person
                               )
                             }}
@@ -281,9 +286,14 @@ export default class CommunityDiscoveryPanel extends Component {
                     <a
                       class="btn btn-default"
                       href={{person.profile_url}}
+                      data-test-community-person-profile-action
                       {{on
                         "click"
-                        (fn this.trackOpen "recommended_user_opened" person)
+                        (fn
+                          this.trackOpen
+                          "recommended_user_profile_opened"
+                          person
+                        )
                       }}
                     >
                       {{i18n
@@ -294,9 +304,14 @@ export default class CommunityDiscoveryPanel extends Component {
                       <a
                         class="btn btn-primary"
                         href={{person.invite_url}}
+                        data-test-community-person-invite-action
                         {{on
                           "click"
-                          (fn this.trackOpen "recommended_user_opened" person)
+                          (fn
+                            this.trackOpen
+                            "recommended_user_invite_started"
+                            person
+                          )
                         }}
                       >
                         {{i18n
@@ -347,12 +362,20 @@ export default class CommunityDiscoveryPanel extends Component {
                         to=interest.name
                       }}
                     {{else}}
-                      {{i18n
-                        "where_is_my_friends.community_discovery.interest_reason"
-                        topicCount=interest.topic_count
-                        newCount=interest.new_topic_count
-                        memberCount=interest.active_member_count
-                      }}
+                      {{#if interest.active_member_count_suppressed}}
+                        {{i18n
+                          "where_is_my_friends.community_discovery.interest_reason_private"
+                          topicCount=interest.topic_count
+                          newCount=interest.new_topic_count
+                        }}
+                      {{else}}
+                        {{i18n
+                          "where_is_my_friends.community_discovery.interest_reason"
+                          topicCount=interest.topic_count
+                          newCount=interest.new_topic_count
+                          memberCount=interest.active_member_count
+                        }}
+                      {{/if}}
                     {{/if}}
                   </p>
                   <div class="community-discovery__actions">

@@ -16,6 +16,9 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     interest_onboarding_skipped
     recommended_topic_opened
     recommended_user_opened
+    recommended_user_profile_opened
+    recommended_user_related_topic_opened
+    recommended_user_invite_started
     recommended_interest_opened
     recommendation_impression
     recommendation_dismissed
@@ -101,7 +104,20 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     interest_onboarding_completers =
       users_for(events, "interest_onboarding_completed")
     recommended_topic_openers = users_for(events, "recommended_topic_opened")
-    recommended_user_openers = users_for(events, "recommended_user_opened")
+    recommended_user_openers =
+      users_for_any(
+        events,
+        %w[
+          recommended_user_opened
+          recommended_user_profile_opened
+          recommended_user_related_topic_opened
+          recommended_user_invite_started
+        ]
+      )
+    recommended_user_related_topic_openers =
+      users_for(events, "recommended_user_related_topic_opened")
+    recommended_user_invite_starters =
+      users_for(events, "recommended_user_invite_started")
     recommended_interest_openers =
       users_for(events, "recommended_interest_opened")
     impression_events =
@@ -114,6 +130,9 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
         event_names: %w[
           recommended_topic_opened
           recommended_user_opened
+          recommended_user_profile_opened
+          recommended_user_related_topic_opened
+          recommended_user_invite_started
           recommended_interest_opened
         ]
       )
@@ -142,6 +161,13 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
       public_interaction_users(
         events,
         anchor_event_name: "recommendation_impression",
+        replies_only: true,
+        window: 24.hours
+      )
+    topic_open_24h_repliers =
+      public_interaction_users(
+        events,
+        anchor_event_name: "recommended_topic_opened",
         replies_only: true,
         window: 24.hours
       )
@@ -181,6 +207,18 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
         ),
       impression_to_24h_reply_rate:
         rate(exposed_24h_repliers.length, recommendation_exposed_users.length),
+      topic_open_to_24h_reply_rate:
+        rate(topic_open_24h_repliers.length, recommended_topic_openers.length),
+      recommended_user_related_topic_open_rate:
+        rate(
+          recommended_user_related_topic_openers.length,
+          recommendation_exposed_users.length
+        ),
+      recommended_user_invite_start_rate:
+        rate(
+          recommended_user_invite_starters.length,
+          recommendation_exposed_users.length
+        ),
       seven_day_public_interaction_after_impression_rate:
         rate(
           exposed_public_interactors.length,
@@ -214,6 +252,14 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     events.select { |event| event.event_name == event_name }.map(&:user_id).uniq
   end
   private_class_method :users_for
+
+  def self.users_for_any(events, event_names)
+    events
+      .select { |event| event_names.include?(event.event_name) }
+      .map(&:user_id)
+      .uniq
+  end
+  private_class_method :users_for_any
 
   def self.returning_viewers(events)
     events

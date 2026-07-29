@@ -12,13 +12,20 @@
 - Reserve the five-topic mix for three high-relevance results, a fresh
   discussion awaiting a response, and an adjacent-interest exploration when
   eligible candidates exist.
+- Rotate bounded top-ranked candidate pools on refresh and penalize discussions
+  with substantial prior reading time without storing target-level exposure
+  history.
 - Explain the immediate action on every card and link adjacent exploration
   back to the selected interest that caused it.
+- Suppress exact active-member counts on interest entrances below the existing
+  aggregate privacy threshold.
 - Record target-free recommendation impressions and actions by surface,
   candidate source, rank bucket, algorithm version, and result bucket on both
   the homepage and interest page.
-- Add aggregate impression-to-open, 24-hour reply, and seven-day public
-  interaction rates, with the latter as the recommendation north-star metric.
+- Add aggregate impression-to-open, topic-open-to-24-hour-reply,
+  member-to-related-topic, member-to-invite, impression-to-24-hour-reply, and
+  seven-day public interaction rates, with the latter as the recommendation
+  north-star metric.
 
 ## 1.3.0 — 2026-07-29
 

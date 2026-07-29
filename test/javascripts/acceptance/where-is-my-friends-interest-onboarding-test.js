@@ -1,5 +1,5 @@
 import { getOwner } from "@ember/owner";
-import { click, fillIn, visit } from "@ember/test-helpers";
+import { click, fillIn, find, settled, visit } from "@ember/test-helpers";
 import { test } from "qunit";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 
@@ -116,7 +116,8 @@ function completedModel() {
         candidate_source: "interest",
         topic_count: 12,
         new_topic_count: 3,
-        active_member_count: 5,
+        active_member_count: null,
+        active_member_count_suppressed: true,
         rank: 1,
         rank_bucket: "one_to_two",
       },
@@ -159,6 +160,17 @@ function homepageModel() {
       rank_bucket: index < 2 ? "one_to_two" : "three_to_five",
     })),
   };
+}
+
+async function triggerTrackedLink(selector) {
+  const element = find(selector);
+  const event = new element.ownerDocument.defaultView.MouseEvent("click", {
+    bubbles: true,
+    cancelable: true,
+  });
+  event.preventDefault();
+  element.dispatchEvent(event);
+  await settled();
 }
 
 function setupApi(needs, state) {
@@ -392,7 +404,16 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-community-topic-action]").exists({ count: 3 });
     assert.dom("[data-test-community-person-reason]").exists({ count: 3 });
     assert.dom("[data-test-community-person-action]").exists({ count: 3 });
+    assert
+      .dom("[data-test-community-person-topic-action]")
+      .exists({ count: 3 });
+    assert
+      .dom("[data-test-community-person-invite-action]")
+      .exists({ count: 3 });
     assert.dom("[data-test-community-interest-reason]").exists({ count: 2 });
+    assert
+      .dom("[data-test-community-interest='1']")
+      .includesText("active member count stays private");
     assert
       .dom("[data-test-community-interest='2']")
       .includesText("ruby")
@@ -415,6 +436,15 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       ),
       "impressions contain only coarse context and no recommendation target"
     );
+
+    await triggerTrackedLink("[data-test-community-person-action]");
+    await triggerTrackedLink("[data-test-community-person-topic-action]");
+    await triggerTrackedLink("[data-test-community-person-invite-action]");
+    assert.true(api.events.includes("recommended_user_profile_opened"));
+    assert.true(
+      api.events.includes("recommended_user_related_topic_opened")
+    );
+    assert.true(api.events.includes("recommended_user_invite_started"));
 
     const requestsBeforeRefresh = api.recommendationRequests;
     await click("[data-test-community-refresh]");

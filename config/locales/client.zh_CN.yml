@@ -170,6 +170,7 @@ zh_CN:
         topic_reason: "与你选择的兴趣相关："
         person_reason: "你们在这些方向上有共同语境："
         interest_reason: "%{topicCount} 个讨论，本周新增 %{newCount} 个，%{memberCount} 位成员近期活跃。"
+        interest_reason_private: "%{topicCount} 个讨论，本周新增 %{newCount} 个；参与人数达到隐私阈值后才显示活跃成员数。"
         exploration_reason: "这是兴趣之外的一步：从「%{from}」延伸到「%{to}」。"
         join_discussion: "打开并回复"
         view_profile: "查看资料"

@@ -12,6 +12,9 @@ RSpec.describe WhereIsMyFriendsEvent do
       interest_onboarding_skipped
       recommended_topic_opened
       recommended_user_opened
+      recommended_user_profile_opened
+      recommended_user_related_topic_opened
+      recommended_user_invite_started
       recommended_interest_opened
       recommendation_impression
       recommendation_dismissed
@@ -178,6 +181,30 @@ RSpec.describe WhereIsMyFriendsEvent do
       rank_bucket: "one_to_two",
       algorithm_version: "participation_v1"
     )
+    described_class.create!(
+      user: passive,
+      event_name: "recommended_topic_opened",
+      surface: "homepage",
+      candidate_source: "interest",
+      rank_bucket: "one_to_two",
+      algorithm_version: "participation_v1"
+    )
+    described_class.create!(
+      user: engaged,
+      event_name: "recommended_user_related_topic_opened",
+      surface: "homepage",
+      candidate_source: "interest",
+      rank_bucket: "one_to_two",
+      algorithm_version: "participation_v1"
+    )
+    described_class.create!(
+      user: passive,
+      event_name: "recommended_user_invite_started",
+      surface: "homepage",
+      candidate_source: "interest",
+      rank_bucket: "one_to_two",
+      algorithm_version: "participation_v1"
+    )
 
     freeze_time(12.hours.from_now)
     engaged_topic = Fabricate(:topic, user: Fabricate(:user))
@@ -189,8 +216,11 @@ RSpec.describe WhereIsMyFriendsEvent do
 
     expect(stats).to include(
       recommendation_exposed_users: 2,
-      recommendation_open_rate: 0.5,
+      recommendation_open_rate: 1.0,
       impression_to_24h_reply_rate: 0.5,
+      topic_open_to_24h_reply_rate: 0.5,
+      recommended_user_related_topic_open_rate: 0.5,
+      recommended_user_invite_start_rate: 0.5,
       seven_day_public_interaction_after_impression_rate: 0.5,
       recommendation_surface_distribution: {
         "homepage" => 2

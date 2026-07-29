@@ -148,7 +148,8 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
           "candidate_source" => "interest",
           "topic_count" => 1,
           "new_topic_count" => 1,
-          "active_member_count" => 1
+          "active_member_count" => nil,
+          "active_member_count_suppressed" => true
         ),
         include(
           "id" => design_tag.id,
@@ -157,7 +158,8 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
           "candidate_source" => "interest",
           "topic_count" => 1,
           "new_topic_count" => 1,
-          "active_member_count" => 1
+          "active_member_count" => nil,
+          "active_member_count_suppressed" => true
         )
       )
       expect(entrances.pluck("url")).to all(start_with("/tag/"))
@@ -253,6 +255,64 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
         "candidate_source" => "interest",
         "rank_bucket" =>
           satisfy { |value| %w[one_to_two three_to_five].include?(value) }
+      )
+    end
+
+    it "keeps distinct waiting-response and adjacent-exploration slots" do
+      interaction_tag = Tag.find_by!(name: "游戏互动")
+      creation_tag = Tag.find_by!(name: "游戏创作")
+      beginner_tag = Tag.find_by!(name: "新手入门")
+      safety_tag = Tag.find_by!(name: "安全与边界")
+      5.times do |index|
+        topic =
+          Fabricate(
+            :topic,
+            user: author,
+            title: "分享一段完整的互动讨论与经验记录 #{index}",
+            tags: [interaction_tag],
+            created_at: 5.days.ago,
+            bumped_at: index.minutes.ago
+          )
+        topic.update_columns(posts_count: 3, highest_post_number: 3)
+      end
+      waiting_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "这是一个互动求助并且正在等待第一个回复",
+          tags: [interaction_tag],
+          created_at: 2.hours.ago,
+          bumped_at: 2.hours.ago
+        )
+      waiting_topic.update_columns(posts_count: 1, highest_post_number: 1)
+      exploration_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "尝试创作一套完整而且有趣的全新内容",
+          tags: [creation_tag],
+          created_at: 5.days.ago,
+          bumped_at: 1.day.ago
+        )
+      exploration_topic.update_columns(posts_count: 3, highest_post_number: 3)
+      SiteSetting.where_is_my_friends_interest_tags = ""
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [interaction_tag.id, beginner_tag.id, safety_tag.id],
+            purpose: "help",
+            recommendable: true
+          }
+
+      topics = response.parsed_body.fetch("recommended_topics")
+      expect(topics.length).to eq(5)
+      expect(topics.fetch(3)).to include(
+        "id" => waiting_topic.id,
+        "participation_state" => "awaiting_response"
+      )
+      expect(topics.fetch(4)).to include(
+        "id" => exploration_topic.id,
+        "candidate_source" => "exploration"
       )
     end
 
@@ -354,6 +414,84 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
       expect(
         topics.find { |entry| entry["id"] == participated_topic.id }
       ).to include("participation_state" => "participated")
+    end
+
+    it "penalizes an unread topic that the viewer has already spent substantial time reading" do
+      repeatedly_viewed =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "Ruby discussion repeatedly revisited",
+          tags: [ruby_tag],
+          created_at: 5.days.ago,
+          bumped_at: 1.minute.ago
+        )
+      repeatedly_viewed.update_columns(posts_count: 3, highest_post_number: 3)
+      TopicUser.create!(
+        user: user,
+        topic: repeatedly_viewed,
+        first_visited_at: 2.days.ago,
+        last_visited_at: 1.hour.ago,
+        last_read_post_number: 1,
+        total_msecs_viewed: 10.minutes.in_milliseconds
+      )
+      lightly_seen =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "Ruby discussion not repeatedly viewed",
+          tags: [ruby_tag],
+          created_at: 5.days.ago,
+          bumped_at: 1.day.ago
+        )
+      lightly_seen.update_columns(posts_count: 3, highest_post_number: 3)
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+            purpose: "help",
+            recommendable: true
+          }
+
+      topic_ids = response.parsed_body.fetch("recommended_topics").pluck("id")
+      expect(topic_ids.index(lightly_seen.id)).to be <
+        topic_ids.index(repeatedly_viewed.id)
+    end
+
+    it "rotates a bounded pool of eligible discussions when refreshed" do
+      10.times do |index|
+        topic =
+          Fabricate(
+            :topic,
+            user: author,
+            title: "Eligible Ruby discussion #{index}",
+            tags: [ruby_tag],
+            created_at: 5.days.ago,
+            bumped_at: index.minutes.ago
+          )
+        topic.update_columns(posts_count: 3, highest_post_number: 3)
+      end
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+            purpose: "help",
+            recommendable: true
+          }
+      initial_ids = response.parsed_body.fetch("recommended_topics").pluck("id")
+
+      get "/where-is-my-friends/recommendations.json",
+          params: {
+            refresh: "next"
+          }
+      refreshed_ids =
+        response.parsed_body.fetch("recommended_topics").pluck("id")
+
+      expect(refreshed_ids).not_to eq(initial_ids)
+      expect(refreshed_ids.length).to eq(5)
+      eligible_ids =
+        Topic.joins(:tags).where(tags: { id: ruby_tag.id }).pluck(:id)
+      expect(refreshed_ids - eligible_ids).to be_empty
     end
 
     it "penalizes a single author from concentrating the top recommendations" do
