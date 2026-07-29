@@ -1,3 +1,4 @@
+import { getOwner } from "@ember/owner";
 import { click, fillIn, visit } from "@ember/test-helpers";
 import { test } from "qunit";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
@@ -79,6 +80,10 @@ function completedModel() {
         fancy_title: "Practical Ruby",
         url: "/t/practical-ruby/101",
         matching_interests: [{ id: 1, name: "ruby" }],
+        participation_state: "awaiting_response",
+        candidate_source: "interest",
+        rank: 1,
+        rank_bucket: "one_to_two",
       },
     ],
     recommended_users: [
@@ -97,8 +102,62 @@ function completedModel() {
             url: "/t/practical-ruby/101",
           },
         ],
+        candidate_source: "interest",
+        rank: 1,
+        rank_bucket: "one_to_two",
+        invite_url: "/where-is-my-friends/interests?invite_to=alice",
       },
     ],
+    recommended_interests: [
+      {
+        id: 1,
+        name: "ruby",
+        url: "/tag/ruby/1",
+        candidate_source: "interest",
+        topic_count: 12,
+        new_topic_count: 3,
+        active_member_count: 5,
+        rank: 1,
+        rank_bucket: "one_to_two",
+      },
+    ],
+    algorithm_version: "participation_v1",
+  };
+}
+
+function homepageModel() {
+  const model = completedModel();
+  return {
+    ...model,
+    recommended_topics: Array.from({ length: 4 }, (_, index) => ({
+      ...model.recommended_topics[0],
+      id: 101 + index,
+      title: `Practical Ruby ${index + 1}`,
+      fancy_title: `Practical Ruby ${index + 1}`,
+      url: `/t/practical-ruby-${index + 1}/${101 + index}`,
+      rank: index + 1,
+      rank_bucket: index < 2 ? "one_to_two" : "three_to_five",
+    })),
+    recommended_users: Array.from({ length: 4 }, (_, index) => ({
+      ...model.recommended_users[0],
+      id: 9 + index,
+      username: `member${index + 1}`,
+      name: `Member ${index + 1}`,
+      profile_url: `/u/member${index + 1}`,
+      invite_url: `/where-is-my-friends/interests?invite_to=member${index + 1}`,
+      rank: index + 1,
+      rank_bucket: index < 2 ? "one_to_two" : "three_to_five",
+    })),
+    recommended_interests: Array.from({ length: 3 }, (_, index) => ({
+      ...model.recommended_interests[0],
+      id: index + 1,
+      name: ["ruby", "design", "community"][index],
+      url: `/tag/${["ruby", "design", "community"][index]}/${index + 1}`,
+      candidate_source: index === 1 ? "exploration" : "interest",
+      reason_interest: index === 1 ? { id: 1, name: "ruby" } : null,
+      rank: index + 1,
+      rank_bucket: index < 2 ? "one_to_two" : "three_to_five",
+    })),
   };
 }
 
@@ -117,7 +176,10 @@ function setupApi(needs, state) {
     );
 
     server.get("/where-is-my-friends/recommendations.json", () =>
-      helper.response(state.model)
+      {
+        state.recommendationRequests += 1;
+        return helper.response(state.model);
+      }
     );
 
     server.get("/where-is-my-friends/practice-invitations.json", () =>
@@ -253,6 +315,7 @@ function setupApi(needs, state) {
       state.events.push(
         new URLSearchParams(request.requestBody).get("event_name")
       );
+      state.eventPayloads.push(new URLSearchParams(request.requestBody));
       return helper.response({ success: "OK" });
     });
   });
@@ -280,6 +343,8 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       disableRequests: 0,
       saveError: null,
       events: [],
+      eventPayloads: [],
+      recommendationRequests: 0,
       incoming: [],
       outgoing: [],
       invitationParams: null,
@@ -308,6 +373,58 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-interest-onboarding-callout]").doesNotExist();
   });
 
+  test("a completed member gets persistent 3-3-2 community discovery on the homepage", async function (assert) {
+    api.model = homepageModel();
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+
+    assert.dom("[data-test-community-discovery]").exists();
+    assert.dom("[data-test-community-error]").doesNotExist();
+    assert.strictEqual(api.recommendationRequests, 1);
+    assert.dom("[data-test-community-topic]").exists({ count: 3 });
+    assert.dom("[data-test-community-person]").exists({ count: 3 });
+    assert.dom("[data-test-community-interest]").exists({ count: 2 });
+    assert.dom("[data-test-community-topic-reason]").exists({ count: 3 });
+    assert.dom("[data-test-community-topic-action]").exists({ count: 3 });
+    assert.dom("[data-test-community-person-reason]").exists({ count: 3 });
+    assert.dom("[data-test-community-person-action]").exists({ count: 3 });
+    assert.dom("[data-test-community-interest-reason]").exists({ count: 2 });
+    assert
+      .dom("[data-test-community-interest='2']")
+      .includesText("ruby")
+      .includesText("design");
+    assert.dom("[data-test-community-interest-action]").exists({ count: 2 });
+    assert.dom("[data-test-community-dismiss]").exists({ count: 8 });
+
+    const impressions = api.eventPayloads.filter(
+      (payload) => payload.get("event_name") === "recommendation_impression"
+    );
+    assert.strictEqual(impressions.length, 8);
+    assert.true(
+      impressions.every(
+        (payload) =>
+          payload.get("surface") === "homepage" &&
+          payload.get("algorithm_version") === "participation_v1" &&
+          payload.get("result_count") === "8" &&
+          payload.get("target_id") === null &&
+          payload.get("topic_id") === null
+      ),
+      "impressions contain only coarse context and no recommendation target"
+    );
+
+    const requestsBeforeRefresh = api.recommendationRequests;
+    await click("[data-test-community-refresh]");
+    assert.strictEqual(
+      api.recommendationRequests,
+      requestsBeforeRefresh + 1,
+      "refreshes from the recommendation endpoint"
+    );
+  });
+
   test("private-by-default choices immediately produce explainable recommendations", async function (assert) {
     await visit("/where-is-my-friends/interests");
 
@@ -334,6 +451,11 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-recommended-topic='101']").exists();
     assert.dom("[data-test-recommended-user='alice']").exists();
     assert.dom("[data-test-recommended-topic='101']").includesText("ruby");
+
+    await visit("/");
+    assert
+      .dom("[data-test-community-discovery]")
+      .exists("the completed state activates discovery without a page reload");
   });
 
   test("the rich catalogue is grouped and searchable", async function (assert) {
@@ -359,10 +481,28 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     api.model = completedModel();
 
     await visit("/where-is-my-friends/interests");
+
+    const impressions = api.eventPayloads.filter(
+      (payload) => payload.get("event_name") === "recommendation_impression"
+    );
+    assert.strictEqual(impressions.length, 2);
+    assert.true(
+      impressions.every(
+        (payload) =>
+          payload.get("surface") === "interest_page" &&
+          payload.get("algorithm_version") === "participation_v1" &&
+          payload.get("result_count") === "2" &&
+          payload.get("target_id") === null
+      )
+    );
+
     await click("[data-test-dismiss-topic='101']");
 
     assert.strictEqual(api.dismissedParams.get("target_type"), "topic");
     assert.strictEqual(api.dismissedParams.get("target_id"), "101");
+    assert.strictEqual(api.dismissedParams.get("surface"), "interest_page");
+    assert.strictEqual(api.dismissedParams.get("candidate_source"), "interest");
+    assert.strictEqual(api.dismissedParams.get("rank"), "1");
     assert.dom("[data-test-recommended-topic='101']").doesNotExist();
 
     await click("[data-test-edit-interests]");

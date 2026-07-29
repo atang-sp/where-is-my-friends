@@ -13,7 +13,11 @@ module WhereIsMyFriends
           user_id: current_user.id,
           event_name: params[:event_name],
           location_mode: params[:location_mode].presence,
-          result_bucket: result_bucket
+          result_bucket: result_bucket,
+          surface: params[:surface].presence,
+          candidate_source: params[:candidate_source].presence,
+          rank_bucket: rank_bucket,
+          algorithm_version: params[:algorithm_version].presence
         )
 
       render json: success_json.merge(event_id: event.id)
@@ -30,6 +34,12 @@ module WhereIsMyFriends
       return if params[:result_count].blank?
 
       WhereIsMyFriendsEvent.result_bucket(params[:result_count])
+    end
+
+    def rank_bucket
+      return if params[:rank].blank?
+
+      WhereIsMyFriendsEvent.rank_bucket(params[:rank])
     end
 
     def ensure_plugin_enabled

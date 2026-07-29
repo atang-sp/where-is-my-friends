@@ -12,6 +12,8 @@ RSpec.describe WhereIsMyFriendsEvent do
       interest_onboarding_skipped
       recommended_topic_opened
       recommended_user_opened
+      recommended_interest_opened
+      recommendation_impression
       recommendation_dismissed
       personalization_disabled
     ]
@@ -31,10 +33,28 @@ RSpec.describe WhereIsMyFriendsEvent do
     expect(described_class.result_bucket(1)).to eq("one_to_four")
     expect(described_class.result_bucket(19)).to eq("five_to_nineteen")
     expect(described_class.result_bucket(20)).to eq("twenty_plus")
+    expect(described_class.rank_bucket(1)).to eq("one_to_two")
+    expect(described_class.rank_bucket(3)).to eq("three_to_five")
+    expect(described_class.rank_bucket(6)).to eq("six_plus")
+    expect(described_class.rank_bucket(0)).to be_nil
+    expect(described_class.rank_bucket("not-a-rank")).to be_nil
   end
 
   it "has no schema columns for location or browser details" do
-    forbidden = %w[latitude longitude city region address ip user_agent query]
+    forbidden = %w[
+      latitude
+      longitude
+      city
+      region
+      address
+      ip
+      user_agent
+      query
+      target_id
+      topic_id
+      post_id
+      recommended_user_id
+    ]
 
     expect(described_class.column_names & forbidden).to be_empty
   end
@@ -131,6 +151,92 @@ RSpec.describe WhereIsMyFriendsEvent do
     expect(stats).to include(
       seven_day_public_interaction_rate: 0.3333,
       seven_day_first_reply_rate: 0.3333
+    )
+  end
+
+  it "measures public participation after recommendation exposure" do
+    freeze_time(Time.zone.parse("2026-07-01 12:00:00"))
+    engaged = Fabricate(:user)
+    passive = Fabricate(:user)
+    unexposed = Fabricate(:user)
+    [engaged, passive].each do |member|
+      described_class.create!(
+        user: member,
+        event_name: "recommendation_impression",
+        surface: "homepage",
+        candidate_source: "interest",
+        rank_bucket: "one_to_two",
+        algorithm_version: "participation_v1",
+        result_bucket: "five_to_nineteen"
+      )
+    end
+    described_class.create!(
+      user: engaged,
+      event_name: "recommended_topic_opened",
+      surface: "homepage",
+      candidate_source: "interest",
+      rank_bucket: "one_to_two",
+      algorithm_version: "participation_v1"
+    )
+
+    freeze_time(12.hours.from_now)
+    engaged_topic = Fabricate(:topic, user: Fabricate(:user))
+    Fabricate(:post, topic: engaged_topic, user: engaged, post_number: 2)
+    unexposed_topic = Fabricate(:topic, user: Fabricate(:user))
+    Fabricate(:post, topic: unexposed_topic, user: unexposed, post_number: 2)
+
+    stats = described_class.aggregate(since: 30.days.ago)
+
+    expect(stats).to include(
+      recommendation_exposed_users: 2,
+      recommendation_open_rate: 0.5,
+      impression_to_24h_reply_rate: 0.5,
+      seven_day_public_interaction_after_impression_rate: 0.5,
+      recommendation_surface_distribution: {
+        "homepage" => 2
+      },
+      recommendation_candidate_source_distribution: {
+        "interest" => 2
+      },
+      recommendation_rank_bucket_distribution: {
+        "one_to_two" => 2
+      },
+      recommendation_algorithm_version_distribution: {
+        "participation_v1" => 2
+      }
+    )
+  end
+
+  it "counts recommendation opens only after the first exposure" do
+    freeze_time(Time.zone.parse("2026-07-01 12:00:00"))
+    member = Fabricate(:user)
+    described_class.create!(
+      user: member,
+      event_name: "recommended_topic_opened",
+      surface: "interest_page"
+    )
+
+    freeze_time(1.hour.from_now)
+    described_class.create!(
+      user: member,
+      event_name: "recommendation_impression",
+      surface: "homepage"
+    )
+
+    expect(described_class.aggregate(since: 30.days.ago)).to include(
+      recommendation_exposed_users: 1,
+      recommendation_open_rate: 0.0
+    )
+
+    freeze_time(1.hour.from_now)
+    described_class.create!(
+      user: member,
+      event_name: "recommended_user_opened",
+      surface: "homepage"
+    )
+
+    expect(described_class.aggregate(since: 30.days.ago)).to include(
+      recommendation_open_rate: 1.0
     )
   end
 end

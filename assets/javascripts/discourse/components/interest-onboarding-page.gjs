@@ -21,6 +21,7 @@ export default class InterestOnboardingPage extends Component {
   @tracked showInterestsPublicly;
   @tracked recommendedTopics;
   @tracked recommendedUsers;
+  @tracked algorithmVersion;
   @tracked editing;
   @tracked loading = false;
   @tracked error = null;
@@ -51,6 +52,7 @@ export default class InterestOnboardingPage extends Component {
       this.args.model.profile?.show_interests_publicly ?? false;
     this.recommendedTopics = this.args.model.recommended_topics ?? [];
     this.recommendedUsers = this.args.model.recommended_users ?? [];
+    this.algorithmVersion = this.args.model.algorithm_version;
     this.editing = this.state !== "complete";
   }
 
@@ -132,6 +134,10 @@ export default class InterestOnboardingPage extends Component {
     );
   }
 
+  get recommendationResultCount() {
+    return this.recommendedTopics.length + this.recommendedUsers.length;
+  }
+
   get invitationInterests() {
     return this.invitationTarget?.invitation_interests ?? [];
   }
@@ -159,6 +165,7 @@ export default class InterestOnboardingPage extends Component {
   @action
   async initialize() {
     void this.recordEvent("interest_onboarding_viewed");
+    this.recordRecommendationImpressions();
     if (!this.siteSettings.where_is_my_friends_practice_invitations_enabled) {
       return;
     }
@@ -260,7 +267,7 @@ export default class InterestOnboardingPage extends Component {
   }
 
   @action
-  async dismiss(targetType, targetId) {
+  async dismiss(targetType, recommendation) {
     if (this.loading) {
       return;
     }
@@ -272,7 +279,14 @@ export default class InterestOnboardingPage extends Component {
         "/where-is-my-friends/recommendations/dismiss.json",
         {
           type: "POST",
-          data: { target_type: targetType, target_id: targetId },
+          data: {
+            target_type: targetType,
+            target_id: recommendation.id,
+            surface: "interest_page",
+            candidate_source: recommendation.candidate_source,
+            rank: recommendation.rank,
+            algorithm_version: this.algorithmVersion,
+          },
         }
       );
       this.applyResponse(response);
@@ -313,13 +327,13 @@ export default class InterestOnboardingPage extends Component {
   }
 
   @action
-  trackTopicOpen() {
-    void this.recordEvent("recommended_topic_opened");
+  trackTopicOpen(topic) {
+    void this.recordEvent("recommended_topic_opened", topic);
   }
 
   @action
-  trackUserOpen() {
-    void this.recordEvent("recommended_user_opened");
+  trackUserOpen(user) {
+    void this.recordEvent("recommended_user_opened", user);
   }
 
   @action
@@ -499,7 +513,9 @@ export default class InterestOnboardingPage extends Component {
     this.state = response.state;
     this.recommendedTopics = response.recommended_topics ?? [];
     this.recommendedUsers = response.recommended_users ?? [];
+    this.algorithmVersion = response.algorithm_version;
     this.updateCurrentUserState(response.state);
+    this.recordRecommendationImpressions();
   }
 
   updateCurrentUserState(state) {
@@ -513,11 +529,31 @@ export default class InterestOnboardingPage extends Component {
     }
   }
 
-  async recordEvent(eventName) {
+  recordRecommendationImpressions() {
+    for (const recommendation of [
+      ...this.recommendedTopics,
+      ...this.recommendedUsers,
+    ]) {
+      void this.recordEvent("recommendation_impression", recommendation);
+    }
+  }
+
+  async recordEvent(eventName, recommendation = null) {
+    const data = { event_name: eventName };
+    if (recommendation) {
+      Object.assign(data, {
+        surface: "interest_page",
+        candidate_source: recommendation.candidate_source,
+        rank: recommendation.rank,
+        algorithm_version: this.algorithmVersion,
+        result_count: this.recommendationResultCount,
+      });
+    }
+
     try {
       await ajax("/where-is-my-friends/events.json", {
         type: "POST",
-        data: { event_name: eventName },
+        data,
       });
     } catch {
       // Analytics must never block community discovery.
@@ -1038,7 +1074,10 @@ export default class InterestOnboardingPage extends Component {
               <div class="interest-onboarding__topic-grid">
                 {{#each this.recommendedTopics as |topic|}}
                   <article data-test-recommended-topic={{topic.id}}>
-                    <a href={{topic.url}} {{on "click" this.trackTopicOpen}}>
+                    <a
+                      href={{topic.url}}
+                      {{on "click" (fn this.trackTopicOpen topic)}}
+                    >
                       <h4>{{topic.fancy_title}}</h4>
                     </a>
                     <p>{{i18n
@@ -1051,7 +1090,7 @@ export default class InterestOnboardingPage extends Component {
                       {{/each}}
                     </p>
                     <DButton
-                      @action={{fn this.dismiss "topic" topic.id}}
+                      @action={{fn this.dismiss "topic" topic}}
                       @label="where_is_my_friends.interests.not_interested"
                       @disabled={{this.loading}}
                       class="btn-flat"
@@ -1072,7 +1111,7 @@ export default class InterestOnboardingPage extends Component {
                     <div>
                       <a
                         href={{user.profile_url}}
-                        {{on "click" this.trackUserOpen}}
+                        {{on "click" (fn this.trackUserOpen user)}}
                       >
                         <h4>{{if user.name user.name user.username}}</h4>
                         <span>@{{user.username}}</span>
@@ -1095,7 +1134,7 @@ export default class InterestOnboardingPage extends Component {
                           <li>
                             <a
                               href={{topic.url}}
-                              {{on "click" this.trackTopicOpen}}
+                              {{on "click" (fn this.trackUserOpen user)}}
                             >{{topic.title}}</a>
                           </li>
                         {{/each}}
@@ -1116,7 +1155,7 @@ export default class InterestOnboardingPage extends Component {
                       {{/if}}
                     {{/if}}
                     <DButton
-                      @action={{fn this.dismiss "user" user.id}}
+                      @action={{fn this.dismiss "user" user}}
                       @label="where_is_my_friends.interests.not_interested"
                       @disabled={{this.loading}}
                       class="btn-flat"

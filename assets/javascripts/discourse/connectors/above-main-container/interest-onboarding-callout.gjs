@@ -1,12 +1,13 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { action } from "@ember/object";
+import { action, get } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
 import { LinkTo } from "@ember/routing";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
+import CommunityDiscoveryPanel from "discourse/plugins/where-is-my-friends/discourse/components/community-discovery-panel";
 
 export default class InterestOnboardingCallout extends Component {
   static shouldRender(_args, { currentUser, siteSettings }) {
@@ -22,13 +23,28 @@ export default class InterestOnboardingCallout extends Component {
 
   @tracked dismissed = false;
 
-  get shouldShow() {
+  get onboardingState() {
+    return get(
+      this.currentUser,
+      "where_is_my_friends_interest_onboarding_state"
+    );
+  }
+
+  get shouldShowPrompt() {
     return (
-      this.currentUser?.where_is_my_friends_interest_onboarding_state ===
-        "pending" &&
+      this.onboardingState === "pending" &&
       !this.dismissed &&
       this.isTopicListRoute
     );
+  }
+
+  get shouldShowDiscovery() {
+    return this.onboardingState === "complete" && this.isHomeRoute;
+  }
+
+  get isHomeRoute() {
+    const routeName = this.router.currentRouteName ?? "";
+    return routeName === "discovery" || routeName.startsWith("discovery.");
   }
 
   get isTopicListRoute() {
@@ -74,7 +90,7 @@ export default class InterestOnboardingCallout extends Component {
   }
 
   <template>
-    {{#if this.shouldShow}}
+    {{#if this.shouldShowPrompt}}
       <section
         class="interest-onboarding-callout"
         data-test-interest-onboarding-callout
@@ -102,6 +118,8 @@ export default class InterestOnboardingCallout extends Component {
           data-test-skip-interest-callout
         />
       </section>
+    {{else if this.shouldShowDiscovery}}
+      <CommunityDiscoveryPanel />
     {{/if}}
   </template>
 }

@@ -38,6 +38,39 @@ RSpec.describe WhereIsMyFriends::EventsController do
       expect(event.attributes).not_to include("city", "latitude")
     end
 
+    it "records a coarse recommendation impression without a target identifier" do
+      sign_in(user)
+
+      post "/where-is-my-friends/events.json",
+           params: {
+             event_name: "recommendation_impression",
+             surface: "homepage",
+             candidate_source: "interest",
+             rank: 2,
+             algorithm_version: "participation_v1",
+             result_count: 8,
+             target_id: 99_999,
+             topic_id: 88_888
+           }
+
+      expect(response.status).to eq(200)
+      expect(WhereIsMyFriendsEvent.last).to have_attributes(
+        user_id: user.id,
+        event_name: "recommendation_impression",
+        surface: "homepage",
+        candidate_source: "interest",
+        rank_bucket: "one_to_two",
+        algorithm_version: "participation_v1",
+        result_bucket: "five_to_nineteen"
+      )
+      expect(WhereIsMyFriendsEvent.column_names).not_to include(
+        "target_id",
+        "topic_id",
+        "post_id",
+        "recommended_user_id"
+      )
+    end
+
     it "rejects unknown event names" do
       sign_in(user)
 
