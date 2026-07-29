@@ -1,5 +1,8 @@
 import InterestOnboardingPage from "../components/interest-onboarding-page";
 
 <template>
-  <InterestOnboardingPage @model={{@model}} />
+  <InterestOnboardingPage
+    @inviteTo={{@controller.invite_to}}
+    @model={{@model}}
+  />
 </template>

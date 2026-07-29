@@ -42,3 +42,12 @@ Verify with two non-staff test members:
 - A fresh backup exists and the rollback procedure has been exercised or reviewed.
 
 Removing the old plugin code does not authorize dropping `practice_interests`. Retain the table and backup until the rollback window is explicitly closed.
+
+## 1.2.1 observation restart
+
+Production verification on 2026-07-29 found that the profile invitation link
+lost its `invite_to` query parameter before the invitation component read it, so
+the availability request was never made and the form did not open. Version
+1.2.1 declares the route query parameter and passes it explicitly to the
+component. Restart the full release-cycle observation window when 1.2.1 is
+deployed.

@@ -96,6 +96,21 @@ function setupApi(needs, state) {
     );
 
     server.get(
+      "/where-is-my-friends/practice-invitations/availability.json",
+      (request) => {
+        state.availabilityRequests += 1;
+        state.availabilityUsername = request.queryParams.username;
+        return helper.response({
+          available: true,
+          recipient_id: 9,
+          username: "alice",
+          name: "Alice",
+          interests: [{ id: 1, name: "ruby" }],
+        });
+      }
+    );
+
+    server.get(
       "/where-is-my-friends/legacy-practice-bookmarks.json",
       () => helper.response({ bookmarks: state.legacyBookmarks })
     );
@@ -236,6 +251,8 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       outgoing: [],
       invitationParams: null,
       acceptRequests: 0,
+      availabilityRequests: 0,
+      availabilityUsername: null,
       legacyBookmarks: [],
       reconfirmRequests: 0,
     });
@@ -341,6 +358,20 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     );
     assert.dom("[data-test-practice-invitation-form]").doesNotExist();
     assert.dom("[data-test-outgoing-invitation='77']").includesText("alice");
+  });
+
+  test("a profile invitation link opens the invitation form", async function (assert) {
+    api.model = completedModel();
+
+    await visit("/where-is-my-friends/interests?invite_to=alice");
+
+    assert.strictEqual(api.availabilityRequests, 1);
+    assert.strictEqual(api.availabilityUsername, "alice");
+    assert.dom("[data-test-practice-invitation-form]").exists();
+    assert
+      .dom("[data-test-practice-invitation-preview]")
+      .includesText("alice")
+      .includesText("ruby");
   });
 
   test("an incoming invitation can be accepted into its one-to-one PM", async function (assert) {
