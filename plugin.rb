@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.2.1
+# version: 1.2.2
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0.beta1
@@ -104,6 +104,11 @@ after_initialize do
 
   # Render the Discourse application for the client route, then mount the JSON API.
   Discourse::Application.routes.append do
+    unless Discourse.plugins_by_name["discourse-plugin-matching"]
+      get "/practice-matching",
+          to: redirect("/where-is-my-friends/interests", status: 302)
+    end
+
     get "/where-is-my-friends.json" => "where_is_my_friends/locations#index",
         :as => "where_is_my_friends_data"
     get "/where-is-my-friends" => "list#latest",
