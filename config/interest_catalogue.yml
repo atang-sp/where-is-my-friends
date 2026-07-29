@@ -1,0 +1,288 @@
+groups:
+  - key: interaction_style
+    name: 互动类型
+    description: 你更感兴趣的互动框架和整体氛围。
+    interests:
+      - key: pure_practice
+        name: 纯实践
+        related: [discipline, game_interaction, scenario]
+        topic_tags: [spank]
+        topic_keywords: [实践, 实战]
+      - key: discipline
+        name: 惩戒管教
+        aliases: [训诫]
+        related: [pure_practice, serious_mood, ritual]
+        topic_keywords: [惩戒, 管教, 训诫]
+      - key: game_interaction
+        name: 游戏互动
+        related: [pure_practice, lighthearted_mood, scenario, game_creation]
+        topic_tags: [sp飞行棋, sp大富翁]
+        topic_keywords: [游戏, 飞行棋, 大富翁, 棋盘]
+      - key: scenario
+        name: 情景剧情
+        related: [pure_practice, game_interaction, fiction]
+        topic_keywords: [情景, 剧情, 角色扮演]
+      - key: lighthearted_mood
+        name: 氛围轻松
+        related: [game_interaction, care, safety_feeling]
+        topic_keywords: [轻松, 欢乐]
+      - key: serious_mood
+        name: 氛围严肃
+        related: [discipline, ritual, controlled]
+        topic_keywords: [严肃, 严格]
+
+  - key: intensity
+    name: 强度偏好
+    description: 用宽泛区间表达舒适范围，具体边界仍需单独沟通。
+    interests:
+      - key: light_intensity
+        name: 轻度
+        related: [medium_intensity, lighthearted_mood]
+        topic_keywords: [轻度, 轻微, 不重口]
+      - key: medium_intensity
+        name: 中度
+        related: [light_intensity, medium_heavy_intensity]
+        topic_keywords: [中度]
+      - key: medium_heavy_intensity
+        name: 中重度
+        related: [medium_intensity, heavy_intensity]
+        topic_keywords: [中重度, 偏重]
+      - key: heavy_intensity
+        name: 重度
+        related: [medium_heavy_intensity, serious_mood]
+        topic_keywords: [重度, 重口]
+
+  - key: interaction_role
+    name: 互动角色
+    description: 角色可以随关系和场景变化，不代表固定身份。
+    interests:
+      - key: active_role
+        name: 主动
+        related: [switch_role, passive_role]
+        topic_keywords: [主动方, 主属性, 找主]
+      - key: passive_role
+        name: 被动
+        related: [switch_role, active_role]
+        topic_keywords: [被动方, 贝属性, 找贝]
+      - key: switch_role
+        name: 双向
+        related: [active_role, passive_role]
+        topic_keywords: [双向, 可主可被]
+      - key: brat_interaction
+        name: Brat互动
+        aliases: [brat]
+        related: [game_interaction, discipline]
+        topic_tags: [brat]
+        topic_keywords: [brat, 调皮]
+
+  - key: emotional_experience
+    name: 感受主题
+    description: 描述你想讨论的心理体验，而不是替任何人作判断。
+    interests:
+      - key: ritual
+        name: 仪式感
+        related: [discipline, rules, serious_mood]
+        topic_keywords: [仪式, 规矩]
+      - key: shame
+        name: 羞耻感
+        aliases: [羞耻]
+        related: [pressure, controlled, scenario]
+        topic_tags: [羞耻]
+        topic_keywords: [羞耻, 害羞]
+      - key: pressure
+        name: 压迫感
+        related: [controlled, submission, shame]
+        topic_keywords: [压迫, 紧张]
+      - key: controlled
+        name: 被控制感
+        related: [pressure, submission, discipline]
+        topic_keywords: [控制, 掌控]
+      - key: submission
+        name: 服从感
+        related: [controlled, discipline, care]
+        topic_keywords: [服从, 听话]
+      - key: care
+        name: 被关怀感
+        related: [safety_feeling, debrief, lighthearted_mood]
+        topic_keywords: [关怀, 关心, 照顾]
+      - key: safety_feeling
+        name: 安全感
+        related: [care, safety_boundaries, debrief]
+        topic_keywords: [安全感, 信任]
+
+  - key: additional_elements
+    name: 附加元素
+    description: 可用于查找更细分的经验、复盘和创作讨论。
+    interests:
+      - key: rules
+        name: 规则约定
+        related: [ritual, task_challenge, safety_boundaries]
+        topic_keywords: [规则, 约定, 规矩]
+      - key: task_challenge
+        name: 任务挑战
+        related: [rules, game_interaction, writing_reflection]
+        topic_keywords: [任务, 挑战]
+      - key: standing
+        name: 罚站
+        related: [kneeling, discipline]
+        topic_keywords: [罚站]
+      - key: kneeling
+        name: 罚跪
+        related: [standing, discipline]
+        topic_keywords: [罚跪]
+      - key: writing_reflection
+        name: 写检查
+        related: [copying, task_challenge, discipline]
+        topic_keywords: [写检查, 检讨]
+      - key: copying
+        name: 罚抄
+        related: [writing_reflection, task_challenge]
+        topic_keywords: [罚抄, 抄写]
+      - key: debrief
+        name: 事后复盘
+        related: [care, safety_feeling, safety_boundaries]
+        topic_keywords: [复盘, 事后照护, aftercare]
+      - key: restraint
+        name: 身体束缚
+        aliases: [捆绑, 绳缚]
+        related: [blindfold, controlled, safety_boundaries]
+        topic_tags: [捆绑, 绳缚]
+        topic_keywords: [捆绑, 绳缚, 束缚]
+      - key: blindfold
+        name: 眼罩
+        related: [restraint, controlled]
+        topic_keywords: [眼罩, 蒙眼]
+      - key: special_clothing
+        name: 特殊服饰
+        related: [scenario, shame]
+        topic_keywords: [服饰, 制服]
+      - key: group_interaction
+        name: 多人互动
+        related: [group_discussion, game_interaction, safety_boundaries]
+        topic_keywords: [多人, 群体实践]
+
+  - key: tools
+    name: 工具偏好
+    description: 只用于兴趣发现；具体使用必须建立在成年、同意和安全沟通之上。
+    interests:
+      - key: hand
+        name: 徒手
+        related: [soft_tool, leather_tool]
+        topic_keywords: [徒手, 手掌]
+      - key: leather_tool
+        name: 皮具
+        related: [hand, soft_tool, ruler]
+        topic_keywords: [皮具, 皮拍]
+      - key: ruler
+        name: 戒尺
+        related: [leather_tool, light_paddle]
+        topic_keywords: [戒尺]
+      - key: light_paddle
+        name: 轻板
+        related: [ruler, heavy_paddle]
+        topic_keywords: [轻板, 小板]
+      - key: heavy_paddle
+        name: 重板
+        related: [light_paddle, cane]
+        topic_keywords: [重板, 大板]
+      - key: cane
+        name: 藤条
+        related: [heavy_paddle, ruler]
+        topic_keywords: [藤条]
+      - key: soft_tool
+        name: 软质工具
+        related: [hand, leather_tool]
+        topic_keywords: [软质工具, 橡胶]
+
+  - key: focus_area
+    name: 关注部位
+    description: 帮助查找对应经验；不表示对任何具体行为的同意。
+    interests:
+      - key: buttocks
+        name: 臀部
+        related: [back_thigh, front_thigh]
+        topic_keywords: [臀部, 屁股]
+      - key: back_thigh
+        name: 大腿后侧
+        related: [buttocks, front_thigh]
+        topic_keywords: [大腿后侧, 大腿背面]
+      - key: front_thigh
+        name: 大腿前侧
+        related: [back_thigh, buttocks]
+        topic_keywords: [大腿前侧, 大腿正面]
+      - key: palm
+        name: 手心
+        related: [sole]
+        topic_keywords: [手心]
+      - key: sole
+        name: 脚心
+        related: [palm]
+        topic_keywords: [脚心]
+
+  - key: content_interest
+    name: 内容兴趣
+    description: 选择你更想在论坛里阅读或参与的内容。
+    interests:
+      - key: beginner
+        name: 新手入门
+        related: [safety_boundaries, practice_story, online_exchange]
+        topic_query_tags: [spank]
+        topic_keywords: [新手, 入门, 入圈, 第一步]
+      - key: practice_story
+        name: 实践分享
+        related: [pure_practice, beginner, debrief]
+        topic_query_tags: [spank]
+        topic_keywords: [实践, 复盘, 经历]
+      - key: diy
+        name: DIY交流
+        related: [beginner, hand, soft_tool]
+        topic_query_tags: [spank]
+        topic_keywords: [diy, 自助]
+      - key: fiction
+        name: 小说故事
+        aliases: [小说]
+        related: [scenario, game_creation]
+        topic_tags: [小说]
+        topic_keywords: [小说, 故事, ai互动]
+      - key: game_creation
+        name: 游戏创作
+        aliases: [sp飞行棋, sp大富翁]
+        related: [game_interaction, fiction]
+        topic_tags: [sp飞行棋, sp大富翁]
+        topic_keywords: [飞行棋, 大富翁, 棋盘, 游戏]
+      - key: academic
+        name: 学术讨论
+        aliases: [学术探讨]
+        related: [safety_boundaries, beginner]
+        topic_tags: [学术探讨]
+        topic_keywords: [学术, 研究, 基础知识]
+      - key: safety_boundaries
+        name: 安全与边界
+        related: [beginner, debrief, rules, safety_feeling]
+        topic_query_tags: [spank]
+        topic_keywords: [安全, 边界, 同意, 安全词, 风险]
+
+  - key: communication_style
+    name: 交流方式
+    description: 表达你希望如何参与社区，不会自动发起联系或邀请。
+    interests:
+      - key: local_exchange
+        name: 同城交流
+        related: [one_to_one_exchange, group_discussion]
+        topic_keywords: [同城, 本地, 交友]
+      - key: online_exchange
+        name: 线上交流
+        related: [one_to_one_exchange, group_discussion, beginner]
+        topic_keywords: [线上, 网调, 网络]
+      - key: one_to_one_exchange
+        name: 一对一交流
+        related: [local_exchange, online_exchange]
+        topic_keywords: [一对一, 搭子]
+      - key: group_discussion
+        name: 社群讨论
+        related: [online_exchange, group_interaction]
+        topic_keywords: [讨论, 交流, 社群]
+      - key: no_practice
+        name: 暂不实践
+        related: [online_exchange, group_discussion, safety_boundaries]
+        topic_keywords: [暂不实践, 只交流, 潜水]

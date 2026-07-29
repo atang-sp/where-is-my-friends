@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.2.2
+# version: 1.3.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0.beta1
@@ -10,6 +10,9 @@
 enabled_site_setting :where_is_my_friends_enabled
 
 register_asset "stylesheets/where-is-my-friends.scss"
+register_seedfu_fixtures(
+  Rails.root.join("plugins/where-is-my-friends/db/fixtures")
+)
 
 require_relative "lib/where_is_my_friends/engine"
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.3.0 — 2026-07-29
+
+- Replace the recent-topic-derived interest list with a plugin-owned catalogue
+  of 56 grouped SP interests.
+- Add catalogue search and raise the selection range from 3–5 to 3–12.
+- Recommend opted-in members from exact, aliased, and related private
+  selections even when they have not posted in a matching topic.
+- Map curated interests to viewer-visible public topics through exact tags,
+  legacy tag aliases, and title keywords.
+- Preserve each member's legacy selections and support up to 20
+  administrator-supplied supplemental tags.
+- Keep related-interest discovery separate from practice consent: invitations
+  still require an exact shared tag and all existing safety gates.
+
 ## 1.2.0 — 2026-07-28
 
 - Add strictly one-to-one practice invitations from recommendations and public-interest profiles.

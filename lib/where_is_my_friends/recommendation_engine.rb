@@ -4,10 +4,13 @@ require "zlib"
 
 module WhereIsMyFriends
   class RecommendationEngine
-    MAX_CATALOGUE = 20
-    MAX_TOPIC_CANDIDATES = 50
+    MAX_CATALOGUE = 100
+    MAX_CUSTOM_INTERESTS = 20
+    MIN_INTERESTS = 3
+    MAX_INTERESTS = 12
+    MAX_TOPIC_CANDIDATES = 100
     MAX_TOPICS = 5
-    MAX_USERS = 3
+    MAX_USERS = 6
     MEMBER_ACTIVE_WINDOW = 90.days
     COMPLEMENTARY_PURPOSES = {
       "learn" => %w[share help],
@@ -31,6 +34,11 @@ module WhereIsMyFriends
       {
         state: profile.state,
         catalogue: catalogue,
+        catalogue_groups: catalogue_groups,
+        selection_limits: {
+          minimum: [MIN_INTERESTS, catalogue.length].min,
+          maximum: MAX_INTERESTS
+        },
         purposes: WhereIsMyFriendsInterestProfile::PURPOSES,
         profile: serialize_profile(profile),
         recommended_topics: recommended_topics(profile),
@@ -41,20 +49,36 @@ module WhereIsMyFriends
     def catalogue
       @catalogue ||=
         begin
-          configured = configured_interest_names
-          tags =
-            if configured.present?
-              visible_interest_tags
-                .where_name(configured)
-                .to_a
-                .sort_by do |tag|
-                  configured.index(tag.name) || configured.length
-                end
-            else
-              tags_from_visible_topics
+          visible_by_name =
+            visible_interest_tags.where(name: InterestCatalogue.names).index_by(
+              &:name
+            )
+          curated =
+            InterestCatalogue.entries.filter_map do |entry|
+              tag = visible_by_name[entry.fetch("name")]
+              serialize_catalogue_tag(tag, entry) if tag
             end
+          curated_ids = curated.pluck(:id)
+          custom_tags =
+            visible_interest_tags
+              .where(
+                id:
+                  current_interest_tag_ids + configured_interest_tags.pluck(:id)
+              )
+              .where.not(id: curated_ids)
+              .to_a
+              .sort_by do |tag|
+                configured_interest_names.index(tag.name) ||
+                  current_interest_tag_ids.index(tag.id) || MAX_CUSTOM_INTERESTS
+              end
+          custom =
+            custom_tags
+              .first(MAX_CUSTOM_INTERESTS)
+              .map do |tag|
+                serialize_catalogue_tag(tag, InterestCatalogue::COMMUNITY_GROUP)
+              end
 
-          tags.first(MAX_CATALOGUE).map { |tag| serialize_tag(tag) }
+          (curated + custom).first(MAX_CATALOGUE)
         end
     end
 
@@ -68,18 +92,31 @@ module WhereIsMyFriends
         .map(&:strip)
         .reject(&:blank?)
         .uniq
-        .first(MAX_CATALOGUE)
+        .first(MAX_CUSTOM_INTERESTS)
     end
 
-    def tags_from_visible_topics
-      topics = TopicQuery.new(@user, per_page: 100).list_latest.topics
-      counts = Hash.new(0)
-      topics.each { |topic| topic.tags.each { |tag| counts[tag.id] += 1 } }
+    def configured_interest_tags
+      @configured_interest_tags ||=
+        visible_interest_tags.where_name(configured_interest_names).to_a
+    end
 
-      visible_interest_tags
-        .where(id: counts.keys)
-        .to_a
-        .sort_by { |tag| [-counts[tag.id], tag.name] }
+    def current_interest_tag_ids
+      @current_interest_tag_ids ||=
+        WhereIsMyFriendsUserInterest.where(user_id: @user.id).pluck(:tag_id)
+    end
+
+    def catalogue_groups
+      present_keys = catalogue.pluck(:group_key)
+      groups =
+        InterestCatalogue.groups.filter_map do |group|
+          if present_keys.include?(group["key"])
+            serialize_catalogue_group(group)
+          end
+        end
+      if present_keys.include?(InterestCatalogue::COMMUNITY_GROUP["key"])
+        groups << serialize_catalogue_group(InterestCatalogue::COMMUNITY_GROUP)
+      end
+      groups
     end
 
     def serialize_profile(profile)
@@ -94,8 +131,7 @@ module WhereIsMyFriends
     end
 
     def recommended_topics(profile)
-      names = interest_names(profile)
-      return [] if names.empty?
+      return [] if profile_interest_tags(profile).empty?
 
       dismissed_ids =
         WhereIsMyFriendsRecommendationDismissal.where(
@@ -103,30 +139,27 @@ module WhereIsMyFriends
           target_type: "topic"
         ).pluck(:target_id)
 
-      topic_candidates(profile)
-        .reject { |topic| dismissed_ids.include?(topic.id) }
+      scored_topic_candidates(profile)
+        .reject { |topic, _matches, _score| dismissed_ids.include?(topic.id) }
         .first(MAX_TOPICS)
-        .map { |topic| serialize_topic(topic, names) }
+        .map { |topic, matches, _score| serialize_topic(topic, matches) }
     end
 
     def recommended_users(profile)
-      topics = topic_candidates(profile)
-      return [] if topics.empty?
+      viewer_tags = profile_interest_tags(profile)
+      return [] if viewer_tags.empty?
 
+      topics = scored_topic_candidates(profile).map(&:first)
       contributions = contribution_topics(topics)
-      eligible_profiles =
+      profile_scope =
         WhereIsMyFriendsInterestProfile
-          .where(
-            user_id: contributions.keys,
-            personalization_enabled: true,
-            recommendable: true
-          )
+          .where(personalization_enabled: true, recommendable: true)
           .where.not(completed_at: nil)
-          .index_by(&:user_id)
+          .where.not(user_id: relationship_exclusions)
       excluded_ids = relationship_exclusions
       users =
         User
-          .where(id: eligible_profiles.keys)
+          .where(id: profile_scope.select(:user_id))
           .activated
           .not_staged
           .not_suspended
@@ -135,6 +168,40 @@ module WhereIsMyFriends
           .where.not(id: excluded_ids)
           .includes(:user_profile, :user_option, :user_stat)
           .select { |candidate| @guardian.can_see_profile?(candidate) }
+      eligible_profiles =
+        profile_scope
+          .where(user_id: users.map(&:id))
+          .includes(:interests)
+          .index_by(&:user_id)
+      interest_ids =
+        eligible_profiles.values.flat_map do |candidate_profile|
+          candidate_profile.interests.map(&:tag_id)
+        end
+      visible_candidate_tags =
+        visible_interest_tags.where(id: interest_ids).index_by(&:id)
+      candidate_matches =
+        users.each_with_object({}) do |candidate, matches|
+          candidate_profile = eligible_profiles.fetch(candidate.id)
+          candidate_names =
+            candidate_profile.interests.filter_map do |interest|
+              visible_candidate_tags[interest.tag_id]&.name
+            end
+          match =
+            InterestCatalogue.match(
+              viewer_names: viewer_tags.map(&:name),
+              candidate_names: candidate_names
+            )
+          contribution_score = [
+            contributions.fetch(candidate.id, []).length,
+            3
+          ].min
+          next if match.score.zero? && contribution_score.zero?
+
+          matches[candidate.id] = {
+            match: match,
+            contribution_score: contribution_score
+          }
+        end
 
       dismissed_ids =
         WhereIsMyFriendsRecommendationDismissal.where(
@@ -142,15 +209,18 @@ module WhereIsMyFriends
           target_type: "user"
         ).pluck(:target_id)
       users
+        .select { |candidate| candidate_matches.key?(candidate.id) }
         .reject { |candidate| dismissed_ids.include?(candidate.id) }
         .sort_by do |candidate|
           candidate_profile = eligible_profiles.fetch(candidate.id)
+          candidate_match = candidate_matches.fetch(candidate.id)
           [
+            -candidate_match.fetch(:match).score,
+            -candidate_match.fetch(:contribution_score),
             -purpose_complement_score(
               profile.purpose,
               candidate_profile.purpose
             ),
-            -[contributions.fetch(candidate.id).length, 3].min,
             -candidate.last_seen_at.to_i,
             diversity_key(candidate.id)
           ]
@@ -159,28 +229,54 @@ module WhereIsMyFriends
         .map do |candidate|
           serialize_user(
             candidate,
-            contributions.fetch(candidate.id),
-            interest_names(profile)
+            contributions.fetch(candidate.id, []),
+            viewer_tags,
+            candidate_matches.fetch(candidate.id).fetch(:match)
           )
         end
     end
 
-    def interest_names(profile)
-      profile_interest_tags(profile).map(&:name)
-    end
+    def scored_topic_candidates(profile)
+      return @scored_topic_candidates if defined?(@scored_topic_candidates)
 
-    def topic_candidates(profile)
-      names = interest_names(profile)
-      return [] if names.empty?
+      selected_tags = profile_interest_tags(profile)
+      if selected_tags.empty?
+        @scored_topic_candidates = []
+        return @scored_topic_candidates
+      end
 
-      @topic_candidates ||=
-        TopicQuery
-          .new(@user, per_page: MAX_TOPIC_CANDIDATES, tags: names)
-          .list_latest
-          .topics
+      query_names =
+        InterestCatalogue.topic_query_names(selected_tags.map(&:name))
+      latest =
+        TopicQuery.new(@user, per_page: MAX_TOPIC_CANDIDATES).list_latest.topics
+      tagged =
+        if query_names.empty?
+          []
+        else
+          TopicQuery
+            .new(@user, per_page: MAX_TOPIC_CANDIDATES, tags: query_names)
+            .list_latest
+            .topics
+        end
+      @scored_topic_candidates =
+        (latest + tagged)
+          .uniq(&:id)
           .reject do |topic|
             relationship_exclusions.include?(topic.user_id) ||
               topic.tags.any? { |tag| muted_tag_ids.include?(tag.id) }
+          end
+          .filter_map do |topic|
+            matches =
+              InterestCatalogue.topic_matches(
+                topic: topic,
+                selected_tags: selected_tags
+              )
+            next if matches.empty?
+
+            [topic, matches, matches.sum(&:last)]
+          end
+          .sort_by do |topic, _matches, score|
+            [-score, -topic.bumped_at.to_i, -topic.like_count.to_i]
           end
     end
 
@@ -265,13 +361,7 @@ module WhereIsMyFriends
       Zlib.crc32("#{@user.id}:#{candidate_id}:#{Date.current.cweek}")
     end
 
-    def serialize_topic(topic, interest_names)
-      matching =
-        topic
-          .tags
-          .select { |tag| interest_names.include?(tag.name) }
-          .map { |tag| serialize_tag(tag) }
-
+    def serialize_topic(topic, matches)
       {
         id: topic.id,
         title: topic.title,
@@ -281,17 +371,28 @@ module WhereIsMyFriends
         posts_count: topic.posts_count,
         like_count: topic.like_count,
         bumped_at: topic.bumped_at,
-        matching_interests: matching
+        matching_interests:
+          matches
+            .sort_by { |_tag, score| -score }
+            .map { |tag, _score| serialize_tag(tag) }
       }
     end
 
-    def serialize_user(candidate, topics, interest_names)
+    def serialize_user(candidate, topics, viewer_tags, match)
       representative_topics = topics.sort_by(&:bumped_at).reverse.first(2)
-      matching_tags =
+      public_reason_tags =
         representative_topics
-          .flat_map(&:tags)
-          .select { |tag| interest_names.include?(tag.name) }
+          .flat_map do |topic|
+            InterestCatalogue.topic_matches(
+              topic: topic,
+              selected_tags: viewer_tags
+            ).map(&:first)
+          end
           .uniq(&:id)
+      private_match_reason_tags =
+        viewer_tags.select { |tag| match.reason_names.include?(tag.name) }
+      reason_tags =
+        (public_reason_tags.presence || private_match_reason_tags).first(3)
       invitation_tags =
         PracticeInvitationEligibility.new(
           sender: @user,
@@ -313,13 +414,36 @@ module WhereIsMyFriends
             .strip
             .truncate(120)
             .presence,
-        reason_interests: matching_tags.map { |tag| serialize_tag(tag) },
+        match_strength:
+          match.score.positive? ? match.strength : "public_activity",
+        reason_interests: reason_tags.map { |tag| serialize_tag(tag) },
         invitation_interests: invitation_tags.map { |tag| serialize_tag(tag) },
         representative_topics:
           representative_topics.map do |topic|
-            serialize_topic(topic, interest_names)
+            serialize_topic(
+              topic,
+              InterestCatalogue.topic_matches(
+                topic: topic,
+                selected_tags: viewer_tags
+              )
+            )
           end
       }
+    end
+
+    def serialize_catalogue_group(group)
+      {
+        key: group.fetch("key"),
+        name: group.fetch("name"),
+        description: group.fetch("description")
+      }
+    end
+
+    def serialize_catalogue_tag(tag, entry)
+      group_key = entry["group_key"] || entry.fetch("key")
+      group_name = entry["group_name"] || entry.fetch("name")
+
+      serialize_tag(tag).merge(group_key: group_key, group_name: group_name)
     end
 
     def serialize_tag(tag)

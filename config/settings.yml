@@ -19,7 +19,7 @@ plugins:
     default: ""
     type: list
     list_type: simple
-    description: "用于兴趣冷启动的标签名称，最多20个；留空时从可见近期话题生成"
+    description: "在插件内置细分兴趣目录之外补充的论坛标签，最多20个"
     category: "where_is_my_friends"
     translated: true
 

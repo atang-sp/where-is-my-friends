@@ -56,7 +56,7 @@ zh_CN:
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
     where_is_my_friends_interest_onboarding_enabled: "启用首次兴趣引导和个性化推荐"
-    where_is_my_friends_interest_tags: "兴趣引导使用的标签名称；留空时从用户可见的近期话题自动生成"
+    where_is_my_friends_interest_tags: "在插件内置细分兴趣目录之外补充的论坛标签，最多 20 个"
     where_is_my_friends_practice_invitations_enabled: "启用严格一对一实践邀请"
     where_is_my_friends_practice_invitation_min_trust_level: "允许发送实践邀请的最低信任等级"
     where_is_my_friends_practice_invitation_daily_limit: "每位成员每天最多发送的实践邀请数"

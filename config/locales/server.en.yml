@@ -56,7 +56,7 @@ en:
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
     where_is_my_friends_interest_onboarding_enabled: "Enable first-use interest onboarding and personalized recommendations"
-    where_is_my_friends_interest_tags: "Tag names used for interest onboarding; leave empty to derive them from recent topics visible to each member"
+    where_is_my_friends_interest_tags: "Up to 20 forum tags to add alongside the plugin's built-in detailed interest catalogue"
     where_is_my_friends_practice_invitations_enabled: "Enable strictly one-to-one practice invitations"
     where_is_my_friends_practice_invitation_min_trust_level: "Minimum trust level required to send practice invitations"
     where_is_my_friends_practice_invitation_daily_limit: "Maximum practice invitations each member can send per day"

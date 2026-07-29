@@ -4,7 +4,9 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 
 ## 核心体验
 
-- 兴趣冷启动：首次或升级后选择 3–5 个兴趣和一个当前目的，立即看到最多 5 个话题和 3 位成员。
+- 细分兴趣目录：从互动类型、强度、角色、感受、附加元素、工具、部位、内容和交流方式中选择 3–12 项，立即看到最多 5 个话题和 6 位成员。
+- 相似兴趣匹配：完全相同的选择优先，也会识别相邻兴趣；参与推荐的成员即使尚未发过相关帖子，也可以互相发现。
+- 相关话题映射：目录由插件维护，不依赖论坛当下有多少标签；已有 `spank`、`训诫`、`小说`、`sp飞行棋` 等标签和公开话题可通过别名、标签及标题关键词关联。
 - 可解释推荐：话题显示匹配兴趣，成员推荐只引用用户可见的公开贡献和代表话题。
 - 一对一实践邀请：从推荐卡或公开兴趣资料页选择共同兴趣，可附建议时间和备注；接受后只创建两人私信。
 - 可控收件箱：收件人可接受、拒绝或忽略邀请，也可在通知设置中完全关闭实践邀请。
@@ -29,6 +31,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 活跃人数低于隐私阈值时不会返回精确总数。
 - 兴趣、使用目的和“不感兴趣”记录默认私密；只有用户主动勾选后，所选兴趣才显示在资料卡。
 - 推荐只使用当前用户原本有权查看的话题；私密分区、静音标签/分区、双方任一方向的忽略或静音关系都会被排除。
+- 成员的私密选择不会作为字段返回；推荐理由只展示查看者自己的匹配兴趣。隐藏帖子不会成为成员推荐证据。
 - 实践邀请必须有当前可验证的共同兴趣，并同时经过信任等级、每日额度、双方忽略/静音、私信白名单与权限和收件人 opt-out 检查；接受时会再次验证通信安全。
 - 每条邀请只有一个发起者和一个收件人；接受时创建的私信只包含这两人。
 - 建议时间按发送者浏览器时区转换为 UTC；邀请保留兴趣名称快照，管理员后续删除标签不会破坏历史。
@@ -47,7 +50,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 bundle exec rake db:migrate
 ```
 
-重启 Discourse 后，在管理后台确认 `where_is_my_friends_enabled`、`where_is_my_friends_interest_onboarding_enabled` 与 `where_is_my_friends_practice_invitations_enabled` 已启用。管理员可配置最多 20 个兴趣标签；留空时会从每位成员可见的近期话题中生成候选。
+重启 Discourse 后，在管理后台确认 `where_is_my_friends_enabled`、`where_is_my_friends_interest_onboarding_enabled` 与 `where_is_my_friends_practice_invitations_enabled` 已启用。插件会安装内置细分兴趣目录；管理员还可额外配置最多 20 个论坛标签。目录关系和话题映射维护在 `config/interest_catalogue.yml`。
 
 若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
 
@@ -59,7 +62,7 @@ bundle exec rake db:migrate
 | --- | --- | --- |
 | `where_is_my_friends_enabled` | `true` | 启用插件 |
 | `where_is_my_friends_interest_onboarding_enabled` | `true` | 启用一次性兴趣冷启动和个性化推荐 |
-| `where_is_my_friends_interest_tags` | 空 | 管理员选择的兴趣标签，最多 20 个；空时从用户可见近期话题生成 |
+| `where_is_my_friends_interest_tags` | 空 | 在内置兴趣目录之外补充的论坛标签，最多 20 个 |
 | `where_is_my_friends_practice_invitations_enabled` | `true` | 启用严格一对一实践邀请 |
 | `where_is_my_friends_practice_invitation_min_trust_level` | `1` | 允许发送邀请的最低信任等级 |
 | `where_is_my_friends_practice_invitation_daily_limit` | `5` | 每位成员每天最多发送的邀请数 |
