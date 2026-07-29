@@ -4,7 +4,9 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 
 ## 核心体验
 
+- 首页常驻社区发现：完成兴趣设置后，话题列表页持续展示 3 个现在值得参与的讨论、3 位拥有共同语境的成员和 2 个兴趣入口；支持换一批和逐项“不感兴趣”。
 - 细分兴趣目录：从互动类型、强度、角色、感受、附加元素、工具、部位、内容和交流方式中选择 3–12 项，立即看到最多 5 个话题和 6 位成员。
+- 可参与性排序：新鲜、未读、回复较少、作者活跃和开放式讨论优先；已回复、长期无人参与以及同一作者集中出现会降权，点赞数只作为最后的同分信号。
 - 相似兴趣匹配：完全相同的选择优先，也会识别相邻兴趣；参与推荐的成员即使尚未发过相关帖子，也可以互相发现。
 - 相关话题映射：目录由插件维护，不依赖论坛当下有多少标签；已有 `spank`、`训诫`、`小说`、`sp飞行棋` 等标签和公开话题可通过别名、标签及标题关键词关联。
 - 可解释推荐：话题显示匹配兴趣，成员推荐只引用用户可见的公开贡献和代表话题。
@@ -18,6 +20,14 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 明确状态：覆盖首次设置、加载、结果、空结果、过期和错误状态。
 - 控制权：用户可更新城市或立即删除位置；位置默认 30 天后由定时任务删除。
 - 隐私统计：只记录白名单事件、位置模式和粗粒度结果桶；事件 90 天后删除。
+
+## 社区发现排序与衡量
+
+`participation_v1` 使用可解释规则作为第一版基线：明确兴趣匹配 32%、最近阅读/点赞/回复行为 18%、可参与性 18%、新鲜度 12%、关系桥接 10%、新成员扶持 5%、相邻探索 5%，再扣除已读、已回复、长期无人参与和同作者集中等惩罚。五个讨论候选采用“3 个高度相关 + 1 个等待回应 + 1 个相邻探索”的混排；缺少某类安全可见候选时才按总分补位。
+
+成员卡展示共同兴趣、最多两篇相关公开内容和当前可用行动；兴趣入口只进入经过标签筛选的公开讨论列表。刷新、打开和“不感兴趣”都不会订阅标签、改变通知级别或绕过现有权限、屏蔽、静音与成员 opt-in 边界。
+
+首页和兴趣页会记录 `surface`、`candidate_source`、`rank_bucket`、`algorithm_version` 与 `result_bucket`。这些事件不保存话题、成员或兴趣目标 ID，也不保存内容。推荐北极星指标是“看过推荐的用户中，七日内产生公开发帖或回复的比例”；同时聚合展示到打开、展示到 24 小时回复及各粗粒度维度的分布。
 
 ## 隐私边界
 
@@ -38,9 +48,9 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 旧意向书签只向原意向所有者返回；迁移、重新确认和历史互选导入都不会自动发送邀请或通知。
 - 只有明确允许“被推荐”且近期活跃的成员才会出现；不会暴露对方的私密兴趣或使用目的。
 - 插件绝不自动订阅标签、分区，也不会改变任何通知级别。
-- 七日公开互动率和首次回复率直接从公开帖子按 onboarding 时间窗聚合；私信、受限分区、内容和目标 ID 均不会进入统计结果。
+- 七日公开互动率和首次回复率直接从公开帖子按 onboarding 或推荐曝光时间窗聚合；私信、受限分区、内容和目标 ID 均不会进入统计结果。
 
-管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据，包括兴趣引导完成率、推荐打开率、七日公开互动率和七日首次回复率。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。
+管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据，包括兴趣引导完成率、曝光用户数、曝光到打开率、曝光到 24 小时回复率、曝光后七日公开互动率，以及按入口、候选来源、排序桶、算法版本和结果数量桶划分的分布。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。
 
 ## 安装与升级
 
@@ -86,7 +96,7 @@ OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的�
 | `POST` | `/where-is-my-friends/locations.json` | 保存城市、GPS 或地图模式 |
 | `GET` | `/where-is-my-friends/locations/nearby.json` | 使用服务端已保存位置查找同城成员 |
 | `DELETE` | `/where-is-my-friends/locations.json` | 删除当前用户位置 |
-| `GET` | `/where-is-my-friends/recommendations.json` | 私密偏好、可见兴趣目录和当前推荐 |
+| `GET` | `/where-is-my-friends/recommendations.json` | 私密偏好、可见兴趣目录、算法版本、讨论/成员推荐和兴趣入口；可传 `refresh` 生成一轮多样性顺序 |
 | `PUT` | `/where-is-my-friends/recommendations/profile.json` | 保存兴趣、目的与隐私选项 |
 | `DELETE` | `/where-is-my-friends/recommendations/profile.json` | 关闭并清空个性化数据 |
 | `POST` | `/where-is-my-friends/recommendations/skip.json` | 跳过一次性引导 |
@@ -100,7 +110,7 @@ OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的�
 | `GET` | `/where-is-my-friends/legacy-practice-bookmarks.json` | 当前用户自己的旧意向书签 |
 | `PUT` | `/where-is-my-friends/legacy-practice-bookmarks/:id/reconfirm.json` | 仅重新确认书签，不发送邀请 |
 | `PUT` | `/where-is-my-friends/legacy-practice-bookmarks/:id/dismiss.json` | 移除旧意向书签 |
-| `POST` | `/where-is-my-friends/events.json` | 写入白名单漏斗事件 |
+| `POST` | `/where-is-my-friends/events.json` | 写入白名单漏斗或无目标 ID 的粗粒度推荐曝光/行动事件 |
 | `GET` | `/where-is-my-friends/debug-stats.json` | 管理员聚合诊断 |
 
 ## 开发和验证
@@ -119,7 +129,7 @@ d/exec bin/lint plugins/where-is-my-friends
 
 ## 主要目录
 
-- `lib/where_is_my_friends/recommendation_engine.rb`：权限安全、可解释的话题与成员推荐。
+- `lib/where_is_my_friends/recommendation_engine.rb`：权限安全、可解释、以参与为目标的话题/成员/兴趣入口推荐。
 - `lib/where_is_my_friends/practice_invitation_eligibility.rb`：共同兴趣、信任、屏蔽、opt-out 和私信权限策略。
 - `app/models/where_is_my_friends_practice_invitation.rb`：严格一对一邀请与接受后的私信引用。
 - `app/models/where_is_my_friends_legacy_practice_bookmark.rb`：仅所有者可见、需要重新确认的迁移书签。

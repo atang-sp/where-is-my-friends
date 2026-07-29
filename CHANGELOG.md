@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.4.0 — 2026-07-30
+
+- Add a persistent homepage Community Discovery panel with three discussions,
+  three members, and two interest entrances, plus refresh and per-card
+  dismissal controls.
+- Rank discussions for participation using explicit interest, recent behavior,
+  reply opportunity, freshness, relationship bridge, new-member, and
+  exploration signals; penalize already-read/replied, stale, and
+  same-author-concentrated results.
+- Reserve the five-topic mix for three high-relevance results, a fresh
+  discussion awaiting a response, and an adjacent-interest exploration when
+  eligible candidates exist.
+- Explain the immediate action on every card and link adjacent exploration
+  back to the selected interest that caused it.
+- Record target-free recommendation impressions and actions by surface,
+  candidate source, rank bucket, algorithm version, and result bucket on both
+  the homepage and interest page.
+- Add aggregate impression-to-open, 24-hour reply, and seven-day public
+  interaction rates, with the latter as the recommendation north-star metric.
+
 ## 1.3.0 — 2026-07-29
 
 - Replace the recent-topic-derived interest list with a plugin-owned catalogue
