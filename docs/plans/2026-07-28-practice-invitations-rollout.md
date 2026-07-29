@@ -51,3 +51,16 @@ the availability request was never made and the form did not open. Version
 1.2.1 declares the route query parameter and passes it explicitly to the
 component. Restart the full release-cycle observation window when 1.2.1 is
 deployed.
+
+For this rollout, one full release cycle means at least 24 continuous hours on
+the same 1.2.1 production build without a container restart. The current window
+started at `2026-07-29T11:47:57Z` (`2026-07-29 19:47:57 +08:00`), so the
+old-plugin removal gate cannot open before `2026-07-30T11:47:57Z`
+(`2026-07-30 19:47:57 +08:00`). Any new invitation regression, migration
+regression, privacy leak, notification error, invalid PM participant set, or
+production rebuild restarts the window.
+
+At the end of the window, repeat the production verification queries, confirm
+that the running commit is still the 1.2.1 release commit, confirm there are no
+plugin-related error log entries, and take a new backup before editing
+`app.yml`.
