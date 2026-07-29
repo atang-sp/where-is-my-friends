@@ -59,187 +59,191 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
     ).to eq(true)
   end
 
-  it "returns a grouped curated catalogue instead of deriving interests from recent topics" do
-    %w[纯实践 惩戒管教 游戏互动].each { |name| Tag.find_by!(name: name) }
-    recent_tag = Fabricate(:tag, name: "偶然出现的话题标签")
-    Fabricate(
-      :topic,
-      user: author,
-      title: "A recent topic should not define the interest catalogue",
-      tags: [recent_tag]
-    )
-    SiteSetting.where_is_my_friends_interest_tags = ""
-
-    get "/where-is-my-friends/recommendations.json"
-
-    expect(response.status).to eq(200)
-    expect(response.parsed_body.fetch("catalogue_groups")).to include(
-      include(
-        "key" => "interaction_style",
-        "name" =>
-          I18n.t(
-            "where_is_my_friends.interest_catalogue.groups.interaction_style.name"
-          ),
-        "description" => be_present
-      )
-    )
-    expect(response.parsed_body.fetch("catalogue")).to include(
-      include(
-        "name" => "纯实践",
-        "group_key" => "interaction_style",
-        "group_name" =>
-          I18n.t(
-            "where_is_my_friends.interest_catalogue.groups.interaction_style.name"
-          )
-      ),
-      include(
-        "name" => "惩戒管教",
-        "group_key" => "interaction_style",
-        "group_name" =>
-          I18n.t(
-            "where_is_my_friends.interest_catalogue.groups.interaction_style.name"
-          )
-      )
-    )
-    expect(
-      response.parsed_body.fetch("catalogue").pluck("name")
-    ).not_to include(recent_tag.name)
-    expect(response.parsed_body.fetch("selection_limits")).to eq(
-      "minimum" => 3,
-      "maximum" => 12
-    )
-  end
-
-  it "recommends related tagged topics with the selected curated interest as the reason" do
-    interaction_tag = Tag.find_by!(name: "游戏互动")
-    beginner_tag = Tag.find_by!(name: "新手入门")
-    safety_tag = Tag.find_by!(name: "安全与边界")
-    legacy_game_tag = Fabricate(:tag, name: "sp飞行棋")
-    topic =
+  describe "#index" do
+    it "returns a grouped curated catalogue instead of deriving interests from recent topics" do
+      %w[纯实践 惩戒管教 游戏互动].each { |name| Tag.find_by!(name: name) }
+      recent_tag = Fabricate(:tag, name: "偶然出现的话题标签")
       Fabricate(
         :topic,
         user: author,
-        title: "SP 飞行棋玩法与创意交流讨论",
-        tags: [legacy_game_tag]
+        title: "A recent topic should not define the interest catalogue",
+        tags: [recent_tag]
       )
-    SiteSetting.where_is_my_friends_interest_tags = ""
+      SiteSetting.where_is_my_friends_interest_tags = ""
 
-    put "/where-is-my-friends/recommendations/profile.json",
-        params: {
-          interest_ids: [interaction_tag.id, beginner_tag.id, safety_tag.id],
-          purpose: "connect",
-          recommendable: true
-        }
+      get "/where-is-my-friends/recommendations.json"
 
-    expect(response.status).to eq(200)
-    recommendation =
-      response
-        .parsed_body
-        .fetch("recommended_topics")
-        .find { |entry| entry["id"] == topic.id }
-    expect(recommendation).to be_present
-    expect(recommendation.fetch("matching_interests")).to include(
-      include("id" => interaction_tag.id, "name" => "游戏互动")
-    )
-  end
-
-  it "retrieves an older topic through a related catalogue tag" do
-    pure_practice_tag = Tag.find_by!(name: "纯实践")
-    light_tag = Tag.find_by!(name: "轻度")
-    safety_tag = Tag.find_by!(name: "安全与边界")
-    discipline_tag = Tag.find_by!(name: "惩戒管教")
-    old_topic =
-      Fabricate(
-        :topic,
-        user: author,
-        title: "An archived neighboring preference discussion",
-        tags: [discipline_tag],
-        created_at: 1.year.ago,
-        bumped_at: 1.year.ago
+      expect(response.status).to eq(200)
+      expect(response.parsed_body.fetch("catalogue_groups")).to include(
+        include(
+          "key" => "interaction_style",
+          "name" =>
+            I18n.t(
+              "where_is_my_friends.interest_catalogue.groups.interaction_style.name"
+            ),
+          "description" => be_present
+        )
       )
-    101.times do |index|
-      Fabricate(
-        :topic,
-        title: "Unrelated recent catalogue filler topic #{index}",
-        created_at: index.seconds.ago,
-        bumped_at: index.seconds.ago
+      expect(response.parsed_body.fetch("catalogue")).to include(
+        include(
+          "name" => "纯实践",
+          "group_key" => "interaction_style",
+          "group_name" =>
+            I18n.t(
+              "where_is_my_friends.interest_catalogue.groups.interaction_style.name"
+            )
+        ),
+        include(
+          "name" => "惩戒管教",
+          "group_key" => "interaction_style",
+          "group_name" =>
+            I18n.t(
+              "where_is_my_friends.interest_catalogue.groups.interaction_style.name"
+            )
+        )
+      )
+      expect(
+        response.parsed_body.fetch("catalogue").pluck("name")
+      ).not_to include(recent_tag.name)
+      expect(response.parsed_body.fetch("selection_limits")).to eq(
+        "minimum" => 3,
+        "maximum" => 12
       )
     end
-    SiteSetting.where_is_my_friends_interest_tags = ""
-
-    put "/where-is-my-friends/recommendations/profile.json",
-        params: {
-          interest_ids: [pure_practice_tag.id, light_tag.id, safety_tag.id],
-          purpose: "browse",
-          recommendable: true
-        }
-
-    expect(response.status).to eq(200)
-    recommendation =
-      response
-        .parsed_body
-        .fetch("recommended_topics")
-        .find { |entry| entry["id"] == old_topic.id }
-    expect(recommendation).to be_present
-    expect(recommendation.fetch("matching_interests")).to include(
-      include("id" => pure_practice_tag.id, "name" => "纯实践")
-    )
   end
 
-  it "recommends opted-in members from exact and related private selections without requiring posts" do
-    pure_practice_tag = Tag.find_by!(name: "纯实践")
-    discipline_tag = Tag.find_by!(name: "惩戒管教")
-    light_tag = Tag.find_by!(name: "轻度")
-    safety_tag = Tag.find_by!(name: "安全与边界")
-    candidate = Fabricate(:user, last_seen_at: 1.day.ago)
-    candidate.change_trust_level!(TrustLevel[1])
-    candidate_profile =
-      WhereIsMyFriendsInterestProfile.create!(
-        user: candidate,
-        purpose: "share",
-        personalization_enabled: true,
-        recommendable: true,
-        show_interests_publicly: false,
-        completed_at: Time.current
-      )
-    [discipline_tag, light_tag, safety_tag].each_with_index do |tag, position|
-      candidate_profile.interests.create!(tag: tag, position: position)
-    end
-    SiteSetting.where_is_my_friends_interest_tags = "纯实践|惩戒管教|轻度|安全与边界"
+  describe "#update_profile" do
+    it "recommends related tagged topics with the selected curated interest as the reason" do
+      interaction_tag = Tag.find_by!(name: "游戏互动")
+      beginner_tag = Tag.find_by!(name: "新手入门")
+      safety_tag = Tag.find_by!(name: "安全与边界")
+      legacy_game_tag = Fabricate(:tag, name: "sp飞行棋")
+      topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "SP 飞行棋玩法与创意交流讨论",
+          tags: [legacy_game_tag]
+        )
+      SiteSetting.where_is_my_friends_interest_tags = ""
 
-    put "/where-is-my-friends/recommendations/profile.json",
-        params: {
-          interest_ids: [pure_practice_tag.id, light_tag.id, safety_tag.id],
-          purpose: "learn",
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [interaction_tag.id, beginner_tag.id, safety_tag.id],
+            purpose: "connect",
+            recommendable: true
+          }
+
+      expect(response.status).to eq(200)
+      recommendation =
+        response
+          .parsed_body
+          .fetch("recommended_topics")
+          .find { |entry| entry["id"] == topic.id }
+      expect(recommendation).to be_present
+      expect(recommendation.fetch("matching_interests")).to include(
+        include("id" => interaction_tag.id, "name" => "游戏互动")
+      )
+    end
+
+    it "retrieves an older topic through a related catalogue tag" do
+      pure_practice_tag = Tag.find_by!(name: "纯实践")
+      light_tag = Tag.find_by!(name: "轻度")
+      safety_tag = Tag.find_by!(name: "安全与边界")
+      discipline_tag = Tag.find_by!(name: "惩戒管教")
+      old_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "An archived neighboring preference discussion",
+          tags: [discipline_tag],
+          created_at: 1.year.ago,
+          bumped_at: 1.year.ago
+        )
+      101.times do |index|
+        Fabricate(
+          :topic,
+          title: "Unrelated recent catalogue filler topic #{index}",
+          created_at: index.seconds.ago,
+          bumped_at: index.seconds.ago
+        )
+      end
+      SiteSetting.where_is_my_friends_interest_tags = ""
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [pure_practice_tag.id, light_tag.id, safety_tag.id],
+            purpose: "browse",
+            recommendable: true
+          }
+
+      expect(response.status).to eq(200)
+      recommendation =
+        response
+          .parsed_body
+          .fetch("recommended_topics")
+          .find { |entry| entry["id"] == old_topic.id }
+      expect(recommendation).to be_present
+      expect(recommendation.fetch("matching_interests")).to include(
+        include("id" => pure_practice_tag.id, "name" => "纯实践")
+      )
+    end
+
+    it "recommends opted-in members from exact and related private selections without requiring posts" do
+      pure_practice_tag = Tag.find_by!(name: "纯实践")
+      discipline_tag = Tag.find_by!(name: "惩戒管教")
+      light_tag = Tag.find_by!(name: "轻度")
+      safety_tag = Tag.find_by!(name: "安全与边界")
+      candidate = Fabricate(:user, last_seen_at: 1.day.ago)
+      candidate.change_trust_level!(TrustLevel[1])
+      candidate_profile =
+        WhereIsMyFriendsInterestProfile.create!(
+          user: candidate,
+          purpose: "share",
+          personalization_enabled: true,
           recommendable: true,
-          show_interests_publicly: false
-        }
+          show_interests_publicly: false,
+          completed_at: Time.current
+        )
+      [discipline_tag, light_tag, safety_tag].each_with_index do |tag, position|
+        candidate_profile.interests.create!(tag: tag, position: position)
+      end
+      SiteSetting.where_is_my_friends_interest_tags = "纯实践|惩戒管教|轻度|安全与边界"
 
-    expect(response.status).to eq(200)
-    recommendation =
-      response
-        .parsed_body
-        .fetch("recommended_users")
-        .find { |entry| entry["id"] == candidate.id }
-    expect(recommendation).to be_present
-    expect(recommendation).to include("match_strength" => "strong")
-    expect(recommendation.fetch("reason_interests")).to include(
-      include("id" => light_tag.id, "name" => "轻度"),
-      include("id" => safety_tag.id, "name" => "安全与边界")
-    )
-    expect(recommendation.keys).not_to include(
-      "purpose",
-      "private_interests",
-      "show_interests_publicly"
-    )
-    expect(recommendation.fetch("representative_topics")).to eq([])
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [pure_practice_tag.id, light_tag.id, safety_tag.id],
+            purpose: "learn",
+            recommendable: true,
+            show_interests_publicly: false
+          }
 
-    sign_in(candidate)
-    get "/where-is-my-friends/recommendations.json"
+      expect(response.status).to eq(200)
+      recommendation =
+        response
+          .parsed_body
+          .fetch("recommended_users")
+          .find { |entry| entry["id"] == candidate.id }
+      expect(recommendation).to be_present
+      expect(recommendation).to include("match_strength" => "strong")
+      expect(recommendation.fetch("reason_interests")).to include(
+        include("id" => light_tag.id, "name" => "轻度"),
+        include("id" => safety_tag.id, "name" => "安全与边界")
+      )
+      expect(recommendation.keys).not_to include(
+        "purpose",
+        "private_interests",
+        "show_interests_publicly"
+      )
+      expect(recommendation.fetch("representative_topics")).to eq([])
 
-    expect(
-      response.parsed_body.fetch("recommended_users").pluck("id")
-    ).to include(user.id)
+      sign_in(candidate)
+      get "/where-is-my-friends/recommendations.json"
+
+      expect(
+        response.parsed_body.fetch("recommended_users").pluck("id")
+      ).to include(user.id)
+    end
   end
 
   it "recommends opted-in contributors without exposing private preferences or ignored users" do
