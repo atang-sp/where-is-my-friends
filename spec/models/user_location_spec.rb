@@ -43,8 +43,7 @@ RSpec.describe UserLocation do
         original_joined_at
       )
 
-      changed_city =
-        described_class.upsert_city_location(user.id, city: "苏州")
+      changed_city = described_class.upsert_city_location(user.id, city: "苏州")
       expect(changed_city.city_joined_at).to be_within(5.seconds).of(
         Time.zone.now
       )

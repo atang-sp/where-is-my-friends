@@ -36,6 +36,7 @@ SiteSetting.where_is_my_friends_interest_tags = "ruby|design|community"
 SiteSetting.where_is_my_friends_enable_virtual_location = true
 SiteSetting.where_is_my_friends_map_provider = "openstreetmap"
 SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 3
+SiteSetting.tagging_enabled = true
 SiteSetting.default_locale = "en"
 SiteSetting.login_required = false
 SiteSetting.tagging_enabled = true
@@ -132,6 +133,28 @@ PostCreator.create!(
   topic_id: first_post.topic_id,
   raw: "I can share a few examples and help people apply these patterns.",
   skip_validations: true
+)
+
+local_topic_title = "Shanghai weekend picnic"
+local_topic_category =
+  Category.find_by(name: "Local Friends E2E") ||
+    Category.create!(
+      name: "Local Friends E2E",
+      slug: "local-friends-e2e",
+      user: Discourse.system_user
+    )
+local_topic =
+  Topic.find_by(title: local_topic_title) ||
+    PostCreator.create!(
+      Discourse.system_user,
+      title: local_topic_title,
+      raw: "A public thread for planning a weekend picnic in Shanghai.",
+      category: local_topic_category.id,
+      tags: [WhereIsMyFriends::LocalTopics.tag_name_for("上海")]
+    ).topic
+DiscourseTagging.add_or_create_tags_by_name(
+  local_topic,
+  [WhereIsMyFriends::LocalTopics.tag_name_for("上海")]
 )
 
 puts "Seeded Local Friends E2E users (password: #{password})"

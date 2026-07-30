@@ -75,7 +75,17 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(page.locator("[data-test-participant-proof]")).toHaveText(
       "3 members across 2 cities have joined local discovery"
     );
-    await expect(page.locator("#where-is-my-friends-city-suggestions option")).toHaveCount(2);
+    await expect(page.locator("[data-test-city-directory-active]")).toBeVisible();
+    const citySuggestions = page.locator(
+      "#where-is-my-friends-city-suggestions option"
+    );
+    expect(await citySuggestions.count()).toBeGreaterThan(2);
+    await expect(
+      page.locator("#where-is-my-friends-city-suggestions option[value='上海']")
+    ).toHaveCount(1);
+    await expect(
+      page.locator("#where-is-my-friends-city-suggestions option[value='杭州']")
+    ).toHaveCount(1);
     await expect(page.locator("[data-test-region-field]")).toHaveCount(0);
     await page.locator("[data-test-toggle-region]").click();
     await expect(page.locator("[data-test-region-field]")).toBeVisible();
@@ -87,7 +97,13 @@ test.describe.serial("Local Friends against real Discourse", () => {
   }) => {
     await openDiscovery(context, page, "admin");
     await page.locator("[data-test-city-input]").fill("上海");
-    await page.locator("[data-test-save-city]").click();
+    await page.locator("[data-test-preview-city]").click();
+    await expect(page.locator("[data-test-city-network-preview]")).toContainText(
+      "Shanghai weekend picnic"
+    );
+    await expect(page.locator("[data-test-join-notify-city]")).toBeChecked();
+    await expect(page.locator("[data-test-join-notify-nearby]")).toBeChecked();
+    await page.locator("[data-test-join-city]").click();
 
     await expect(
       page.locator("[data-test-user-card='shanghai_one']")
@@ -98,23 +114,32 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(page.locator("[data-test-find-nearby]")).toHaveCount(0);
   });
 
-  test("an empty city offers a local topic path", async ({ context, page }) => {
+  test("a cold city expands to nearby regional members", async ({
+    context,
+    page,
+  }) => {
     await openDiscovery(context, page, "empty_city");
-    await expect(page.locator("[data-test-empty-state]")).toBeVisible();
-    await context.grantPermissions(["clipboard-read", "clipboard-write"], {
-      origin: "http://127.0.0.1:3000",
-    });
-    await page.locator("[data-test-copy-invite]").click();
-    await expect(page.locator("[data-test-invite-feedback]")).toHaveText(
-      "Invite link copied to your clipboard"
+    await expect(page.locator("[data-test-expanded-radius]")).toHaveText(
+      "No members within 100 km — expanded to 200 km"
     );
+    await expect(page.locator("[data-test-results-summary]")).toHaveText(
+      "3 members within 200 km of 杭州"
+    );
+    await expect(page.locator("[data-test-city-group='上海']")).toBeVisible();
+    await expect(page.locator("[data-test-user-card]")).toHaveCount(3);
     const localTopics = page.locator("[data-test-local-topics]");
-    await expect(localTopics).toHaveAttribute("href", /\/search\?q=/);
+    await expect(localTopics).toHaveAttribute(
+      "href",
+      "/new-topic?tags=local-city-%E6%9D%AD%E5%B7%9E"
+    );
     await localTopics.click();
-    await expect(page).toHaveURL(/\/search\?q=/);
+    await expect(page.locator(".composer-fields")).toBeVisible();
   });
 
-  test("profile and private-message actions work", async ({ context, page }) => {
+  test("profile and secondary connection actions work", async ({
+    context,
+    page,
+  }) => {
     await openDiscovery(context, page, "shanghai_one");
     const profile = page.locator("[data-test-profile-link='shanghai_two']");
     const message = page.locator("[data-test-message-link='shanghai_two']");
@@ -122,10 +147,14 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(page.locator("[data-test-results-summary]")).toHaveText(
       "2 members within 100 km of 上海"
     );
-    await expect(page.locator("[data-test-local-topics]")).toHaveAttribute(
+    await expect(page.locator("[data-test-compose-local-topic]")).toHaveAttribute(
       "href",
-      "/search?q=%E4%B8%8A%E6%B5%B7"
+      "/new-topic?tags=local-city-%E4%B8%8A%E6%B5%B7"
     );
+    await expect(page.locator("[data-test-local-topic]")).toContainText(
+      "Shanghai weekend picnic"
+    );
+    await expect(page.locator("[data-test-safety-tip]")).toBeVisible();
     const locationSettings = page.locator("[data-test-location-settings]");
     await expect(locationSettings).not.toHaveAttribute("open", "");
     await page.locator("[data-test-location-settings-toggle]").click();

@@ -3,12 +3,18 @@
 class WhereIsMyFriendsEvent < ActiveRecord::Base
   EVENT_NAMES = %w[
     page_view
+    directory_viewed
     setup_started
+    city_previewed
+    radius_confirmed
     location_saved
     results_viewed
     profile_clicked
     message_started
     local_topics_clicked
+    local_topic_opened
+    local_topic_interacted
+    notification_opened
     location_removed
     interest_prompt_viewed
     interest_onboarding_viewed
@@ -99,6 +105,8 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     messages = users_for(events, "message_started")
     profiles = users_for(events, "profile_clicked")
     local_topics = users_for(events, "local_topics_clicked")
+    local_topic_openers = users_for(events, "local_topic_opened")
+    local_topic_participants = users_for(events, "local_topic_interacted")
     interest_onboarding_viewers =
       users_for(events, "interest_onboarding_viewed")
     interest_onboarding_completers =
@@ -229,7 +237,15 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
       seven_day_first_reply_rate:
         rate(first_repliers.length, interest_onboarding_completers.length),
       seven_day_return_rate:
-        rate(returning_viewers(events).length, viewers.length),
+        rate(returning_viewers(events, within_days: 7).length, viewers.length),
+      thirty_day_return_rate:
+        rate(returning_viewers(events, within_days: 30).length, viewers.length),
+      effective_connection_rate:
+        rate(effective_connections(events).length, completed_setups.length),
+      local_topic_open_rate:
+        rate(local_topic_openers.length, completed_setups.length),
+      local_topic_interaction_rate:
+        rate(local_topic_participants.length, completed_setups.length),
       result_bucket_distribution:
         events
           .select { |event| event.event_name == "results_viewed" }
@@ -261,7 +277,7 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
   end
   private_class_method :users_for_any
 
-  def self.returning_viewers(events)
+  def self.returning_viewers(events, within_days:)
     events
       .select { |event| event.event_name == "page_view" }
       .group_by(&:user_id)
@@ -269,7 +285,7 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
         days = page_views.map { |event| event.created_at.to_date }.uniq.sort
         if days
              .combination(2)
-             .any? { |first, second| (second - first).between?(1, 7) }
+             .any? { |first, second| (second - first).between?(1, within_days) }
           user_id
         end
       end
@@ -336,6 +352,23 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
       .uniq
   end
   private_class_method :users_with_events_after_anchor
+
+  def self.effective_connections(events)
+    actions = %w[message_started local_topic_interacted]
+    events
+      .select { |event| event.event_name == "location_saved" }
+      .group_by(&:user_id)
+      .filter_map do |user_id, setup_events|
+        joined_at = setup_events.min_by(&:created_at).created_at
+        connected =
+          events.any? do |event|
+            event.user_id == user_id && actions.include?(event.event_name) &&
+              event.created_at.between?(joined_at, joined_at + 7.days)
+          end
+        user_id if connected
+      end
+  end
+  private_class_method :effective_connections
 
   def self.rate(numerator, denominator)
     return 0.0 if denominator.zero?

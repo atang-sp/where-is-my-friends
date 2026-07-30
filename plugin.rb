@@ -20,11 +20,15 @@ after_initialize do
   require_relative "lib/where_is_my_friends/interest_visibility"
 
   UserUpdater::OPTION_ATTR.push(:where_is_my_friends_notify_city)
+  UserUpdater::OPTION_ATTR.push(:where_is_my_friends_notify_nearby)
   UserUpdater::OPTION_ATTR.push(
     :where_is_my_friends_accept_practice_invitations
   )
   add_to_serializer(:user_option, :where_is_my_friends_notify_city) do
     object.where_is_my_friends_notify_city
+  end
+  add_to_serializer(:user_option, :where_is_my_friends_notify_nearby) do
+    object.where_is_my_friends_notify_nearby
   end
   add_to_serializer(
     :user_option,
@@ -103,6 +107,17 @@ after_initialize do
   on(:where_is_my_friends_location_saved) do |user|
     badge = Badge.find_by(name: "Local Explorer")
     BadgeGranter.grant(badge, user) if badge&.enabled
+  end
+
+  on(:post_created) do |post|
+    next unless WhereIsMyFriends::LocalTopics.local_topic?(post.topic)
+
+    WhereIsMyFriendsEvent.create!(
+      user_id: post.user_id,
+      event_name: "local_topic_interacted"
+    )
+  rescue ActiveRecord::RecordInvalid
+    # Analytics must never block posting.
   end
 
   # Render the Discourse application for the client route, then mount the JSON API.

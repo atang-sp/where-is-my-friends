@@ -50,7 +50,9 @@ module WhereIsMyFriends
               city: @city,
               locale: user.effective_locale
             ),
-          city: @city
+          city: @city,
+          where_is_my_friends: true,
+          notification_source: "same_city_join"
         }.to_json
       )
     rescue StandardError

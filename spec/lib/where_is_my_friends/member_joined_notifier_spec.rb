@@ -22,6 +22,10 @@ RSpec.describe WhereIsMyFriends::MemberJoinedNotifier do
     )
     expect(data["display_username"]).to eq(joiner.username)
     expect(data["city"]).to eq("上海")
+    expect(data).to include(
+      "where_is_my_friends" => true,
+      "notification_source" => "same_city_join"
+    )
   end
 
   it "skips recipients who disabled city notifications" do

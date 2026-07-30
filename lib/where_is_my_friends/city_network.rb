@@ -24,18 +24,15 @@ module WhereIsMyFriends
 
     def directory(limit: DIRECTORY_SECTION_LIMIT)
       cities =
-        stats_for_keys(nil, exclude_user_id: nil)
-          .values
-          .map { |entry| decorate_city(entry) }
+        stats_for_keys(nil, exclude_user_id: nil).values.map do |entry|
+          decorate_city(entry)
+        end
 
       {
         active:
           cities
             .sort_by do |entry|
-              [
-                -entry[:recent_active_count],
-                rotation_key(entry[:city_key])
-              ]
+              [-entry[:recent_active_count], rotation_key(entry[:city_key])]
             end
             .first(limit),
         growing:
@@ -51,11 +48,7 @@ module WhereIsMyFriends
             .first(limit),
         cities:
           cities.sort_by do |entry|
-            [
-              -entry[:recent_active_count],
-              -entry[:joined_count],
-              entry[:city]
-            ]
+            [-entry[:recent_active_count], -entry[:joined_count], entry[:city]]
           end,
         activity_window_days: (ACTIVE_WINDOW / 1.day).to_i,
         growth_window_days: (GROWTH_WINDOW / 1.day).to_i
@@ -67,16 +60,19 @@ module WhereIsMyFriends
       city_key = UserLocation.normalize_city(requested_city)
       canonical = @city_lookup.centroid_for(city_key).present?
       city_stats = stats_for_keys([city_key], exclude_user_id: exclude_user_id)
-      city_entry = city_stats.fetch(city_key, empty_stats(city_key, requested_city))
+      city_entry =
+        city_stats.fetch(city_key, empty_stats(city_key, requested_city))
 
       radius_options =
         if canonical
           UserLocation::DISCOVERY_RADIUS_OPTIONS_KM.map do |radius_km|
             keys = @city_lookup.city_keys_within_radius(city_key, radius_km)
-            stats = stats_for_keys(keys, exclude_user_id: exclude_user_id).values
+            stats =
+              stats_for_keys(keys, exclude_user_id: exclude_user_id).values
             {
               radius_km: radius_km,
-              recent_active_count: stats.sum { |entry| entry[:recent_active_count] },
+              recent_active_count:
+                stats.sum { |entry| entry[:recent_active_count] },
               joined_count: stats.sum { |entry| entry[:joined_count] },
               city_count: stats.count { |entry| entry[:joined_count].positive? }
             }
@@ -122,9 +118,16 @@ module WhereIsMyFriends
           {
             city: sorted_entries.first.first.city,
             city_key: city_key,
-            distance_band: city_distance_band(origin_city_key, city_key, distance),
+            distance_band:
+              city_distance_band(origin_city_key, city_key, distance),
             approximate_distance_km:
-              city_key == origin_city_key ? nil : approximate_distance(distance),
+              (
+                if city_key == origin_city_key
+                  nil
+                else
+                  approximate_distance(distance)
+                end
+              ),
             recent_active_count: recent_active_count,
             joined_count: sorted_entries.length,
             users: sorted_entries.map(&:last)
@@ -148,10 +151,8 @@ module WhereIsMyFriends
       scope = @scope.joins(:user)
       scope = scope.where(city_key: city_keys) if city_keys
       scope = scope.where.not(user_id: exclude_user_id) if exclude_user_id
-      quoted_active_since =
-        ActiveRecord::Base.connection.quote(@active_since)
-      quoted_growing_since =
-        ActiveRecord::Base.connection.quote(@growing_since)
+      quoted_active_since = ActiveRecord::Base.connection.quote(@active_since)
+      quoted_growing_since = ActiveRecord::Base.connection.quote(@growing_since)
 
       scope
         .select(
@@ -206,7 +207,9 @@ module WhereIsMyFriends
 
       options.max_by do |option|
         [option[:recent_active_count], -option[:radius_km]]
-      end[:radius_km]
+      end[
+        :radius_km
+      ]
     end
 
     def nearby_cities(origin_key, canonical, exclude_user_id:)
@@ -227,11 +230,8 @@ module WhereIsMyFriends
 
           entry.merge(
             region:
-              @city_lookup
-                .centroid_for(entry[:city_key])
-                &.fetch(:region, nil),
-            approximate_distance_km:
-              approximate_distance(distance)
+              @city_lookup.centroid_for(entry[:city_key])&.fetch(:region, nil),
+            approximate_distance_km: approximate_distance(distance)
           )
         end
         .sort_by do |entry|

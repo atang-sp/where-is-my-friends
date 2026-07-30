@@ -1,4 +1,10 @@
-import { click, fillIn, triggerEvent, visit, waitFor } from "@ember/test-helpers";
+import {
+  click,
+  fillIn,
+  triggerEvent,
+  visit,
+  waitFor,
+} from "@ember/test-helpers";
 import { test } from "qunit";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 
@@ -25,7 +31,9 @@ function setupApi(needs, state) {
         return helper.response(422, { errors: [state.saveError] });
       }
 
-      const location = Object.fromEntries(new URLSearchParams(request.requestBody));
+      const location = Object.fromEntries(
+        new URLSearchParams(request.requestBody)
+      );
       state.savedLocations.push(location);
 
       return helper.response({
@@ -59,15 +67,19 @@ function setupApi(needs, state) {
       );
     });
 
-    server.get("/where-is-my-friends/locations/nearby.json", (request) => {
-      if (state.nearbyError) {
-        return helper.response(500, { errors: [] });
-      }
+    server.get(
+      "/where-is-my-friends/locations/nearby.json",
+      (request) => {
+        if (state.nearbyError) {
+          return helper.response(500, { errors: [] });
+        }
 
-      state.nearbyRequests += 1;
-      state.lastNearbyParams = request.queryParams;
-      return helper.response(state.nearby ?? { state: "empty", users: [] });
-    }, state.nearbyDelay);
+        state.nearbyRequests += 1;
+        state.lastNearbyParams = request.queryParams;
+        return helper.response(state.nearby ?? { state: "empty", users: [] });
+      },
+      state.nearbyDelay
+    );
 
     server.delete("/where-is-my-friends/locations.json", () => {
       state.deleteRequests += 1;
@@ -136,6 +148,24 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       location: null,
       active_participants: { suppressed: false, count: 12 },
       city_suggestions: [],
+      city_directory: {
+        active: [
+          {
+            city: "上海",
+            city_key: "上海",
+            recent_active_count: 3,
+            joined_count: 5,
+          },
+        ],
+        growing: [
+          {
+            city: "苏州",
+            city_key: "苏州",
+            recent_active_count: 2,
+            joined_count: 4,
+          },
+        ],
+      },
       settings: {},
     };
 
@@ -145,9 +175,12 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert
       .dom("[data-test-local-friends-callout-proof]")
       .hasText("12 people have joined — are any near you?");
-    assert.dom("[data-test-local-friends-callout-setup]").exists();
-    assert.dom("[data-test-callout-city-input]").exists();
-    assert.dom("[data-test-callout-save-city]").exists();
+    assert
+      .dom("[data-test-callout-city-card='上海']")
+      .includesText("3 active")
+      .includesText("5 joined");
+    assert.dom("[data-test-callout-city-card='苏州']").exists();
+    assert.dom("[data-test-local-friends-callout-setup]").doesNotExist();
   });
 
   test("topic-list callout uses generic proof below the privacy threshold", async function (assert) {
@@ -158,18 +191,40 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .hasText("People in your area are already here");
   });
 
-  test("topic-list callout can save a city inline without leaving the page", async function (assert) {
+  test("topic-list city cards open a no-commitment preview without saving inline", async function (assert) {
+    api.initial = {
+      state: "setup",
+      current_user: { id: 1, username: "current-user" },
+      location: null,
+      active_participants: { suppressed: false, count: 12 },
+      city_suggestions: [],
+      city_directory: {
+        active: [
+          {
+            city: "上海",
+            city_key: "上海",
+            recent_active_count: 3,
+            joined_count: 5,
+          },
+        ],
+        growing: [],
+      },
+      settings: {},
+    };
+
     await visit("/");
 
-    await fillIn("[data-test-callout-city-input]", "上海");
-    await click("[data-test-callout-save-city]");
-
-    assert.strictEqual(api.savedLocations.length, 1);
-    assert.strictEqual(api.savedLocations[0].city, "上海");
     assert
-      .dom("[data-test-local-friends-callout-cta]")
-      .hasText("View all")
-      .hasAttribute("href", "/where-is-my-friends");
+      .dom("[data-test-callout-city-card='上海']")
+      .hasAttribute(
+        "href",
+        "/where-is-my-friends?auto_city=%E4%B8%8A%E6%B5%B7"
+      );
+
+    await click("[data-test-callout-city-card='上海']");
+
+    assert.strictEqual(api.savedLocations.length, 0);
+    assert.dom("[data-test-city-input]").hasValue("上海");
   });
 
   test("returning users can dismiss the topic-list callout with local persistence", async function (assert) {
@@ -177,9 +232,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     await visit("/");
 
-    assert
-      .dom("[data-test-local-friends-callout-cta]")
-      .hasText("View all");
+    assert.dom("[data-test-local-friends-callout-cta]").hasText("View all");
     await click("[data-test-dismiss-local-friends]");
     assert.dom("[data-test-local-friends-callout]").doesNotExist();
 
@@ -309,7 +362,17 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
           joined_count: 3,
         },
       ],
-      local_topics: [],
+      local_topics: [
+        {
+          id: 41,
+          title: "上海周末野餐",
+          url: "/t/shanghai-weekend-picnic/41",
+          posts_count: 4,
+          activity_city: "上海",
+          city_tag: "local-city-上海",
+        },
+      ],
+      local_topic_compose_url: "/new-topic?tags=local-city-%E4%B8%8A%E6%B5%B7",
     };
 
     await visit("/where-is-my-friends");
@@ -338,12 +401,24 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .dom("[data-test-preview-nearby-city='苏州']")
       .includesText("about 90 km")
       .includesText("2 active");
+    assert
+      .dom("[data-test-city-network-preview] [data-test-local-topic='41']")
+      .includesText("上海周末野餐")
+      .hasAttribute("href", "/t/shanghai-weekend-picnic/41");
+    assert
+      .dom("[data-test-city-network-preview] [data-test-compose-local-topic]")
+      .hasAttribute("href", "/new-topic?tags=local-city-%E4%B8%8A%E6%B5%B7");
+    assert.dom("[data-test-join-notify-city]").isChecked();
+    assert.dom("[data-test-join-notify-nearby]").isChecked();
+    await click("[data-test-join-notify-nearby]");
 
     await click("[data-test-join-city]");
 
     assert.strictEqual(api.savedLocations.length, 1);
     assert.strictEqual(api.savedLocations[0].city, "上海");
     assert.strictEqual(api.savedLocations[0].discovery_radius_km, "100");
+    assert.strictEqual(api.savedLocations[0].notify_city, "true");
+    assert.strictEqual(api.savedLocations[0].notify_nearby, "false");
   });
 
   test("editing a saved region keeps the optional field visible", async function (assert) {
@@ -485,7 +560,9 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
   test("GPS upgrades city mode without exposing coordinates in the page", async function (assert) {
     api.initial = readyState();
     setGeolocation((success) =>
-      success({ coords: { latitude: 31.2304, longitude: 121.4737, accuracy: 18 } })
+      success({
+        coords: { latitude: 31.2304, longitude: 121.4737, accuracy: 18 },
+      })
     );
 
     await visit("/where-is-my-friends");
@@ -538,7 +615,9 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert
       .dom("[data-test-results-summary]")
       .hasText("1 member within 100 km of 上海");
-    assert.dom("[data-test-profile-link='alice']").hasAttribute("href", "/u/alice");
+    assert
+      .dom("[data-test-profile-link='alice']")
+      .hasAttribute("href", "/u/alice");
     assert
       .dom("[data-test-profile-link='alice']")
       .doesNotHaveClass("btn-primary");
@@ -551,7 +630,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert
       .dom("[data-test-message-link='alice']")
       .hasAttribute("aria-label", "Send a message to alice")
-      .hasClass("btn-primary");
+      .doesNotHaveClass("btn-primary");
     assert
       .dom("[data-test-local-topics]")
       .hasAttribute("href", "/search?q=%E4%B8%8A%E6%B5%B7");
@@ -565,8 +644,28 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     assert.true(api.events.includes("profile_clicked"));
     assert.true(api.events.includes("message_started"));
-    assert.true(api.events.includes("local_topics_clicked"));
+    assert.true(api.events.includes("local_topic_interacted"));
     assert.dom("[data-test-member-filter]").doesNotExist();
+  });
+
+  test("expanded regional results report the effective radius", async function (assert) {
+    api.initial = readyState();
+    api.nearby = {
+      state: "ready",
+      users: [localUser("alice", "Alice")],
+      expanded_radius: true,
+      original_radius_km: 100,
+      expanded_radius_km: 200,
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert
+      .dom("[data-test-expanded-radius]")
+      .hasText("No members within 100 km — expanded to 200 km");
+    assert
+      .dom("[data-test-results-summary]")
+      .hasText("1 member within 200 km of 上海");
   });
 
   test("filters appear only for ten or more results and filter by name", async function (assert) {
@@ -597,7 +696,9 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     await visit("/where-is-my-friends");
 
-    assert.dom("[data-test-location-settings-toggle]").hasText("Location settings");
+    assert
+      .dom("[data-test-location-settings-toggle]")
+      .hasText("Location settings");
     assert.dom("[data-test-location-settings]").exists();
     assert.dom("[data-test-location-settings]").doesNotHaveAttribute("open");
 
@@ -626,7 +727,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .dom("[data-test-local-topics]")
       .hasAttribute("aria-label", "Browse topics about 上海");
     await triggerEvent("[data-test-local-topics]", "click", { ctrlKey: true });
-    assert.true(api.events.includes("local_topics_clicked"));
+    assert.true(api.events.includes("local_topic_interacted"));
     assert.dom("[data-test-empty-invitation]").exists();
   });
 
@@ -738,23 +839,101 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .hasText("Inactive for more than 90 days");
   });
 
-  test("attribute filters render from filterable_fields and send params on selection", async function (assert) {
-    api.initial = readyState({}, {
-      filterable_fields: [
-        { name: "性别", key: "user_field_3", options: ["男", "女", "其他"] },
-        { name: "属性", key: "user_field_5", options: ["主动", "被动", "双"] },
+  test("results spotlight online and recently active members for quick replies", async function (assert) {
+    api.initial = readyState();
+    const onlineMember = {
+      ...localUser("alice", "Alice"),
+      online: true,
+      activity_status: "online",
+      last_seen_at: new Date().toISOString(),
+    };
+    const activeMember = {
+      ...localUser("carol", "Carol"),
+      online: false,
+      activity_status: "recent",
+      last_seen_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      last_posted_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    };
+    const inactiveMember = {
+      ...localUser("bob", "Bob"),
+      online: false,
+      activity_status: "inactive",
+    };
+    api.nearby = {
+      state: "ready",
+      users: [onlineMember, activeMember, inactiveMember],
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert.dom("[data-test-reply-now]").exists();
+    assert.dom("[data-test-online-count]").hasText("1 online");
+    assert.dom("[data-test-online-user='alice']").includesText("Alice");
+    assert.dom("[data-test-active-user='carol']").includesText("Carol");
+    assert.dom("[data-test-active-user='bob']").doesNotExist();
+    assert
+      .dom("[data-test-quick-message='alice']")
+      .hasAttribute("href", "/chat/new-message?recipients=alice");
+  });
+
+  test("joined results prioritize native local topics inside the selected radius", async function (assert) {
+    api.initial = readyState();
+    api.nearby = {
+      state: "ready",
+      users: [localUser("alice", "Alice")],
+      city_groups: [],
+      local_topics: [
+        {
+          id: 42,
+          title: "苏州周六桌游",
+          url: "/t/suzhou-board-games/42",
+          posts_count: 7,
+          activity_city: "苏州",
+          city_tag: "local-city-苏州",
+        },
       ],
-    });
+      local_topic_compose_url: "/new-topic?tags=local-city-%E4%B8%8A%E6%B5%B7",
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert
+      .dom("[data-test-local-topic='42']")
+      .includesText("苏州周六桌游")
+      .includesText("苏州")
+      .hasAttribute("href", "/t/suzhou-board-games/42");
+    assert
+      .dom("[data-test-compose-local-topic]")
+      .hasAttribute("href", "/new-topic?tags=local-city-%E4%B8%8A%E6%B5%B7");
+    assert
+      .dom("[data-test-message-link='alice']")
+      .doesNotHaveClass("btn-primary");
+  });
+
+  test("attribute filters render from filterable_fields and send params on selection", async function (assert) {
+    api.initial = readyState(
+      {},
+      {
+        filterable_fields: [
+          { name: "性别", key: "user_field_3", options: ["男", "女", "其他"] },
+          {
+            name: "属性",
+            key: "user_field_5",
+            options: ["主动", "被动", "双"],
+          },
+        ],
+      }
+    );
     api.nearby = {
       state: "ready",
       users: [
         {
           ...localUser("alice", "Alice"),
-          custom_fields: { "性别": "女", "属性": "被动" },
+          custom_fields: { 性别: "女", 属性: "被动" },
         },
         {
           ...localUser("bob", "Bob"),
-          custom_fields: { "性别": "男", "属性": "主动" },
+          custom_fields: { 性别: "男", 属性: "主动" },
         },
       ],
     };
@@ -766,28 +945,39 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.dom("[data-test-filter-group='user_field_5']").exists();
 
     assert
-      .dom("[data-test-filter-group='user_field_3'] [data-test-filter-option='all']")
+      .dom(
+        "[data-test-filter-group='user_field_3'] [data-test-filter-option='all']"
+      )
       .hasClass("btn-primary");
 
-    await click("[data-test-filter-group='user_field_3'] [data-test-filter-option='男']");
+    await click(
+      "[data-test-filter-group='user_field_3'] [data-test-filter-option='男']"
+    );
 
     assert.strictEqual(api.nearbyRequests, 2);
     assert.strictEqual(api.lastNearbyParams["filters[user_field_3]"], "男");
 
     assert
-      .dom("[data-test-filter-group='user_field_3'] [data-test-filter-option='男']")
+      .dom(
+        "[data-test-filter-group='user_field_3'] [data-test-filter-option='男']"
+      )
       .hasClass("btn-primary");
     assert
-      .dom("[data-test-filter-group='user_field_3'] [data-test-filter-option='all']")
+      .dom(
+        "[data-test-filter-group='user_field_3'] [data-test-filter-option='all']"
+      )
       .doesNotHaveClass("btn-primary");
   });
 
   test("clicking 'All' clears the filter for that field", async function (assert) {
-    api.initial = readyState({}, {
-      filterable_fields: [
-        { name: "性别", key: "user_field_3", options: ["男", "女"] },
-      ],
-    });
+    api.initial = readyState(
+      {},
+      {
+        filterable_fields: [
+          { name: "性别", key: "user_field_3", options: ["男", "女"] },
+        ],
+      }
+    );
     api.nearby = {
       state: "ready",
       users: [localUser("alice", "Alice")],
@@ -795,34 +985,50 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     await visit("/where-is-my-friends");
 
-    await click("[data-test-filter-group='user_field_3'] [data-test-filter-option='男']");
+    await click(
+      "[data-test-filter-group='user_field_3'] [data-test-filter-option='男']"
+    );
     assert.strictEqual(api.lastNearbyParams["filters[user_field_3]"], "男");
 
-    await click("[data-test-filter-group='user_field_3'] [data-test-filter-option='all']");
+    await click(
+      "[data-test-filter-group='user_field_3'] [data-test-filter-option='all']"
+    );
     assert.strictEqual(api.nearbyRequests, 3);
-    assert.strictEqual(api.lastNearbyParams["filters[user_field_3]"], undefined);
+    assert.strictEqual(
+      api.lastNearbyParams["filters[user_field_3]"],
+      undefined
+    );
   });
 
   test("custom field values are shown on user cards", async function (assert) {
-    api.initial = readyState({}, {
-      filterable_fields: [
-        { name: "性别", key: "user_field_3", options: ["男", "女"] },
-        { name: "属性", key: "user_field_5", options: ["主动", "被动", "双"] },
-      ],
-    });
+    api.initial = readyState(
+      {},
+      {
+        filterable_fields: [
+          { name: "性别", key: "user_field_3", options: ["男", "女"] },
+          {
+            name: "属性",
+            key: "user_field_5",
+            options: ["主动", "被动", "双"],
+          },
+        ],
+      }
+    );
     api.nearby = {
       state: "ready",
       users: [
         {
           ...localUser("alice", "Alice"),
-          custom_fields: { "性别": "女", "属性": "被动" },
+          custom_fields: { 性别: "女", 属性: "被动" },
         },
       ],
     };
 
     await visit("/where-is-my-friends");
 
-    assert.dom("[data-test-user-card='alice'] [data-test-user-attrs]").hasText("女 / 被动");
+    assert
+      .dom("[data-test-user-card='alice'] [data-test-user-attrs]")
+      .hasText("女 / 被动");
   });
 
   test("filter UI is hidden when no filterable fields are configured", async function (assert) {
@@ -844,7 +1050,9 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     await visit("/where-is-my-friends");
 
     assert.dom("[data-test-discovery-radius]").exists();
-    assert.dom("[data-test-discovery-radius-option='100']").hasClass("btn-primary");
+    assert
+      .dom("[data-test-discovery-radius-option='100']")
+      .hasClass("btn-primary");
 
     await click("[data-test-discovery-radius-option='200']");
 

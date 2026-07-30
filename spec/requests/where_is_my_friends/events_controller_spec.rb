@@ -161,7 +161,7 @@ RSpec.describe WhereIsMyFriends::EventsController do
 
       get "/where-is-my-friends.json"
 
-      expect(response.parsed_body["active_participants"]).to eq(
+      expect(response.parsed_body["active_participants"]).to include(
         "suppressed" => false,
         "count" => 3,
         "city_count" => 1

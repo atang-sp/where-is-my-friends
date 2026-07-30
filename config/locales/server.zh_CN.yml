@@ -85,6 +85,7 @@ zh_CN:
       member_joined_description: "也加入了 %{city} 的同城发现"
       profile_location_invite: "你的资料显示你在 %{city}——你知道附近有 %{count} 位论坛成员吗？加入同城朋友，与他们建立连接！"
       monthly_digest: "上个月有 %{count} 位新成员加入了你附近的同城发现"
+      weekly_nearby_digest: "本周附近城市新加入 %{count} 位成员"
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
     where_is_my_friends_interest_onboarding_enabled: "启用首次兴趣引导和个性化推荐"
