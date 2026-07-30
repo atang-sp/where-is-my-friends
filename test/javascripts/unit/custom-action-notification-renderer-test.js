@@ -18,14 +18,12 @@ module("Unit | Local Friends custom action notification renderer", function () {
     const renderer = new Renderer({
       data: {
         action_url: "/where-is-my-friends/interests",
-        message: "where_is_my_friends.practice_invitations.notification_message",
+        message:
+          "where_is_my_friends.practice_invitations.notification_message",
       },
     });
 
-    assert.strictEqual(
-      renderer.linkHref,
-      "/where-is-my-friends/interests"
-    );
+    assert.strictEqual(renderer.linkHref, "/where-is-my-friends/interests");
   });
 
   test("keeps the legacy matching action URL during the overlap release", function (assert) {
@@ -37,6 +35,21 @@ module("Unit | Local Friends custom action notification renderer", function () {
     });
 
     assert.strictEqual(renderer.linkHref, "/practice-matching");
+  });
+
+  test("opens Local Friends for regional digest notifications", function (assert) {
+    const renderer = new Renderer({
+      data: {
+        message: "where_is_my_friends.notification.nearby_weekly",
+        where_is_my_friends: true,
+        notification_source: "nearby_weekly",
+      },
+    });
+
+    assert.strictEqual(
+      renderer.linkHref,
+      "/where-is-my-friends?notification=nearby_weekly"
+    );
   });
 
   test("preserves core link behavior for unrelated custom notifications", function (assert) {

@@ -22,10 +22,7 @@ export default class LocalTopicsPanel extends Component {
         <a
           class="btn btn-primary"
           href={{@actionUrl}}
-          aria-label={{i18n
-            "where_is_my_friends.browse_topics_for"
-            city=@city
-          }}
+          aria-label={{i18n "where_is_my_friends.browse_topics_for" city=@city}}
           data-test-local-topics
           data-test-compose-local-topic
           {{on "click" @onCompose}}

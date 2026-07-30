@@ -5,9 +5,7 @@ const ACTION_MESSAGES = new Set([
   "practice_matching.notification.mutual_match",
 ]);
 
-export default function customActionNotificationRenderer(
-  NotificationTypeBase
-) {
+export default function customActionNotificationRenderer(NotificationTypeBase) {
   return class extends NotificationTypeBase {
     get linkHref() {
       if (
@@ -15,6 +13,14 @@ export default function customActionNotificationRenderer(
         this.notification.data.action_url
       ) {
         return this.notification.data.action_url;
+      }
+
+      if (this.notification.data.where_is_my_friends) {
+        const source =
+          this.notification.data.notification_source ?? "notification";
+        return `/where-is-my-friends?notification=${encodeURIComponent(
+          source
+        )}`;
       }
 
       return super.linkHref;

@@ -25,9 +25,7 @@ export default class LocalFriendsNotifications extends Component {
         data-setting-name="user-where-is-my-friends-notify-nearby"
         class="pref-where-is-my-friends-notify-nearby"
       />
-      {{#if
-        this.siteSettings.where_is_my_friends_practice_invitations_enabled
-      }}
+      {{#if this.siteSettings.where_is_my_friends_practice_invitations_enabled}}
         <PreferenceCheckbox
           @labelKey="where_is_my_friends.practice_invitations.accept_setting"
           @checked={{@outletArgs.model.user_option.where_is_my_friends_accept_practice_invitations}}

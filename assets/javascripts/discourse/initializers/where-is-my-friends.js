@@ -12,12 +12,10 @@ export default {
     }
 
     withPluginApi((api) => {
-      if (siteSettings.where_is_my_friends_practice_invitations_enabled) {
-        api.registerNotificationTypeRenderer(
-          "custom",
-          customActionNotificationRenderer
-        );
-      }
+      api.registerNotificationTypeRenderer(
+        "custom",
+        customActionNotificationRenderer
+      );
 
       api.addCommunitySectionLink({
         name: "where-is-my-friends",
