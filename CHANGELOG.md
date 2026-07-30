@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.5.0 — 2026-07-30
+
+- Add a response-first member lobby that highlights privacy-respecting online
+  members and recently active contributors, with direct chat or message
+  actions.
+- Expand city discovery into a regional network with active and growing city
+  directories, radius previews, city groups, and automatic bounded radius
+  expansion.
+- Add public local-topic recommendations and creation links without exposing
+  precise coordinates or unreadable discussions.
+- Replace the monthly nearby-member digest with an independent weekly nearby
+  notification preference and route those notifications back to Local Friends.
+- Add city-join timestamps, nearby notification preferences, regional
+  engagement metrics, responsive layouts, and request, job, QUnit, and
+  Playwright coverage.
+- Preserve the v1.4 community discovery, interest recommendation, and practice
+  invitation experiences while integrating the regional and activity-focused
+  discovery flow.
+
 ## 1.4.0 — 2026-07-30
 
 - Add a persistent homepage Community Discovery panel with three discussions,

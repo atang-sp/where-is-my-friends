@@ -121,6 +121,25 @@ export default class LocalFriendsCallout extends Component {
     });
   }
 
+  get calloutCities() {
+    const directory = this.data?.city_directory;
+    const seen = new Set();
+    return [...(directory?.active ?? []), ...(directory?.growing ?? [])]
+      .filter((entry) => {
+        const key = entry.city_key ?? entry.city;
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 4)
+      .map((entry) => ({
+        ...entry,
+        url: `/where-is-my-friends?auto_city=${encodeURIComponent(entry.city)}`,
+      }));
+  }
+
   get categoryProof() {
     const participants = this.data?.active_participants;
     if (!participants || participants.suppressed) {
@@ -349,6 +368,24 @@ export default class LocalFriendsCallout extends Component {
                   <span
                     data-test-local-friends-callout-proof
                   >{{this.proof}}</span>
+                  {{#if this.calloutCities.length}}
+                    <div class="where-is-my-friends__city-grid">
+                      {{#each this.calloutCities as |entry|}}
+                        <a
+                          class="where-is-my-friends__city-card"
+                          href={{entry.url}}
+                          data-test-callout-city-card={{entry.city_key}}
+                        >
+                          <strong>{{entry.city}}</strong>
+                          <span>{{i18n
+                              "where_is_my_friends.city_directory_counts"
+                              active=entry.recent_active_count
+                              joined=entry.joined_count
+                            }}</span>
+                        </a>
+                      {{/each}}
+                    </div>
+                  {{/if}}
                 {{/if}}
                 {{#if this.error}}
                   <p
@@ -360,31 +397,33 @@ export default class LocalFriendsCallout extends Component {
                 {{/if}}
               </div>
 
-              <form
-                class="local-friends-callout-banner__setup"
-                data-test-local-friends-callout-setup
-                {{on "submit" this.saveCity}}
-              >
-                <input
-                  type="text"
-                  value={{this.city}}
-                  placeholder={{i18n
-                    "where_is_my_friends.callout_city_placeholder"
-                  }}
-                  autocomplete="address-level2"
-                  aria-label={{i18n "where_is_my_friends.city"}}
-                  data-test-callout-city-input
-                  {{on "input" this.updateCity}}
-                />
-                <DButton
-                  @action={{this.saveCity}}
-                  @label="where_is_my_friends.callout_save_city"
-                  @icon="location-dot"
-                  @disabled={{this.saving}}
-                  class="btn-primary"
-                  data-test-callout-save-city
-                />
-              </form>
+              {{#unless this.calloutCities.length}}
+                <form
+                  class="local-friends-callout-banner__setup"
+                  data-test-local-friends-callout-setup
+                  {{on "submit" this.saveCity}}
+                >
+                  <input
+                    type="text"
+                    value={{this.city}}
+                    placeholder={{i18n
+                      "where_is_my_friends.callout_city_placeholder"
+                    }}
+                    autocomplete="address-level2"
+                    aria-label={{i18n "where_is_my_friends.city"}}
+                    data-test-callout-city-input
+                    {{on "input" this.updateCity}}
+                  />
+                  <DButton
+                    @action={{this.saveCity}}
+                    @label="where_is_my_friends.callout_save_city"
+                    @icon="location-dot"
+                    @disabled={{this.saving}}
+                    class="btn-primary"
+                    data-test-callout-save-city
+                  />
+                </form>
+              {{/unless}}
 
               <DButton
                 @action={{this.dismiss}}

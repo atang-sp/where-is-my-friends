@@ -24,6 +24,20 @@ module WhereIsMyFriends
       @centroids[city_key.to_s]
     end
 
+    def catalogue
+      @catalogue ||=
+        @centroids
+          .map do |city_key, centroid|
+            {
+              city: city_key,
+              city_key: city_key,
+              region: centroid[:region]
+            }.freeze
+          end
+          .sort_by { |entry| [entry[:region].to_s, entry[:city]] }
+          .freeze
+    end
+
     def city_keys_within_radius(origin_key, radius_km)
       key = origin_key.to_s
       origin = centroid_for(key)

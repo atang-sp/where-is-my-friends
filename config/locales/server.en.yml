@@ -85,6 +85,7 @@ en:
       member_joined_description: "also joined local discovery in %{city}"
       profile_location_invite: "Your profile shows you're in %{city} — did you know %{count} forum members are nearby? Join Local Friends to connect with them!"
       monthly_digest: "%{count} new members joined near you last month"
+      weekly_nearby_digest: "%{count} members joined nearby cities this week"
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
     where_is_my_friends_interest_onboarding_enabled: "Enable first-use interest onboarding and personalized recommendations"

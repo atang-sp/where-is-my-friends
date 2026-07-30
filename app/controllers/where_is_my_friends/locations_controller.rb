@@ -21,6 +21,9 @@ module WhereIsMyFriends
                location: location_metadata(location),
                active_participants: active_participants,
                city_suggestions: city_suggestions,
+               city_directory: WhereIsMyFriends::CityNetwork.new.directory,
+               city_catalogue:
+                 WhereIsMyFriends::CityCentroidLookup.instance.catalogue,
                settings: client_settings,
                profile_location: current_user.user_profile&.location.presence,
                new_nearby_count: new_nearby_count(location),
@@ -46,6 +49,7 @@ module WhereIsMyFriends
         UserLocation.find_by(user_id: current_user.id)&.city_key
 
       location = upsert_location!
+      update_notification_preferences!
       enqueue_member_joined_notification(location, previous_city_key)
       DiscourseEvent.trigger(:where_is_my_friends_location_saved, current_user)
 
@@ -57,6 +61,37 @@ module WhereIsMyFriends
       )
     end
 
+    def preview
+      network =
+        WhereIsMyFriends::CityNetwork.new.preview(
+          city: params[:city],
+          exclude_user_id: current_user.id
+        )
+      city = network[:city]
+      local_topics =
+        if city[:canonical]
+          WhereIsMyFriends::LocalTopics.new(
+            user: current_user,
+            city_keys: [city[:city_key]]
+          ).call
+        else
+          []
+        end
+
+      render json:
+               network.merge(
+                 local_topics: local_topics,
+                 local_topic_compose_url:
+                   (
+                     if city[:canonical]
+                       WhereIsMyFriends::LocalTopics.compose_url(
+                         city[:city_key]
+                       )
+                     end
+                   )
+               )
+    end
+
     def nearby
       origin = current_location
       if origin.blank?
@@ -65,10 +100,10 @@ module WhereIsMyFriends
 
       radius = origin.effective_discovery_radius_km
       filters = validated_filters
-      users, expanded = discover_nearby(origin, radius, filters)
+      users, city_groups, expanded = discover_nearby(origin, radius, filters)
 
       if users.empty? && radius < 200
-        users, _ = discover_nearby(origin, 200, filters)
+        users, city_groups, _ = discover_nearby(origin, 200, filters)
         expanded = true if users.any?
       end
 
@@ -84,9 +119,13 @@ module WhereIsMyFriends
                  state: "empty",
                  users: [],
                  nearby_city_count: nearby_city_count
-               }
+               }.merge(local_topic_snapshot(origin, radius))
       else
-        result = { state: "ready", users: users }
+        result = {
+          state: "ready",
+          users: users,
+          city_groups: city_groups
+        }.merge(local_topic_snapshot(origin, radius))
         if expanded
           result[:expanded_radius] = true
           result[:original_radius_km] = radius
@@ -134,7 +173,7 @@ module WhereIsMyFriends
           .active_for_discovery
           .where(city_key: nearby_keys)
           .where.not(user_id: current_user.id)
-          .includes(user: :user_profile)
+          .includes(user: %i[user_option user_profile])
           .joins(:user)
 
       filters.each_with_index do |(key, value), index|
@@ -156,7 +195,7 @@ module WhereIsMyFriends
       locations =
         locations.order(
           Arel.sql(
-            "CASE WHEN user_locations.updated_at > #{ActiveRecord::Base.connection.quote(7.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST"
+            "CASE WHEN users.last_seen_at >= #{ActiveRecord::Base.connection.quote(90.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST"
           )
         ).limit(
           UserLocation.discovery_limit(
@@ -180,11 +219,35 @@ module WhereIsMyFriends
           )
         end
 
-      [users, false]
+      groups =
+        WhereIsMyFriends::CityNetwork.new.group_members(
+          origin_city_key: origin.city_key,
+          locations: locations,
+          serialized_users: users
+        )
+
+      [users, groups, false]
     end
 
     def current_location
       UserLocation.active_for_discovery.find_by(user_id: current_user.id)
+    end
+
+    def local_topic_snapshot(location, radius)
+      city_keys =
+        WhereIsMyFriends::CityCentroidLookup.instance.city_keys_within_radius(
+          location.city_key,
+          radius
+        )
+      {
+        local_topics:
+          WhereIsMyFriends::LocalTopics.new(
+            user: current_user,
+            city_keys: city_keys
+          ).call,
+        local_topic_compose_url:
+          WhereIsMyFriends::LocalTopics.compose_url(location.city_key)
+      }
     end
 
     def state_for(location)
@@ -242,6 +305,21 @@ module WhereIsMyFriends
       return true if discovery_mode == "city"
 
       existing.precise? && params[:latitude].blank? && params[:longitude].blank?
+    end
+
+    def update_notification_preferences!
+      attributes = {}
+      unless params[:notify_city].nil?
+        attributes[
+          :where_is_my_friends_notify_city
+        ] = ActiveModel::Type::Boolean.new.cast(params[:notify_city])
+      end
+      unless params[:notify_nearby].nil?
+        attributes[
+          :where_is_my_friends_notify_nearby
+        ] = ActiveModel::Type::Boolean.new.cast(params[:notify_nearby])
+      end
+      current_user.user_option.update!(attributes) if attributes.present?
     end
 
     def location_metadata(location)

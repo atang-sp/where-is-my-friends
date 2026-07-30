@@ -74,6 +74,78 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       )
     end
 
+    it "returns active, growing, and complete city directory counts" do
+      sign_in(user)
+      active_shanghai = Fabricate(:user, last_seen_at: 1.day.ago)
+      inactive_shanghai = Fabricate(:user, last_seen_at: 100.days.ago)
+      active_suzhou = Fabricate(:user, last_seen_at: 2.days.ago)
+      active_beijing = Fabricate(:user, last_seen_at: 3.days.ago)
+
+      [
+        [active_shanghai, "上海", 2.days.ago],
+        [inactive_shanghai, "上海市", 2.days.ago],
+        [active_suzhou, "苏州", 1.day.ago],
+        [active_beijing, "北京", 40.days.ago]
+      ].each do |member, city, joined_at|
+        location = UserLocation.upsert_city_location(member.id, city: city)
+        location.update_columns(
+          created_at: joined_at,
+          updated_at: joined_at,
+          city_joined_at: joined_at
+        )
+      end
+
+      get "/where-is-my-friends.json"
+
+      directory = response.parsed_body.fetch("city_directory")
+      shanghai =
+        directory.fetch("cities").find { |entry| entry["city_key"] == "上海" }
+      expect(shanghai).to include(
+        "city" => "上海",
+        "recent_active_count" => 1,
+        "joined_count" => 2
+      )
+      expect(directory.fetch("cities").pluck("city_key")).to contain_exactly(
+        "上海",
+        "苏州",
+        "北京"
+      )
+      expect(directory.fetch("active").pluck("city_key")).to include(
+        "上海",
+        "苏州",
+        "北京"
+      )
+      expect(directory.fetch("growing").pluck("city_key")).to include(
+        "上海",
+        "苏州"
+      )
+      expect(directory.fetch("growing").pluck("city_key")).not_to include("北京")
+      expect(directory["activity_window_days"]).to eq(90)
+    end
+
+    it "exposes a coordinate-free canonical city catalogue" do
+      sign_in(user)
+
+      get "/where-is-my-friends.json"
+
+      shanghai =
+        response
+          .parsed_body
+          .fetch("city_catalogue")
+          .find { |entry| entry["city_key"] == "上海" }
+      expect(shanghai).to eq(
+        "city" => "上海",
+        "city_key" => "上海",
+        "region" => "上海"
+      )
+      expect(response.body).not_to include(
+        "lat",
+        "lng",
+        "latitude",
+        "longitude"
+      )
+    end
+
     it "exposes aggregate privacy threshold in client settings" do
       SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 5
       sign_in(user)
@@ -102,6 +174,89 @@ RSpec.describe WhereIsMyFriends::LocationsController do
     end
   end
 
+  describe "GET /where-is-my-friends/cities/preview.json" do
+    it "previews network density without joining and recommends the smallest useful radius" do
+      sign_in(user)
+      shanghai_member = Fabricate(:user, last_seen_at: 1.day.ago)
+      UserLocation.upsert_city_location(shanghai_member.id, city: "上海")
+      2.times do
+        suzhou_member = Fabricate(:user, last_seen_at: 2.days.ago)
+        UserLocation.upsert_city_location(suzhou_member.id, city: "苏州")
+      end
+
+      get "/where-is-my-friends/cities/preview.json", params: { city: "上海市" }
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body.fetch("city")).to include(
+        "city" => "上海",
+        "city_key" => "上海",
+        "canonical" => true,
+        "recent_active_count" => 1,
+        "joined_count" => 1
+      )
+      expect(
+        response
+          .parsed_body
+          .fetch("radius_options")
+          .map { |option| [option["radius_km"], option["recent_active_count"]] }
+      ).to eq([[50, 1], [100, 3], [200, 3]])
+      expect(response.parsed_body["recommended_radius_km"]).to eq(100)
+      expect(response.parsed_body.fetch("nearby_cities").first).to include(
+        "city" => "苏州",
+        "recent_active_count" => 2,
+        "joined_count" => 2
+      )
+      expect(UserLocation.find_by(user_id: user.id)).to be_nil
+      expect(response.body).not_to include(
+        "latitude",
+        "longitude",
+        "location_accuracy"
+      )
+    end
+
+    it "returns readable native topics for the previewed activity-city tag" do
+      SiteSetting.tagging_enabled = true
+      sign_in(user)
+      city_tag = Fabricate(:tag, name: "local-city-上海")
+      local_topic =
+        Fabricate(:topic, title: "Shanghai weekend picnic", tags: [city_tag])
+
+      get "/where-is-my-friends/cities/preview.json", params: { city: "上海" }
+
+      expect(response.parsed_body.fetch("local_topics").first).to include(
+        "id" => local_topic.id,
+        "title" => "Shanghai weekend picnic",
+        "url" => local_topic.relative_url,
+        "activity_city" => "上海",
+        "city_tag" => "local-city-上海"
+      )
+      expect(response.parsed_body.fetch("local_topic_compose_url")).to include(
+        "tags=local-city-%E4%B8%8A%E6%B5%B7"
+      )
+    end
+
+    it "marks unknown cities unverified without claiming radius matches" do
+      sign_in(user)
+
+      get "/where-is-my-friends/cities/preview.json",
+          params: {
+            city: "A Small Unmapped Place"
+          }
+
+      expect(response.parsed_body.fetch("city")).to include(
+        "canonical" => false,
+        "recent_active_count" => 0,
+        "joined_count" => 0
+      )
+      expect(response.parsed_body).to include(
+        "radius_options" => [],
+        "recommended_radius_km" => nil,
+        "nearby_cities" => [],
+        "local_topics" => []
+      )
+    end
+  end
+
   describe "POST /where-is-my-friends/locations.json" do
     before { sign_in(user) }
 
@@ -123,6 +278,21 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "latitude",
         "longitude",
         "location_accuracy"
+      )
+    end
+
+    it "persists the two independent join notification choices" do
+      post "/where-is-my-friends/locations.json",
+           params: {
+             city: "上海",
+             notify_city: false,
+             notify_nearby: true
+           }
+
+      expect(response.status).to eq(200)
+      expect(user.user_option.reload).to have_attributes(
+        where_is_my_friends_notify_city: false,
+        where_is_my_friends_notify_nearby: true
       )
     end
 
@@ -218,7 +388,10 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "distance_band",
         "message_url",
         "is_recent",
+        "online",
+        "activity_status",
         "last_seen_at",
+        "last_posted_at",
         "bio_excerpt",
         "custom_fields"
       )
@@ -229,6 +402,32 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "location_accuracy",
         "secret_token",
         "must-not-leak"
+      )
+    end
+
+    it "marks recently seen members online unless they hide presence" do
+      UserLocation.upsert_city_location(user.id, city: "上海")
+      visible_online = Fabricate(:user, last_seen_at: 2.minutes.ago)
+      hidden_online = Fabricate(:user, last_seen_at: 1.minute.ago)
+      hidden_online.user_option.update!(hide_presence: true)
+      UserLocation.upsert_city_location(visible_online.id, city: "上海")
+      UserLocation.upsert_city_location(hidden_online.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      members =
+        response
+          .parsed_body
+          .fetch("users")
+          .index_by { |entry| entry.fetch("username") }
+      expect(members.fetch(visible_online.username)).to include(
+        "online" => true,
+        "activity_status" => "online"
+      )
+      expect(members.fetch(hidden_online.username)).to include(
+        "online" => false,
+        "activity_status" => "recent",
+        "last_seen_at" => nil
       )
     end
 
@@ -285,7 +484,78 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       expect(bands[nearby_city.username]["distance_band"]).to eq("moderate")
     end
 
-    it "respects a tighter discovery radius" do
+    it "groups members by distance-ordered city and marks inactive profiles" do
+      UserLocation.upsert_city_location(
+        user.id,
+        city: "上海",
+        discovery_radius_km: 200
+      )
+      active_same_city = Fabricate(:user, last_seen_at: 1.day.ago)
+      UserLocation.upsert_city_location(active_same_city.id, city: "上海")
+      inactive_same_city = Fabricate(:user, last_seen_at: 100.days.ago)
+      UserLocation.upsert_city_location(inactive_same_city.id, city: "上海市")
+      active_nearby = Fabricate(:user, last_seen_at: 2.days.ago)
+      UserLocation.upsert_city_location(active_nearby.id, city: "苏州")
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      groups = response.parsed_body.fetch("city_groups")
+      expect(groups.pluck("city_key")).to eq(%w[上海 苏州])
+      expect(groups.first).to include(
+        "city" => "上海",
+        "distance_band" => "same_city",
+        "recent_active_count" => 1,
+        "joined_count" => 2
+      )
+      expect(groups.first.fetch("users").pluck("username")).to eq(
+        [active_same_city.username, inactive_same_city.username]
+      )
+      expect(groups.first.fetch("users").pluck("activity_status")).to eq(
+        %w[recent inactive]
+      )
+      expect(groups.second).to include(
+        "city" => "苏州",
+        "recent_active_count" => 1,
+        "joined_count" => 1
+      )
+      expect(groups.second["approximate_distance_km"]).to be_between(10, 200)
+    end
+
+    it "aggregates readable local topics across the selected city radius" do
+      SiteSetting.tagging_enabled = true
+      UserLocation.upsert_city_location(
+        user.id,
+        city: "上海",
+        discovery_radius_km: 100
+      )
+      shanghai_tag = Fabricate(:tag, name: "local-city-上海")
+      suzhou_tag = Fabricate(:tag, name: "local-city-苏州")
+      beijing_tag = Fabricate(:tag, name: "local-city-北京")
+      ambiguous_topic =
+        Fabricate(
+          :topic,
+          title: "Ambiguous activity",
+          tags: [shanghai_tag, suzhou_tag]
+        )
+      shanghai_topic =
+        Fabricate(:topic, title: "Shanghai activity", tags: [shanghai_tag])
+      suzhou_topic =
+        Fabricate(:topic, title: "Suzhou activity", tags: [suzhou_tag])
+      Fabricate(:topic, title: "Beijing activity", tags: [beijing_tag])
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      topics = response.parsed_body.fetch("local_topics")
+      expect(topics.pluck("id")).to contain_exactly(
+        shanghai_topic.id,
+        suzhou_topic.id
+      )
+      expect(topics.pluck("id")).not_to include(ambiguous_topic.id)
+      expect(topics.pluck("activity_city")).to contain_exactly("上海", "苏州")
+      expect(response.body).not_to include("Beijing activity")
+    end
+
+    it "expands a tighter discovery radius when it would otherwise be empty" do
       UserLocation.upsert_city_location(
         user.id,
         city: "上海",

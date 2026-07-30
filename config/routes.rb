@@ -2,6 +2,7 @@
 
 WhereIsMyFriends::Engine.routes.draw do
   get "/" => "locations#index"
+  get "/cities/preview" => "locations#preview"
   post "/locations" => "locations#create"
   get "/locations/nearby" => "locations#nearby"
   delete "/locations" => "locations#destroy"

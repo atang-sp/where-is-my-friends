@@ -6,6 +6,12 @@ RSpec.describe WhereIsMyFriendsEvent do
   it "accepts only the approved privacy-safe funnel events" do
     approved_names = %w[
       page_view
+      directory_viewed
+      city_previewed
+      radius_confirmed
+      local_topic_opened
+      local_topic_interacted
+      notification_opened
       interest_prompt_viewed
       interest_onboarding_viewed
       interest_onboarding_completed
@@ -110,6 +116,8 @@ RSpec.describe WhereIsMyFriendsEvent do
       seven_day_public_interaction_rate: 0.0,
       seven_day_first_reply_rate: 0.0,
       seven_day_return_rate: 0.5,
+      thirty_day_return_rate: 0.5,
+      effective_connection_rate: 1.0,
       result_bucket_distribution: {
         "one_to_four" => 1
       }
@@ -268,5 +276,39 @@ RSpec.describe WhereIsMyFriendsEvent do
     expect(described_class.aggregate(since: 30.days.ago)).to include(
       recommendation_open_rate: 1.0
     )
+  end
+
+  it "counts only messages or local-topic interactions within seven days of joining" do
+    freeze_time(Time.zone.parse("2026-07-01 12:00:00"))
+    messager = Fabricate(:user)
+    topic_participant = Fabricate(:user)
+    late_user = Fabricate(:user)
+
+    [messager, topic_participant, late_user].each do |member|
+      described_class.create!(
+        user: member,
+        event_name: "location_saved",
+        location_mode: "city"
+      )
+    end
+    described_class.create!(
+      user: messager,
+      event_name: "message_started",
+      created_at: 6.days.from_now
+    )
+    described_class.create!(
+      user: topic_participant,
+      event_name: "local_topic_interacted",
+      created_at: 2.days.from_now
+    )
+    described_class.create!(
+      user: late_user,
+      event_name: "message_started",
+      created_at: 8.days.from_now
+    )
+
+    stats = described_class.aggregate(since: 30.days.ago)
+
+    expect(stats[:effective_connection_rate]).to eq(0.6667)
   end
 end

@@ -26,6 +26,28 @@ RSpec.describe UserLocation do
         enabled: true
       )
     end
+
+    it "changes the city join time only when the member changes city" do
+      user = Fabricate(:user)
+      location = described_class.upsert_city_location(user.id, city: "上海")
+      original_joined_at = 40.days.ago.change(usec: 0)
+      location.update_column(:city_joined_at, original_joined_at)
+
+      same_city =
+        described_class.upsert_city_location(
+          user.id,
+          city: "上海市",
+          discovery_radius_km: 200
+        )
+      expect(same_city.city_joined_at).to be_within(1.second).of(
+        original_joined_at
+      )
+
+      changed_city = described_class.upsert_city_location(user.id, city: "苏州")
+      expect(changed_city.city_joined_at).to be_within(5.seconds).of(
+        Time.zone.now
+      )
+    end
   end
 
   describe ".upsert_precise_location" do

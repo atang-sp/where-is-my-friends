@@ -1,6 +1,6 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { fn, hash } from "@ember/helper";
+import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
@@ -15,12 +15,14 @@ import dAvatar from "discourse/ui-kit/helpers/d-avatar";
 import { i18n } from "discourse-i18n";
 import { normalizeCityClient } from "../lib/where-is-my-friends-city";
 import { getCurrentPositionAsync } from "../lib/where-is-my-friends-geolocation";
+import LocalTopicsPanel from "./local-topics-panel";
 import LocationModeDialog from "./location-mode-dialog";
 import VirtualLocationPicker from "./virtual-location-picker";
 
 export default class WhereIsMyFriendsPage extends Component {
   @service currentUser;
   @service modal;
+  @service router;
   @service siteSettings;
 
   @tracked city;
@@ -28,6 +30,7 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked location;
   @tracked discoveryState;
   @tracked users = [];
+  @tracked cityGroups = [];
   @tracked loading = false;
   @tracked error = null;
   @tracked gpsFallback = false;
@@ -35,18 +38,24 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked showRegion;
   @tracked inviteFeedback = null;
   @tracked notifyCity;
+  @tracked notifyNearby;
   @tracked nearbyCityCount = 0;
   @tracked expandedRadius = false;
   @tracked originalRadiusKm = null;
   @tracked expandedRadiusKm = null;
   @tracked autoCity = null;
   @tracked activeFilters = {};
+  @tracked networkPreview = null;
+  @tracked previewLoading = false;
+  @tracked selectedPreviewRadius = null;
+  @tracked localTopics = [];
+  @tracked localTopicComposeUrl = null;
 
   constructor() {
     super(...arguments);
-    const autoCity = new URLSearchParams(window.location.search).get(
-      "auto_city"
-    );
+    const autoCity =
+      this.router.currentRoute?.queryParams?.auto_city ??
+      new URLSearchParams(window.location.search).get("auto_city");
     this.city =
       this.args.model.location?.city ??
       autoCity ??
@@ -59,6 +68,8 @@ export default class WhereIsMyFriendsPage extends Component {
     this.discoveryState = this.args.model.state;
     this.notifyCity =
       this.currentUser?.user_option?.where_is_my_friends_notify_city ?? true;
+    this.notifyNearby =
+      this.currentUser?.user_option?.where_is_my_friends_notify_nearby ?? true;
   }
 
   get isSetup() {
@@ -84,9 +95,7 @@ export default class WhereIsMyFriendsPage extends Component {
   }
 
   get chatEnabled() {
-    return (
-      this.siteSettings.chat_enabled && this.currentUser?.has_chat_enabled
-    );
+    return this.siteSettings.chat_enabled && this.currentUser?.has_chat_enabled;
   }
 
   get visibleUsers() {
@@ -121,20 +130,92 @@ export default class WhereIsMyFriendsPage extends Component {
         distance_label:
           (user.distance_band ?? "same_city") === "same_city"
             ? null
-            : i18n(
-                `where_is_my_friends.distance_bands.${user.distance_band}`
-              ),
+            : i18n(`where_is_my_friends.distance_bands.${user.distance_band}`),
         action_url: useChat
           ? `/chat/new-message?recipients=${encodeURIComponent(user.username)}`
           : user.message_url,
         last_active_label: user.last_seen_at
           ? relativeAge(new Date(user.last_seen_at), { format: "tiny" })
           : null,
+        last_posted_label: user.last_posted_at
+          ? relativeAge(new Date(user.last_posted_at), { format: "tiny" })
+          : null,
         custom_field_label: fields
           .map((f) => user.custom_fields?.[f.name])
           .filter(Boolean)
           .join(" / "),
+        inactive: user.activity_status === "inactive",
       }));
+  }
+
+  get onlineUsers() {
+    return this.visibleUsers.filter((user) => user.online).slice(0, 6);
+  }
+
+  get recentlyActiveUsers() {
+    return this.visibleUsers
+      .filter((user) => !user.online && !user.inactive)
+      .sort((a, b) => {
+        const aTime = new Date(
+          a.last_posted_at ?? a.last_seen_at ?? 0
+        ).getTime();
+        const bTime = new Date(
+          b.last_posted_at ?? b.last_seen_at ?? 0
+        ).getTime();
+        return bTime - aTime;
+      })
+      .slice(0, 6);
+  }
+
+  get hasReplyNowUsers() {
+    return this.onlineUsers.length > 0 || this.recentlyActiveUsers.length > 0;
+  }
+
+  get displayCityGroups() {
+    const visibleUsers = new Map(
+      this.visibleUsers.map((user) => [user.username, user])
+    );
+    const groups = this.cityGroups.length
+      ? this.cityGroups
+      : [
+          {
+            city: this.location?.city,
+            city_key: this.location?.city,
+            distance_band: "same_city",
+            approximate_distance_km: null,
+            recent_active_count: this.visibleUsers.filter(
+              (user) => !user.inactive
+            ).length,
+            joined_count: this.visibleUsers.length,
+            users: this.users,
+            synthetic: true,
+          },
+        ];
+
+    return groups
+      .map((group) => {
+        const users = group.users
+          .map((user) => visibleUsers.get(user.username))
+          .filter(Boolean);
+        const sameCity = group.distance_band === "same_city";
+        return {
+          ...group,
+          users,
+          heading_label: sameCity
+            ? i18n("where_is_my_friends.city_group_same", {
+                city: group.city,
+              })
+            : i18n("where_is_my_friends.city_group_nearby", {
+                city: group.city,
+                distance: group.approximate_distance_km,
+              }),
+          counts_label: i18n("where_is_my_friends.city_group_counts", {
+            active: group.recent_active_count,
+            joined: group.joined_count,
+          }),
+        };
+      })
+      .filter((group) => group.users.length > 0);
   }
 
   get resultsSummary() {
@@ -146,7 +227,9 @@ export default class WhereIsMyFriendsPage extends Component {
       {
         city: this.location.city,
         count,
-        radius: this.discoveryRadiusKm,
+        radius: this.expandedRadius
+          ? this.expandedRadiusKm
+          : this.discoveryRadiusKm,
       }
     );
   }
@@ -221,6 +304,48 @@ export default class WhereIsMyFriendsPage extends Component {
     });
   }
 
+  get cityDirectory() {
+    return this.args.model.city_directory ?? null;
+  }
+
+  get hasCityDirectory() {
+    return Boolean(
+      this.cityDirectory?.active?.length || this.cityDirectory?.growing?.length
+    );
+  }
+
+  get cityOptions() {
+    return (
+      this.args.model.city_catalogue ?? this.args.model.city_suggestions ?? []
+    );
+  }
+
+  get previewRadiusButtons() {
+    return (this.networkPreview?.radius_options ?? []).map((option) => ({
+      ...option,
+      selected: option.radius_km === this.selectedPreviewRadius,
+      label: i18n("where_is_my_friends.preview_radius_summary", {
+        radius: option.radius_km,
+        active: option.recent_active_count,
+        joined: option.joined_count,
+      }),
+    }));
+  }
+
+  get previewJoinLabel() {
+    return i18n("where_is_my_friends.join_preview_city", {
+      city: this.networkPreview?.city?.city ?? this.city,
+    });
+  }
+
+  get localTopicActionUrl() {
+    if (this.localTopicComposeUrl) {
+      return this.localTopicComposeUrl;
+    }
+
+    return `/search?q=${encodeURIComponent(this.location?.city ?? "")}`;
+  }
+
   get cityPreview() {
     const input = this.city.trim().toLowerCase();
     if (!input) {
@@ -268,6 +393,13 @@ export default class WhereIsMyFriendsPage extends Component {
   @action
   initialize() {
     void this.recordEvent("page_view");
+    void this.recordEvent("directory_viewed");
+    const notificationSource = new URLSearchParams(window.location.search).get(
+      "notification"
+    );
+    if (notificationSource) {
+      void this.recordEvent("notification_opened");
+    }
     if (this.discoveryState === "ready") {
       void this.loadResults();
     }
@@ -276,6 +408,50 @@ export default class WhereIsMyFriendsPage extends Component {
   @action
   updateCity(event) {
     this.city = event.target.value;
+    this.networkPreview = null;
+    this.selectedPreviewRadius = null;
+  }
+
+  @action
+  previewCurrentCity() {
+    return this.loadCityPreview(this.city);
+  }
+
+  @action
+  previewSuggestedCity(city) {
+    this.city = city;
+    return this.loadCityPreview(city);
+  }
+
+  async loadCityPreview(city) {
+    const requestedCity = city.trim();
+    if (!requestedCity || this.previewLoading) {
+      return;
+    }
+
+    this.previewLoading = true;
+    this.error = null;
+    try {
+      const response = await ajax("/where-is-my-friends/cities/preview.json", {
+        data: { city: requestedCity },
+      });
+      this.networkPreview = response;
+      this.city = response.city?.city ?? requestedCity;
+      this.selectedPreviewRadius =
+        response.recommended_radius_km ??
+        this.args.model.settings?.default_discovery_radius_km ??
+        100;
+      void this.recordEvent("city_previewed");
+    } catch (error) {
+      this.error = this.errorMessage(error);
+    } finally {
+      this.previewLoading = false;
+    }
+  }
+
+  @action
+  selectPreviewRadius(radiusKm) {
+    this.selectedPreviewRadius = radiusKm;
   }
 
   @action
@@ -322,11 +498,16 @@ export default class WhereIsMyFriendsPage extends Component {
           city: this.city.trim(),
           region: this.region.trim(),
           discovery_mode: "city",
-          discovery_radius_km: this.discoveryRadiusKm,
+          discovery_radius_km:
+            this.selectedPreviewRadius ?? this.discoveryRadiusKm,
+          notify_city: this.notifyCity,
+          notify_nearby: this.notifyNearby,
         },
       });
       this.location = response.location;
       this.discoveryState = response.state;
+      this.networkPreview = null;
+      void this.recordEvent("radius_confirmed", { location_mode: "city" });
       void this.recordEvent("location_saved", { location_mode: "city" });
       await this.loadResults();
     } catch (error) {
@@ -350,6 +531,9 @@ export default class WhereIsMyFriendsPage extends Component {
         { data }
       );
       this.users = response.users ?? [];
+      this.cityGroups = response.city_groups ?? [];
+      this.localTopics = response.local_topics ?? [];
+      this.localTopicComposeUrl = response.local_topic_compose_url ?? null;
       this.nearbyCityCount = response.nearby_city_count ?? 0;
       this.expandedRadius = response.expanded_radius ?? false;
       this.originalRadiusKm = response.original_radius_km ?? null;
@@ -460,6 +644,9 @@ export default class WhereIsMyFriendsPage extends Component {
     this.discoveryState = "setup";
     this.showRegion = Boolean(this.region);
     this.users = [];
+    this.cityGroups = [];
+    this.localTopics = [];
+    this.localTopicComposeUrl = null;
     this.memberFilter = "";
     this.activeFilters = {};
     this.gpsFallback = false;
@@ -480,6 +667,9 @@ export default class WhereIsMyFriendsPage extends Component {
       });
       this.location = null;
       this.users = [];
+      this.cityGroups = [];
+      this.localTopics = [];
+      this.localTopicComposeUrl = null;
       this.discoveryState = "setup";
       this.memberFilter = "";
       this.activeFilters = {};
@@ -493,6 +683,20 @@ export default class WhereIsMyFriendsPage extends Component {
   @action
   trackConnection(eventName) {
     void this.recordEvent(eventName, {
+      location_mode: this.location?.discovery_mode ?? "city",
+    });
+  }
+
+  @action
+  trackLocalTopicOpen() {
+    void this.recordEvent("local_topic_opened", {
+      location_mode: this.location?.discovery_mode ?? "city",
+    });
+  }
+
+  @action
+  trackLocalTopicCompose() {
+    void this.recordEvent("local_topic_interacted", {
       location_mode: this.location?.discovery_mode ?? "city",
     });
   }
@@ -537,11 +741,19 @@ export default class WhereIsMyFriendsPage extends Component {
     }
   }
 
+  @action
+  toggleJoinNotifyCity() {
+    this.notifyCity = !this.notifyCity;
+  }
+
+  @action
+  toggleJoinNotifyNearby() {
+    this.notifyNearby = !this.notifyNearby;
+  }
+
   errorMessage(error) {
     const response = error?.jqXHR?.responseJSON ?? error?.responseJSON;
-    return (
-      response?.errors?.[0] ?? i18n("where_is_my_friends.generic_error")
-    );
+    return response?.errors?.[0] ?? i18n("where_is_my_friends.generic_error");
   }
 
   <template>
@@ -570,6 +782,54 @@ export default class WhereIsMyFriendsPage extends Component {
             class="where-is-my-friends__participant-proof"
             data-test-participant-proof
           >{{this.participantProof}}</p>
+          {{#if this.hasCityDirectory}}
+            <div class="where-is-my-friends__directory">
+              {{#if this.cityDirectory.active.length}}
+                <section data-test-city-directory-active>
+                  <h3>{{i18n "where_is_my_friends.active_cities"}}</h3>
+                  <div class="where-is-my-friends__city-grid">
+                    {{#each this.cityDirectory.active as |entry|}}
+                      <button
+                        type="button"
+                        class="where-is-my-friends__city-card"
+                        data-test-city-card={{entry.city_key}}
+                        {{on "click" (fn this.previewSuggestedCity entry.city)}}
+                      >
+                        <strong>{{entry.city}}</strong>
+                        <span>{{i18n
+                            "where_is_my_friends.city_directory_counts"
+                            active=entry.recent_active_count
+                            joined=entry.joined_count
+                          }}</span>
+                      </button>
+                    {{/each}}
+                  </div>
+                </section>
+              {{/if}}
+              {{#if this.cityDirectory.growing.length}}
+                <section data-test-city-directory-growing>
+                  <h3>{{i18n "where_is_my_friends.growing_cities"}}</h3>
+                  <div class="where-is-my-friends__city-grid">
+                    {{#each this.cityDirectory.growing as |entry|}}
+                      <button
+                        type="button"
+                        class="where-is-my-friends__city-card"
+                        data-test-city-card={{entry.city_key}}
+                        {{on "click" (fn this.previewSuggestedCity entry.city)}}
+                      >
+                        <strong>{{entry.city}}</strong>
+                        <span>{{i18n
+                            "where_is_my_friends.city_directory_counts"
+                            active=entry.recent_active_count
+                            joined=entry.joined_count
+                          }}</span>
+                      </button>
+                    {{/each}}
+                  </div>
+                </section>
+              {{/if}}
+            </div>
+          {{/if}}
           <label for="where-is-my-friends-city">{{i18n
               "where_is_my_friends.city"
             }}</label>
@@ -584,7 +844,7 @@ export default class WhereIsMyFriendsPage extends Component {
             {{on "input" this.updateCity}}
           />
           <datalist id="where-is-my-friends-city-suggestions">
-            {{#each @model.city_suggestions as |suggestion|}}
+            {{#each this.cityOptions as |suggestion|}}
               <option value={{suggestion.city}}></option>
             {{/each}}
           </datalist>
@@ -630,14 +890,140 @@ export default class WhereIsMyFriendsPage extends Component {
               data-test-toggle-region
             />
           {{/if}}
-          <DButton
-            @action={{this.saveCity}}
-            @label="where_is_my_friends.save_city"
-            @icon="location-dot"
-            @disabled={{this.loading}}
-            class="btn-primary"
-            data-test-save-city
-          />
+          {{#if this.hasCityDirectory}}
+            <DButton
+              @action={{this.previewCurrentCity}}
+              @label="where_is_my_friends.preview_city"
+              @icon="magnifying-glass-location"
+              @disabled={{this.previewLoading}}
+              class="btn-primary"
+              data-test-preview-city
+            />
+            {{#if this.networkPreview}}
+              <section
+                class="where-is-my-friends__network-preview"
+                data-test-city-network-preview
+              >
+                <h3>{{this.networkPreview.city.city}}</h3>
+                <p>{{i18n
+                    "where_is_my_friends.preview_city_counts"
+                    active=this.networkPreview.city.recent_active_count
+                    joined=this.networkPreview.city.joined_count
+                  }}</p>
+                {{#unless this.networkPreview.city.canonical}}
+                  <p class="alert alert-info">{{i18n
+                      "where_is_my_friends.unverified_city_notice"
+                    }}</p>
+                {{/unless}}
+                {{#if this.previewRadiusButtons.length}}
+                  <div
+                    class="where-is-my-friends__preview-radii"
+                    role="group"
+                    aria-label={{i18n
+                      "where_is_my_friends.recommended_activity_range"
+                    }}
+                  >
+                    {{#each this.previewRadiusButtons as |option|}}
+                      <DButton
+                        @action={{fn this.selectPreviewRadius option.radius_km}}
+                        @translatedLabel={{option.label}}
+                        class={{if option.selected "btn-primary" "btn-flat"}}
+                        data-test-preview-radius={{option.radius_km}}
+                      />
+                    {{/each}}
+                  </div>
+                {{/if}}
+                {{#if this.networkPreview.nearby_cities.length}}
+                  <div class="where-is-my-friends__preview-nearby">
+                    <h4>{{i18n "where_is_my_friends.nearby_city_network"}}</h4>
+                    {{#each this.networkPreview.nearby_cities as |nearby|}}
+                      <p data-test-preview-nearby-city={{nearby.city_key}}>
+                        <strong>{{nearby.city}}</strong>
+                        <span>{{i18n
+                            "where_is_my_friends.nearby_city_counts"
+                            distance=nearby.approximate_distance_km
+                            active=nearby.recent_active_count
+                            joined=nearby.joined_count
+                          }}</span>
+                      </p>
+                    {{/each}}
+                  </div>
+                {{/if}}
+                {{#if this.networkPreview.local_topic_compose_url}}
+                  <LocalTopicsPanel
+                    @topics={{this.networkPreview.local_topics}}
+                    @actionUrl={{this.networkPreview.local_topic_compose_url}}
+                    @city={{this.networkPreview.city.city}}
+                    @compose={{true}}
+                    @onOpen={{this.trackLocalTopicOpen}}
+                    @onCompose={{this.trackLocalTopicCompose}}
+                  />
+                {{/if}}
+                <fieldset class="where-is-my-friends__join-notifications">
+                  <legend>{{i18n
+                      "where_is_my_friends.join_notifications"
+                    }}</legend>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={{this.notifyCity}}
+                      data-test-join-notify-city
+                      {{on "change" this.toggleJoinNotifyCity}}
+                    />
+                    {{i18n "where_is_my_friends.notify_city_members"}}
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={{this.notifyNearby}}
+                      data-test-join-notify-nearby
+                      {{on "change" this.toggleJoinNotifyNearby}}
+                    />
+                    {{i18n "where_is_my_friends.notify_nearby_members"}}
+                  </label>
+                </fieldset>
+                <DButton
+                  @action={{this.saveCity}}
+                  @translatedLabel={{this.previewJoinLabel}}
+                  @icon="location-dot"
+                  @disabled={{this.loading}}
+                  class="btn-primary"
+                  data-test-join-city
+                  data-test-save-city
+                />
+              </section>
+            {{/if}}
+          {{else}}
+            <fieldset class="where-is-my-friends__join-notifications">
+              <legend>{{i18n "where_is_my_friends.join_notifications"}}</legend>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={{this.notifyCity}}
+                  data-test-join-notify-city
+                  {{on "change" this.toggleJoinNotifyCity}}
+                />
+                {{i18n "where_is_my_friends.notify_city_members"}}
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={{this.notifyNearby}}
+                  data-test-join-notify-nearby
+                  {{on "change" this.toggleJoinNotifyNearby}}
+                />
+                {{i18n "where_is_my_friends.notify_nearby_members"}}
+              </label>
+            </fieldset>
+            <DButton
+              @action={{this.saveCity}}
+              @label="where_is_my_friends.save_city"
+              @icon="location-dot"
+              @disabled={{this.loading}}
+              class="btn-primary"
+              data-test-save-city
+            />
+          {{/if}}
           <p class="where-is-my-friends__privacy">{{i18n
               "where_is_my_friends.city_privacy"
             }}</p>
@@ -710,14 +1096,24 @@ export default class WhereIsMyFriendsPage extends Component {
             }}</p>
         {{/if}}
 
+        <LocalTopicsPanel
+          @topics={{this.localTopics}}
+          @actionUrl={{this.localTopicActionUrl}}
+          @city={{this.location.city}}
+          @compose={{this.localTopicComposeUrl}}
+          @onOpen={{this.trackLocalTopicOpen}}
+          @onCompose={{this.trackLocalTopicCompose}}
+        />
+        <aside class="where-is-my-friends__safety" data-test-safety-tip>
+          <strong>{{i18n "where_is_my_friends.safety_title"}}</strong>
+          <span>{{i18n "where_is_my_friends.safety_copy"}}</span>
+        </aside>
+
         {{#if this.loading}}
           <div class="where-is-my-friends__loading" role="status">
             {{i18n "where_is_my_friends.loading_results"}}
           </div>
-          <div
-            class="where-is-my-friends__skeleton-grid"
-            aria-hidden="true"
-          >
+          <div class="where-is-my-friends__skeleton-grid" aria-hidden="true">
             <article data-test-result-skeleton></article>
             <article data-test-result-skeleton></article>
             <article data-test-result-skeleton></article>
@@ -735,20 +1131,6 @@ export default class WhereIsMyFriendsPage extends Component {
             {{/if}}
             <div class="where-is-my-friends__results-heading">
               <h2 data-test-results-summary>{{this.resultsSummary}}</h2>
-              <LinkTo
-                @route="full-page-search"
-                @query={{hash q=this.location.city}}
-                class="btn"
-                aria-label={{i18n
-                  "where_is_my_friends.browse_topics_for"
-                  city=this.location.city
-                }}
-                data-test-local-topics
-                {{on
-                  "click"
-                  (fn this.trackConnection "local_topics_clicked")
-                }}
-              >{{i18n "where_is_my_friends.browse_local_topics"}}</LinkTo>
             </div>
             {{#if this.hasFilterableFields}}
               <div
@@ -770,11 +1152,7 @@ export default class WhereIsMyFriendsPage extends Component {
                     >
                       {{#each group.buttons as |btn|}}
                         <DButton
-                          @action={{fn
-                            this.selectFilter
-                            group.key
-                            btn.value
-                          }}
+                          @action={{fn this.selectFilter group.key btn.value}}
                           @translatedLabel={{btn.label}}
                           @disabled={{this.loading}}
                           class={{if btn.selected "btn-primary" "btn-flat"}}
@@ -805,97 +1183,255 @@ export default class WhereIsMyFriendsPage extends Component {
                 />
               </label>
             {{/if}}
-            <div class="where-is-my-friends__user-grid">
-              {{#each this.visibleUsers as |user|}}
-                <article
-                  class="where-is-my-friends__user-card"
-                  data-test-user-card={{user.username}}
-                >
-                  {{#if user.avatar_template}}
-                    {{dAvatar user imageSize="large"}}
-                  {{/if}}
+            {{#if this.hasReplyNowUsers}}
+              <section
+                class="where-is-my-friends__reply-now"
+                aria-labelledby="where-is-my-friends-reply-now-title"
+                data-test-reply-now
+              >
+                <div class="where-is-my-friends__reply-now-heading">
                   <div>
-                    <h3>
-                      {{if user.name user.name user.username}}
-                      {{#if user.is_recent}}
-                        <span
-                          class="where-is-my-friends__new-badge"
-                          data-test-new-member-badge
-                        >{{i18n
-                            "where_is_my_friends.new_member_badge"
-                          }}</span>
-                      {{/if}}
+                    <span class="where-is-my-friends__reply-now-eyebrow">
+                      {{i18n "where_is_my_friends.reply_now_eyebrow"}}
+                    </span>
+                    <h3 id="where-is-my-friends-reply-now-title">
+                      {{i18n "where_is_my_friends.reply_now_title"}}
                     </h3>
-                    <LinkTo @route="user" @model={{user.username}}>
-                      @{{user.username}}
-                    </LinkTo>
-                    <p>{{user.city}}{{#if
-                        user.distance_label
-                      }} · {{user.distance_label}}{{/if}}{{#if
-                        user.last_active_label
-                      }} · {{user.last_active_label}}{{/if}}{{#if
-                        user.custom_field_label
-                      }} · <span
-                          class="where-is-my-friends__user-attrs"
-                          data-test-user-attrs
-                        >{{user.custom_field_label}}</span>{{/if}}</p>
-                    {{#if user.bio_excerpt}}
-                      <p
-                        class="where-is-my-friends__bio"
-                        data-test-user-bio
-                      >{{user.bio_excerpt}}</p>
-                    {{/if}}
+                    <p>{{i18n "where_is_my_friends.reply_now_description"}}</p>
                   </div>
-                  <div class="where-is-my-friends__user-actions">
-                    <LinkTo
-                      @route="user"
-                      @model={{user.username}}
-                      class="btn"
-                      aria-label={{i18n
-                        "where_is_my_friends.view_profile_for"
-                        username=user.username
+                  {{#if this.onlineUsers.length}}
+                    <span
+                      class="where-is-my-friends__online-count"
+                      data-test-online-count
+                    >
+                      <span aria-hidden="true"></span>
+                      {{i18n
+                        "where_is_my_friends.online_count"
+                        count=this.onlineUsers.length
                       }}
-                      data-test-profile-link={{user.username}}
-                      {{on
-                        "click"
-                        (fn this.trackConnection "profile_clicked")
-                      }}
-                    >{{i18n "where_is_my_friends.view_profile"}}</LinkTo>
-                    {{#if user.action_url}}
-                      <a
-                        class="btn btn-primary"
-                        href={{user.action_url}}
-                        aria-label={{i18n
-                          "where_is_my_friends.message_user"
-                          username=user.username
-                        }}
-                        data-test-message-link={{user.username}}
-                        {{on
-                          "click"
-                          (fn this.trackConnection "message_started")
-                        }}
-                      >{{i18n
-                          (if
-                            this.chatEnabled
-                            "where_is_my_friends.start_chat"
-                            "where_is_my_friends.send_message"
-                          )
-                        }}</a>
-                    {{/if}}
+                    </span>
+                  {{/if}}
+                </div>
+
+                {{#if this.onlineUsers.length}}
+                  <div class="where-is-my-friends__availability-group">
+                    <h4>{{i18n "where_is_my_friends.online_now"}}</h4>
+                    <div class="where-is-my-friends__quick-grid">
+                      {{#each this.onlineUsers as |user|}}
+                        <article
+                          class="where-is-my-friends__quick-card is-online"
+                          data-test-online-user={{user.username}}
+                        >
+                          <div class="where-is-my-friends__quick-avatar">
+                            {{#if user.avatar_template}}
+                              {{dAvatar user imageSize="large"}}
+                            {{/if}}
+                            <span
+                              class="where-is-my-friends__presence-dot"
+                              aria-label={{i18n
+                                "where_is_my_friends.online_now"
+                              }}
+                            ></span>
+                          </div>
+                          <div class="where-is-my-friends__quick-person">
+                            <h5>{{if user.name user.name user.username}}</h5>
+                            <span>@{{user.username}} · {{user.city}}</span>
+                          </div>
+                          {{#if user.action_url}}
+                            <a
+                              class="btn btn-primary btn-small"
+                              href={{user.action_url}}
+                              aria-label={{i18n
+                                "where_is_my_friends.message_user"
+                                username=user.username
+                              }}
+                              data-test-quick-message={{user.username}}
+                              {{on
+                                "click"
+                                (fn this.trackConnection "message_clicked")
+                              }}
+                            >
+                              {{i18n "where_is_my_friends.say_hi"}}
+                            </a>
+                          {{/if}}
+                        </article>
+                      {{/each}}
+                    </div>
                   </div>
-                </article>
-              {{/each}}
-            </div>
+                {{/if}}
+
+                {{#if this.recentlyActiveUsers.length}}
+                  <div class="where-is-my-friends__availability-group">
+                    <h4>{{i18n "where_is_my_friends.recently_active"}}</h4>
+                    <div class="where-is-my-friends__quick-grid">
+                      {{#each this.recentlyActiveUsers as |user|}}
+                        <article
+                          class="where-is-my-friends__quick-card"
+                          data-test-active-user={{user.username}}
+                        >
+                          <div class="where-is-my-friends__quick-avatar">
+                            {{#if user.avatar_template}}
+                              {{dAvatar user imageSize="large"}}
+                            {{/if}}
+                          </div>
+                          <div class="where-is-my-friends__quick-person">
+                            <h5>{{if user.name user.name user.username}}</h5>
+                            <span>
+                              {{#if user.last_posted_label}}
+                                {{i18n
+                                  "where_is_my_friends.posted_recently"
+                                  time=user.last_posted_label
+                                }}
+                              {{else if user.last_active_label}}
+                                {{i18n
+                                  "where_is_my_friends.seen_recently"
+                                  time=user.last_active_label
+                                }}
+                              {{/if}}
+                            </span>
+                          </div>
+                          {{#if user.action_url}}
+                            <a
+                              class="btn btn-small"
+                              href={{user.action_url}}
+                              aria-label={{i18n
+                                "where_is_my_friends.message_user"
+                                username=user.username
+                              }}
+                              data-test-quick-message={{user.username}}
+                              {{on
+                                "click"
+                                (fn this.trackConnection "message_clicked")
+                              }}
+                            >
+                              {{i18n "where_is_my_friends.message_short"}}
+                            </a>
+                          {{/if}}
+                        </article>
+                      {{/each}}
+                    </div>
+                  </div>
+                {{/if}}
+
+                <p class="where-is-my-friends__presence-note">
+                  {{i18n "where_is_my_friends.presence_privacy_note"}}
+                </p>
+              </section>
+            {{/if}}
+            {{#each this.displayCityGroups as |group|}}
+              <section
+                class="where-is-my-friends__city-group"
+                data-test-city-group={{group.city_key}}
+              >
+                {{#unless group.synthetic}}
+                  <div class="where-is-my-friends__city-group-heading">
+                    <h3>{{group.heading_label}}</h3>
+                    <span>{{group.counts_label}}</span>
+                  </div>
+                {{/unless}}
+                <div class="where-is-my-friends__user-grid">
+                  {{#each group.users as |user|}}
+                    <article
+                      class="where-is-my-friends__user-card"
+                      data-test-user-card={{user.username}}
+                    >
+                      {{#if user.avatar_template}}
+                        {{dAvatar user imageSize="large"}}
+                      {{/if}}
+                      <div>
+                        <h3>
+                          {{if user.name user.name user.username}}
+                          {{#if user.is_recent}}
+                            <span
+                              class="where-is-my-friends__new-badge"
+                              data-test-new-member-badge
+                            >{{i18n
+                                "where_is_my_friends.new_member_badge"
+                              }}</span>
+                          {{/if}}
+                        </h3>
+                        <LinkTo @route="user" @model={{user.username}}>
+                          @{{user.username}}
+                        </LinkTo>
+                        <p>{{user.city}}{{#if user.distance_label}}
+                            ·
+                            {{user.distance_label}}{{/if}}{{#if
+                            user.last_active_label
+                          }} · {{user.last_active_label}}{{/if}}{{#if
+                            user.custom_field_label
+                          }}
+                            ·
+                            <span
+                              class="where-is-my-friends__user-attrs"
+                              data-test-user-attrs
+                            >{{user.custom_field_label}}</span>{{/if}}</p>
+                        {{#if user.inactive}}
+                          <p
+                            class="where-is-my-friends__inactive"
+                            data-test-inactive-member
+                          >{{i18n "where_is_my_friends.inactive_member"}}</p>
+                        {{/if}}
+                        {{#if user.bio_excerpt}}
+                          <p
+                            class="where-is-my-friends__bio"
+                            data-test-user-bio
+                          >{{user.bio_excerpt}}</p>
+                        {{/if}}
+                      </div>
+                      <div class="where-is-my-friends__user-actions">
+                        <LinkTo
+                          @route="user"
+                          @model={{user.username}}
+                          class="btn"
+                          aria-label={{i18n
+                            "where_is_my_friends.view_profile_for"
+                            username=user.username
+                          }}
+                          data-test-profile-link={{user.username}}
+                          {{on
+                            "click"
+                            (fn this.trackConnection "profile_clicked")
+                          }}
+                        >{{i18n "where_is_my_friends.view_profile"}}</LinkTo>
+                        {{#if user.action_url}}
+                          <a
+                            class="btn"
+                            href={{user.action_url}}
+                            aria-label={{i18n
+                              "where_is_my_friends.message_user"
+                              username=user.username
+                            }}
+                            data-test-message-link={{user.username}}
+                            {{on
+                              "click"
+                              (fn this.trackConnection "message_started")
+                            }}
+                          >{{i18n
+                              (if
+                                this.chatEnabled
+                                "where_is_my_friends.start_chat"
+                                "where_is_my_friends.send_message"
+                              )
+                            }}</a>
+                        {{/if}}
+                      </div>
+                    </article>
+                  {{/each}}
+                </div>
+              </section>
+            {{/each}}
           </section>
         {{else if this.isEmpty}}
           <section class="where-is-my-friends__empty" data-test-empty-state>
             {{#if this.hasActiveFilters}}
-              <p
-                class="alert alert-info"
-                data-test-filter-empty-hint
-              >{{i18n "where_is_my_friends.no_results_with_filters"}}</p>
+              <p class="alert alert-info" data-test-filter-empty-hint>{{i18n
+                  "where_is_my_friends.no_results_with_filters"
+                }}</p>
             {{/if}}
-            <h2>{{i18n "where_is_my_friends.empty_title" city=this.location.city}}</h2>
+            <h2>{{i18n
+                "where_is_my_friends.empty_title"
+                city=this.location.city
+              }}</h2>
             <p>{{this.participantProof}}</p>
             <p>{{i18n
                 "where_is_my_friends.global_stats_pioneer"
@@ -924,20 +1460,6 @@ export default class WhereIsMyFriendsPage extends Component {
                 city=this.location.city
               }}
             </label>
-            <LinkTo
-              @route="full-page-search"
-              @query={{hash q=this.location.city}}
-              class="btn btn-primary"
-              aria-label={{i18n
-                "where_is_my_friends.browse_topics_for"
-                city=this.location.city
-              }}
-              data-test-local-topics
-              {{on
-                "click"
-                (fn this.trackConnection "local_topics_clicked")
-              }}
-            >{{i18n "where_is_my_friends.browse_local_topics"}}</LinkTo>
             <DButton
               @action={{this.copyInvite}}
               @label="where_is_my_friends.copy_invite"
@@ -946,7 +1468,10 @@ export default class WhereIsMyFriendsPage extends Component {
               data-test-copy-invite
             />
             {{#if this.inviteFeedback}}
-              <p role="status" data-test-invite-feedback>{{this.inviteFeedback}}</p>
+              <p
+                role="status"
+                data-test-invite-feedback
+              >{{this.inviteFeedback}}</p>
             {{/if}}
             <p data-test-empty-invitation>{{i18n
                 "where_is_my_friends.empty_invitation"
