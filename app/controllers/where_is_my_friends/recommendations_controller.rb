@@ -9,7 +9,11 @@ module WhereIsMyFriends
 
     def index
       profile = current_profile
-      render json: RecommendationEngine.new(current_user).call(profile: profile)
+      render json:
+               RecommendationEngine.new(
+                 current_user,
+                 diversity_seed: params[:refresh]
+               ).call(profile: profile)
     end
 
     def update_profile
@@ -80,11 +84,18 @@ module WhereIsMyFriends
       target_id = params[:target_id].to_i
       payload = RecommendationEngine.new(current_user).call(profile: profile)
       recommendation_key =
-        target_type == "topic" ? :recommended_topics : :recommended_users
+        {
+          "topic" => :recommended_topics,
+          "user" => :recommended_users,
+          "interest" => :recommended_interests
+        }[
+          target_type
+        ]
       visible_ids =
-        if WhereIsMyFriendsRecommendationDismissal::TARGET_TYPES.include?(
-             target_type
-           )
+        if recommendation_key &&
+             WhereIsMyFriendsRecommendationDismissal::TARGET_TYPES.include?(
+               target_type
+             )
           payload.fetch(recommendation_key).pluck(:id)
         else
           []
@@ -103,7 +114,7 @@ module WhereIsMyFriends
         target_type: target_type,
         target_id: target_id
       )
-      record_event("recommendation_dismissed")
+      record_event("recommendation_dismissed", recommendation_event_metadata)
 
       render json: RecommendationEngine.new(current_user).call(profile: profile)
     end
@@ -143,11 +154,34 @@ module WhereIsMyFriends
       profile
     end
 
-    def record_event(event_name)
+    def record_event(event_name, metadata = {})
       WhereIsMyFriendsEvent.create!(
         user_id: current_user.id,
-        event_name: event_name
+        event_name: event_name,
+        **metadata
       )
+    end
+
+    def recommendation_event_metadata
+      metadata = {}
+      surface = params[:surface].presence
+      if WhereIsMyFriendsEvent::SURFACES.include?(surface)
+        metadata[:surface] = surface
+      end
+      candidate_source = params[:candidate_source].presence
+      if WhereIsMyFriendsEvent::CANDIDATE_SOURCES.include?(candidate_source)
+        metadata[:candidate_source] = candidate_source
+      end
+      algorithm_version = params[:algorithm_version].presence
+      if WhereIsMyFriendsEvent::ALGORITHM_VERSIONS.include?(algorithm_version)
+        metadata[:algorithm_version] = algorithm_version
+      end
+      if params[:rank].present?
+        metadata[:rank_bucket] = WhereIsMyFriendsEvent.rank_bucket(
+          params[:rank]
+        )
+      end
+      metadata
     end
 
     def ensure_feature_enabled

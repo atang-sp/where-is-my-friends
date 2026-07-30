@@ -110,9 +110,425 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
         "maximum" => 12
       )
     end
+
+    it "returns two filter-only interest entrances with an algorithm version" do
+      ruby_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "A fresh Ruby question",
+          tags: [ruby_tag]
+        )
+      design_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "A fresh design discussion",
+          tags: [design_tag]
+        )
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+            purpose: "learn",
+            recommendable: true
+          }
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body.fetch("algorithm_version")).to eq(
+        "participation_v1"
+      )
+      entrances = response.parsed_body.fetch("recommended_interests")
+      expect(entrances.length).to eq(2)
+      expect(entrances).to include(
+        include(
+          "id" => ruby_tag.id,
+          "name" => ruby_tag.name,
+          "url" => ruby_tag.url,
+          "candidate_source" => "interest",
+          "topic_count" => 1,
+          "new_topic_count" => 1,
+          "active_member_count" => nil,
+          "active_member_count_suppressed" => true
+        ),
+        include(
+          "id" => design_tag.id,
+          "name" => design_tag.name,
+          "url" => design_tag.url,
+          "candidate_source" => "interest",
+          "topic_count" => 1,
+          "new_topic_count" => 1,
+          "active_member_count" => nil,
+          "active_member_count_suppressed" => true
+        )
+      )
+      expect(entrances.pluck("url")).to all(start_with("/tag/"))
+      expect(entrances.pluck("id")).to contain_exactly(
+        ruby_topic.tags.first.id,
+        design_topic.tags.first.id
+      )
+    end
   end
 
   describe "#update_profile" do
+    it "offers an adjacent interest as an explainable exploration entrance" do
+      interaction_tag = Tag.find_by!(name: "游戏互动")
+      creation_tag = Tag.find_by!(name: "游戏创作")
+      beginner_tag = Tag.find_by!(name: "新手入门")
+      safety_tag = Tag.find_by!(name: "安全与边界")
+      Fabricate(
+        :topic,
+        user: author,
+        title: "分享一次完整的游戏互动经验与复盘",
+        tags: [interaction_tag]
+      )
+      Fabricate(
+        :topic,
+        user: author,
+        title: "一起设计新的棋盘玩法与创作流程",
+        tags: [creation_tag]
+      )
+      SiteSetting.where_is_my_friends_interest_tags = ""
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [interaction_tag.id, beginner_tag.id, safety_tag.id],
+            purpose: "browse",
+            recommendable: true
+          }
+
+      exploration =
+        response
+          .parsed_body
+          .fetch("recommended_interests")
+          .find { |entry| entry["id"] == creation_tag.id }
+      expect(exploration).to include(
+        "candidate_source" => "exploration",
+        "reason_interest" => {
+          "id" => interaction_tag.id,
+          "name" => interaction_tag.name
+        },
+        "url" => creation_tag.url
+      )
+    end
+
+    it "reserves a recommendation slot for a fresh discussion awaiting replies" do
+      5.times do |index|
+        crowded_topic =
+          Fabricate(
+            :topic,
+            user: author,
+            title: "Popular fully matched discussion #{index}",
+            tags: [ruby_tag, design_tag, community_tag],
+            created_at: 5.days.ago,
+            bumped_at: index.minutes.ago,
+            like_count: 100 - index
+          )
+        3.times { Fabricate(:post, topic: crowded_topic, user: author) }
+        crowded_topic.update_columns(posts_count: 4, highest_post_number: 4)
+      end
+      waiting_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "A fresh Ruby question waiting for help",
+          tags: [ruby_tag],
+          created_at: 2.hours.ago,
+          bumped_at: 2.hours.ago
+        )
+      waiting_topic.update_columns(posts_count: 1, highest_post_number: 1)
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+            purpose: "help",
+            recommendable: true
+          }
+
+      expect(response.status).to eq(200)
+      topics = response.parsed_body.fetch("recommended_topics")
+      expect(topics.length).to eq(5)
+      waiting_recommendation =
+        topics.find { |entry| entry["id"] == waiting_topic.id }
+      expect(waiting_recommendation).to include(
+        "participation_state" => "awaiting_response",
+        "candidate_source" => "interest",
+        "rank_bucket" =>
+          satisfy { |value| %w[one_to_two three_to_five].include?(value) }
+      )
+    end
+
+    it "keeps distinct waiting-response and adjacent-exploration slots" do
+      interaction_tag = Tag.find_by!(name: "游戏互动")
+      creation_tag = Tag.find_by!(name: "游戏创作")
+      beginner_tag = Tag.find_by!(name: "新手入门")
+      safety_tag = Tag.find_by!(name: "安全与边界")
+      5.times do |index|
+        topic =
+          Fabricate(
+            :topic,
+            user: author,
+            title: "分享一段完整的互动讨论与经验记录 #{index}",
+            tags: [interaction_tag],
+            created_at: 5.days.ago,
+            bumped_at: index.minutes.ago
+          )
+        topic.update_columns(posts_count: 3, highest_post_number: 3)
+      end
+      waiting_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "这是一个互动求助并且正在等待第一个回复",
+          tags: [interaction_tag],
+          created_at: 2.hours.ago,
+          bumped_at: 2.hours.ago
+        )
+      waiting_topic.update_columns(posts_count: 1, highest_post_number: 1)
+      exploration_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "尝试创作一套完整而且有趣的全新内容",
+          tags: [creation_tag],
+          created_at: 5.days.ago,
+          bumped_at: 1.day.ago
+        )
+      exploration_topic.update_columns(posts_count: 3, highest_post_number: 3)
+      SiteSetting.where_is_my_friends_interest_tags = ""
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [interaction_tag.id, beginner_tag.id, safety_tag.id],
+            purpose: "help",
+            recommendable: true
+          }
+
+      topics = response.parsed_body.fetch("recommended_topics")
+      expect(topics.length).to eq(5)
+      expect(topics.fetch(3)).to include(
+        "id" => waiting_topic.id,
+        "participation_state" => "awaiting_response"
+      )
+      expect(topics.fetch(4)).to include(
+        "id" => exploration_topic.id,
+        "candidate_source" => "exploration"
+      )
+    end
+
+    it "marks unread and participated topics with author activity signals" do
+      unread_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "Unread Ruby discussion",
+          tags: [ruby_tag],
+          created_at: 5.days.ago
+        )
+      2.times do |index|
+        Fabricate(
+          :post,
+          topic: unread_topic,
+          user: author,
+          post_number: index + 2
+        )
+      end
+      unread_topic.update_columns(posts_count: 3, highest_post_number: 3)
+
+      participated_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "Ruby discussion I joined",
+          tags: [ruby_tag],
+          created_at: 5.days.ago
+        )
+      Fabricate(:post, topic: participated_topic, user: user, post_number: 2)
+      participated_topic.update_columns(posts_count: 2, highest_post_number: 2)
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+            purpose: "help",
+            recommendable: true
+          }
+
+      topics = response.parsed_body.fetch("recommended_topics")
+      unread = topics.find { |entry| entry["id"] == unread_topic.id }
+      participated =
+        topics.find { |entry| entry["id"] == participated_topic.id }
+      expect(unread).to include(
+        "participation_state" => "unread",
+        "unread" => true,
+        "viewer_replied" => false,
+        "author_active" => true,
+        "reply_count" => 2
+      )
+      expect(participated).to include(
+        "participation_state" => "participated",
+        "unread" => false,
+        "viewer_replied" => true,
+        "author_active" => true,
+        "reply_count" => 1
+      )
+    end
+
+    it "ranks an unread participatory topic above a popular topic already replied to" do
+      unread_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "Open Ruby question for newcomers",
+          tags: [ruby_tag],
+          created_at: 1.day.ago,
+          bumped_at: 1.day.ago,
+          like_count: 0
+        )
+      unread_topic.update_columns(posts_count: 3, highest_post_number: 3)
+
+      participated_topic =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "Popular Ruby thread I already joined",
+          tags: [ruby_tag],
+          created_at: 1.day.ago,
+          bumped_at: 1.minute.ago,
+          like_count: 500
+        )
+      Fabricate(:post, topic: participated_topic, user: user, post_number: 2)
+      participated_topic.update_columns(posts_count: 2, highest_post_number: 2)
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+            purpose: "help",
+            recommendable: true
+          }
+
+      topics = response.parsed_body.fetch("recommended_topics")
+      expect(topics.first).to include(
+        "id" => unread_topic.id,
+        "participation_state" => "unread"
+      )
+      expect(
+        topics.find { |entry| entry["id"] == participated_topic.id }
+      ).to include("participation_state" => "participated")
+    end
+
+    it "penalizes an unread topic that the viewer has already spent substantial time reading" do
+      repeatedly_viewed =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "Ruby discussion repeatedly revisited",
+          tags: [ruby_tag],
+          created_at: 5.days.ago,
+          bumped_at: 1.minute.ago
+        )
+      repeatedly_viewed.update_columns(posts_count: 3, highest_post_number: 3)
+      TopicUser.create!(
+        user: user,
+        topic: repeatedly_viewed,
+        first_visited_at: 2.days.ago,
+        last_visited_at: 1.hour.ago,
+        last_read_post_number: 1,
+        total_msecs_viewed: 10.minutes.in_milliseconds
+      )
+      lightly_seen =
+        Fabricate(
+          :topic,
+          user: author,
+          title: "Ruby discussion not repeatedly viewed",
+          tags: [ruby_tag],
+          created_at: 5.days.ago,
+          bumped_at: 1.day.ago
+        )
+      lightly_seen.update_columns(posts_count: 3, highest_post_number: 3)
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+            purpose: "help",
+            recommendable: true
+          }
+
+      topic_ids = response.parsed_body.fetch("recommended_topics").pluck("id")
+      expect(topic_ids.index(lightly_seen.id)).to be <
+        topic_ids.index(repeatedly_viewed.id)
+    end
+
+    it "rotates a bounded pool of eligible discussions when refreshed" do
+      10.times do |index|
+        topic =
+          Fabricate(
+            :topic,
+            user: author,
+            title: "Eligible Ruby discussion #{index}",
+            tags: [ruby_tag],
+            created_at: 5.days.ago,
+            bumped_at: index.minutes.ago
+          )
+        topic.update_columns(posts_count: 3, highest_post_number: 3)
+      end
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+            purpose: "help",
+            recommendable: true
+          }
+      initial_ids = response.parsed_body.fetch("recommended_topics").pluck("id")
+
+      get "/where-is-my-friends/recommendations.json",
+          params: {
+            refresh: "next"
+          }
+      refreshed_ids =
+        response.parsed_body.fetch("recommended_topics").pluck("id")
+
+      expect(refreshed_ids).not_to eq(initial_ids)
+      expect(refreshed_ids.length).to eq(5)
+      eligible_ids =
+        Topic.joins(:tags).where(tags: { id: ruby_tag.id }).pluck(:id)
+      expect(refreshed_ids - eligible_ids).to be_empty
+    end
+
+    it "penalizes a single author from concentrating the top recommendations" do
+      other_author = Fabricate(:user, last_seen_at: 1.day.ago)
+      concentrated_topics =
+        3.times.map do |index|
+          Fabricate(
+            :topic,
+            user: author,
+            title: "Ruby discussion by the same author #{index}",
+            tags: [ruby_tag],
+            created_at: 5.days.ago,
+            bumped_at: index.minutes.ago
+          )
+        end
+      diverse_topic =
+        Fabricate(
+          :topic,
+          user: other_author,
+          title: "Ruby discussion from another active member",
+          tags: [ruby_tag],
+          created_at: 5.days.ago,
+          bumped_at: 10.minutes.ago
+        )
+
+      put "/where-is-my-friends/recommendations/profile.json",
+          params: {
+            interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+            purpose: "connect",
+            recommendable: true
+          }
+
+      topic_ids = response.parsed_body.fetch("recommended_topics").pluck("id")
+      expect(topic_ids.index(diverse_topic.id)).to be <
+        topic_ids.index(concentrated_topics.last.id)
+    end
+
     it "recommends related tagged topics with the selected curated interest as the reason" do
       interaction_tag = Tag.find_by!(name: "游戏互动")
       beginner_tag = Tag.find_by!(name: "新手入门")
@@ -226,6 +642,11 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
           .find { |entry| entry["id"] == candidate.id }
       expect(recommendation).to be_present
       expect(recommendation).to include("match_strength" => "strong")
+      expect(recommendation).to include(
+        "candidate_source" => "interest",
+        "rank" => 1,
+        "rank_bucket" => "one_to_two"
+      )
       expect(recommendation.fetch("reason_interests")).to include(
         include("id" => light_tag.id, "name" => "轻度"),
         include("id" => safety_tag.id, "name" => "安全与边界")
@@ -493,7 +914,11 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
     post "/where-is-my-friends/recommendations/dismiss.json",
          params: {
            target_type: "topic",
-           target_id: topic.id
+           target_id: topic.id,
+           surface: "homepage",
+           candidate_source: "interest",
+           rank: 2,
+           algorithm_version: "participation_v1"
          }
 
     expect(response.status).to eq(200)
@@ -504,11 +929,16 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
       WhereIsMyFriendsRecommendationDismissal.find_by(user: user)
     ).to have_attributes(target_type: "topic", target_id: topic.id)
     expect(
-      WhereIsMyFriendsEvent.exists?(
+      WhereIsMyFriendsEvent.find_by!(
         user: user,
         event_name: "recommendation_dismissed"
       )
-    ).to eq(true)
+    ).to have_attributes(
+      surface: "homepage",
+      candidate_source: "interest",
+      rank_bucket: "one_to_two",
+      algorithm_version: "participation_v1"
+    )
 
     post "/where-is-my-friends/recommendations/dismiss.json",
          params: {

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class WhereIsMyFriendsRecommendationDismissal < ActiveRecord::Base
-  TARGET_TYPES = %w[topic user].freeze
+  TARGET_TYPES = %w[topic user interest].freeze
 
   belongs_to :user
   belongs_to :profile,

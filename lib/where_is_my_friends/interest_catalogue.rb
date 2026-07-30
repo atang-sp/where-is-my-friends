@@ -120,6 +120,23 @@ module WhereIsMyFriends
           .uniq
       end
 
+      def exploration_candidates(selected_names)
+        selected_names = selected_names.map(&:to_s)
+        selected_names
+          .flat_map do |reason_name|
+            entries_for_name(reason_name).flat_map do |entry|
+              related_keys_for(entry.fetch("key")).map do |related_key|
+                {
+                  name: entries_by_key.fetch(related_key).fetch("name"),
+                  reason_name: reason_name
+                }
+              end
+            end
+          end
+          .reject { |candidate| selected_names.include?(candidate[:name]) }
+          .uniq { |candidate| candidate[:name] }
+      end
+
       private
 
       def catalogue_path

@@ -16,17 +16,44 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     interest_onboarding_skipped
     recommended_topic_opened
     recommended_user_opened
+    recommended_user_profile_opened
+    recommended_user_related_topic_opened
+    recommended_user_invite_started
+    recommended_interest_opened
+    recommendation_impression
     recommendation_dismissed
     personalization_disabled
   ].freeze
   LOCATION_MODES = %w[city gps map].freeze
   RESULT_BUCKETS = %w[zero one_to_four five_to_nineteen twenty_plus].freeze
+  SURFACES = %w[homepage interest_page topic_footer].freeze
+  CANDIDATE_SOURCES = %w[
+    interest
+    behavior
+    city
+    relationship_bridge
+    exploration
+  ].freeze
+  RANK_BUCKETS = %w[one_to_two three_to_five six_plus].freeze
+  ALGORITHM_VERSIONS = %w[participation_v1].freeze
 
   belongs_to :user
 
   validates :event_name, inclusion: { in: EVENT_NAMES }
   validates :location_mode, inclusion: { in: LOCATION_MODES }, allow_nil: true
   validates :result_bucket, inclusion: { in: RESULT_BUCKETS }, allow_nil: true
+  validates :surface, inclusion: { in: SURFACES }, allow_nil: true
+  validates :candidate_source,
+            inclusion: {
+              in: CANDIDATE_SOURCES
+            },
+            allow_nil: true
+  validates :rank_bucket, inclusion: { in: RANK_BUCKETS }, allow_nil: true
+  validates :algorithm_version,
+            inclusion: {
+              in: ALGORITHM_VERSIONS
+            },
+            allow_nil: true
 
   def self.result_bucket(count)
     value = count.to_i
@@ -37,12 +64,26 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     "twenty_plus"
   end
 
+  def self.rank_bucket(rank)
+    value = Integer(rank, exception: false)
+    return if value.nil? || value < 1
+
+    return "one_to_two" if value <= 2
+    return "three_to_five" if value <= 5
+
+    "six_plus"
+  end
+
   def self.aggregate(since: 30.days.ago)
     events =
       where(created_at: since..).select(
         :user_id,
         :event_name,
         :result_bucket,
+        :surface,
+        :candidate_source,
+        :rank_bucket,
+        :algorithm_version,
         :created_at
       ).to_a
     viewers = users_for(events, "page_view")
@@ -63,9 +104,73 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     interest_onboarding_completers =
       users_for(events, "interest_onboarding_completed")
     recommended_topic_openers = users_for(events, "recommended_topic_opened")
-    recommended_user_openers = users_for(events, "recommended_user_opened")
-    public_interactors = public_interaction_users(events, replies_only: false)
-    first_repliers = public_interaction_users(events, replies_only: true)
+    recommended_user_openers =
+      users_for_any(
+        events,
+        %w[
+          recommended_user_opened
+          recommended_user_profile_opened
+          recommended_user_related_topic_opened
+          recommended_user_invite_started
+        ]
+      )
+    recommended_user_related_topic_openers =
+      users_for(events, "recommended_user_related_topic_opened")
+    recommended_user_invite_starters =
+      users_for(events, "recommended_user_invite_started")
+    recommended_interest_openers =
+      users_for(events, "recommended_interest_opened")
+    impression_events =
+      events.select { |event| event.event_name == "recommendation_impression" }
+    recommendation_exposed_users = impression_events.map(&:user_id).uniq
+    recommendation_openers =
+      users_with_events_after_anchor(
+        events,
+        anchor_event_name: "recommendation_impression",
+        event_names: %w[
+          recommended_topic_opened
+          recommended_user_opened
+          recommended_user_profile_opened
+          recommended_user_related_topic_opened
+          recommended_user_invite_started
+          recommended_interest_opened
+        ]
+      )
+    public_interactors =
+      public_interaction_users(
+        events,
+        anchor_event_name: "interest_onboarding_completed",
+        replies_only: false,
+        window: 7.days
+      )
+    first_repliers =
+      public_interaction_users(
+        events,
+        anchor_event_name: "interest_onboarding_completed",
+        replies_only: true,
+        window: 7.days
+      )
+    exposed_public_interactors =
+      public_interaction_users(
+        events,
+        anchor_event_name: "recommendation_impression",
+        replies_only: false,
+        window: 7.days
+      )
+    exposed_24h_repliers =
+      public_interaction_users(
+        events,
+        anchor_event_name: "recommendation_impression",
+        replies_only: true,
+        window: 24.hours
+      )
+    topic_open_24h_repliers =
+      public_interaction_users(
+        events,
+        anchor_event_name: "recommended_topic_opened",
+        replies_only: true,
+        window: 24.hours
+      )
 
     {
       unique_page_visitors: viewers.length,
@@ -94,6 +199,31 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
           recommended_user_openers.length,
           interest_onboarding_completers.length
         ),
+      recommendation_exposed_users: recommendation_exposed_users.length,
+      recommendation_open_rate:
+        rate(
+          recommendation_openers.length,
+          recommendation_exposed_users.length
+        ),
+      impression_to_24h_reply_rate:
+        rate(exposed_24h_repliers.length, recommendation_exposed_users.length),
+      topic_open_to_24h_reply_rate:
+        rate(topic_open_24h_repliers.length, recommended_topic_openers.length),
+      recommended_user_related_topic_open_rate:
+        rate(
+          recommended_user_related_topic_openers.length,
+          recommendation_exposed_users.length
+        ),
+      recommended_user_invite_start_rate:
+        rate(
+          recommended_user_invite_starters.length,
+          recommendation_exposed_users.length
+        ),
+      seven_day_public_interaction_after_impression_rate:
+        rate(
+          exposed_public_interactors.length,
+          recommendation_exposed_users.length
+        ),
       seven_day_public_interaction_rate:
         rate(public_interactors.length, interest_onboarding_completers.length),
       seven_day_first_reply_rate:
@@ -104,7 +234,17 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
         events
           .select { |event| event.event_name == "results_viewed" }
           .filter_map(&:result_bucket)
-          .tally
+          .tally,
+      recommendation_surface_distribution:
+        impression_events.filter_map(&:surface).tally,
+      recommendation_candidate_source_distribution:
+        impression_events.filter_map(&:candidate_source).tally,
+      recommendation_rank_bucket_distribution:
+        impression_events.filter_map(&:rank_bucket).tally,
+      recommendation_algorithm_version_distribution:
+        impression_events.filter_map(&:algorithm_version).tally,
+      recommendation_result_bucket_distribution:
+        impression_events.filter_map(&:result_bucket).tally
     }
   end
 
@@ -112,6 +252,14 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     events.select { |event| event.event_name == event_name }.map(&:user_id).uniq
   end
   private_class_method :users_for
+
+  def self.users_for_any(events, event_names)
+    events
+      .select { |event| event_names.include?(event.event_name) }
+      .map(&:user_id)
+      .uniq
+  end
+  private_class_method :users_for_any
 
   def self.returning_viewers(events)
     events
@@ -128,23 +276,28 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
   end
   private_class_method :returning_viewers
 
-  def self.public_interaction_users(events, replies_only:)
-    completed_at_by_user =
+  def self.public_interaction_users(
+    events,
+    anchor_event_name:,
+    replies_only:,
+    window:
+  )
+    anchored_at_by_user =
       events
-        .select { |event| event.event_name == "interest_onboarding_completed" }
+        .select { |event| event.event_name == anchor_event_name }
         .group_by(&:user_id)
-        .transform_values { |completions| completions.map(&:created_at).min }
-    return [] if completed_at_by_user.empty?
+        .transform_values { |anchors| anchors.map(&:created_at).min }
+    return [] if anchored_at_by_user.empty?
 
-    earliest = completed_at_by_user.values.min
-    latest = completed_at_by_user.values.max + 7.days
+    earliest = anchored_at_by_user.values.min
+    latest = anchored_at_by_user.values.max + window
     posts =
       Post
         .joins(:topic)
         .joins(
           "LEFT OUTER JOIN categories ON categories.id = topics.category_id"
         )
-        .where(user_id: completed_at_by_user.keys)
+        .where(user_id: anchored_at_by_user.keys)
         .where(created_at: earliest..latest)
         .where(post_type: Post.types[:regular], hidden: false, deleted_at: nil)
         .where(topics: { visible: true, deleted_at: nil })
@@ -155,12 +308,34 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     posts
       .pluck(:user_id, :created_at)
       .filter_map do |user_id, created_at|
-        completed_at = completed_at_by_user.fetch(user_id)
-        user_id if created_at.between?(completed_at, completed_at + 7.days)
+        anchored_at = anchored_at_by_user.fetch(user_id)
+        user_id if created_at.between?(anchored_at, anchored_at + window)
       end
       .uniq
   end
   private_class_method :public_interaction_users
+
+  def self.users_with_events_after_anchor(
+    events,
+    anchor_event_name:,
+    event_names:
+  )
+    anchored_at_by_user =
+      events
+        .select { |event| event.event_name == anchor_event_name }
+        .group_by(&:user_id)
+        .transform_values { |anchors| anchors.map(&:created_at).min }
+
+    events
+      .filter_map do |event|
+        next if event_names.exclude?(event.event_name)
+
+        anchored_at = anchored_at_by_user[event.user_id]
+        event.user_id if anchored_at && event.created_at >= anchored_at
+      end
+      .uniq
+  end
+  private_class_method :users_with_events_after_anchor
 
   def self.rate(numerator, denominator)
     return 0.0 if denominator.zero?
