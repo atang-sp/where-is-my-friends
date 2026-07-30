@@ -46,7 +46,9 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await page.locator("[data-test-purpose='learn']").click();
     await page.locator("[data-test-save-interests]").click();
 
-    const topic = page.locator("[data-test-recommended-topic]");
+    const topic = page
+      .locator("[data-test-recommended-topic]")
+      .filter({ hasText: "Practical Ruby patterns for community projects" });
     await expect(topic).toContainText(
       "Practical Ruby patterns for community projects"
     );
@@ -71,8 +73,12 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(
       page.locator("[data-test-local-friends-callout-proof]")
     ).toHaveText("3 people have joined — are any near you?");
-    await expect(page.locator("[data-test-callout-city-input]")).toBeVisible();
-    await expect(page.locator("[data-test-callout-save-city]")).toBeVisible();
+    await expect(
+      page.locator("[data-test-callout-city-card='上海']")
+    ).toBeVisible();
+    await expect(
+      page.locator("[data-test-local-friends-callout-setup]")
+    ).toHaveCount(0);
     await page
       .getByRole("link", { name: "Local Friends", exact: true })
       .click();

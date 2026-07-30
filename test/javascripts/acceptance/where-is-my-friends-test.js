@@ -22,8 +22,8 @@ function setupApi(needs, state) {
           city_suggestions: [],
           settings: {},
           filterable_fields: [],
-        }
-      )
+        },
+      ),
     );
 
     server.post("/where-is-my-friends/locations.json", (request) => {
@@ -32,7 +32,7 @@ function setupApi(needs, state) {
       }
 
       const location = Object.fromEntries(
-        new URLSearchParams(request.requestBody)
+        new URLSearchParams(request.requestBody),
       );
       state.savedLocations.push(location);
 
@@ -63,7 +63,7 @@ function setupApi(needs, state) {
           recommended_radius_km: null,
           nearby_cities: [],
           local_topics: [],
-        }
+        },
       );
     });
 
@@ -78,7 +78,7 @@ function setupApi(needs, state) {
         state.lastNearbyParams = request.queryParams;
         return helper.response(state.nearby ?? { state: "empty", users: [] });
       },
-      state.nearbyDelay
+      state.nearbyDelay,
     );
 
     server.delete("/where-is-my-friends/locations.json", () => {
@@ -88,7 +88,7 @@ function setupApi(needs, state) {
 
     server.post("/where-is-my-friends/events.json", (request) => {
       state.events.push(
-        new URLSearchParams(request.requestBody).get("event_name")
+        new URLSearchParams(request.requestBody).get("event_name"),
       );
       return helper.response({ success: "OK" });
     });
@@ -96,7 +96,8 @@ function setupApi(needs, state) {
 }
 
 acceptance("Where Is My Friends | city discovery", function (needs) {
-  needs.user({ username: "current-user" });
+  needs.settings({ chat_enabled: true });
+  needs.user({ username: "current-user", has_chat_enabled: true });
   const api = {};
   let originalGeolocation;
   let originalClipboard;
@@ -105,7 +106,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     localStorage.removeItem(CALLOUT_STORAGE_KEY);
     originalGeolocation = Object.getOwnPropertyDescriptor(
       navigator,
-      "geolocation"
+      "geolocation",
     );
     originalClipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
     Object.assign(api, {
@@ -159,6 +160,12 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
         ],
         growing: [
           {
+            city: "上海",
+            city_key: "上海",
+            recent_active_count: 2,
+            joined_count: 4,
+          },
+          {
             city: "苏州",
             city_key: "苏州",
             recent_active_count: 2,
@@ -177,6 +184,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .hasText("12 people have joined — are any near you?");
     assert
       .dom("[data-test-callout-city-card='上海']")
+      .exists({ count: 1 })
       .includesText("3 active")
       .includesText("5 joined");
     assert.dom("[data-test-callout-city-card='苏州']").exists();
@@ -218,7 +226,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .dom("[data-test-callout-city-card='上海']")
       .hasAttribute(
         "href",
-        "/where-is-my-friends?auto_city=%E4%B8%8A%E6%B5%B7"
+        "/where-is-my-friends?auto_city=%E4%B8%8A%E6%B5%B7",
       );
 
     await click("[data-test-callout-city-card='上海']");
@@ -241,7 +249,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.notStrictEqual(
       localStorage.getItem(CALLOUT_STORAGE_KEY),
       null,
-      "dismissal is persisted"
+      "dismissal is persisted",
     );
   });
 
@@ -562,7 +570,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     setGeolocation((success) =>
       success({
         coords: { latitude: 31.2304, longitude: 121.4737, accuracy: 18 },
-      })
+      }),
     );
 
     await visit("/where-is-my-friends");
@@ -626,7 +634,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .hasAttribute("aria-label", "View alice's profile");
     assert
       .dom("[data-test-message-link='alice']")
-      .hasAttribute("href", "/new-message?username=alice");
+      .hasAttribute("href", "/chat/new-message?recipients=alice");
     assert
       .dom("[data-test-message-link='alice']")
       .hasAttribute("aria-label", "Send a message to alice")
@@ -675,7 +683,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       users: [
         localUser("alice", "Alice"),
         ...Array.from({ length: 10 }, (_value, index) =>
-          localUser(`member-${index}`, `Member ${index}`)
+          localUser(`member-${index}`, `Member ${index}`),
         ),
       ],
     };
@@ -922,7 +930,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
             options: ["主动", "被动", "双"],
           },
         ],
-      }
+      },
     );
     api.nearby = {
       state: "ready",
@@ -946,12 +954,12 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     assert
       .dom(
-        "[data-test-filter-group='user_field_3'] [data-test-filter-option='all']"
+        "[data-test-filter-group='user_field_3'] [data-test-filter-option='all']",
       )
       .hasClass("btn-primary");
 
     await click(
-      "[data-test-filter-group='user_field_3'] [data-test-filter-option='男']"
+      "[data-test-filter-group='user_field_3'] [data-test-filter-option='男']",
     );
 
     assert.strictEqual(api.nearbyRequests, 2);
@@ -959,12 +967,12 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     assert
       .dom(
-        "[data-test-filter-group='user_field_3'] [data-test-filter-option='男']"
+        "[data-test-filter-group='user_field_3'] [data-test-filter-option='男']",
       )
       .hasClass("btn-primary");
     assert
       .dom(
-        "[data-test-filter-group='user_field_3'] [data-test-filter-option='all']"
+        "[data-test-filter-group='user_field_3'] [data-test-filter-option='all']",
       )
       .doesNotHaveClass("btn-primary");
   });
@@ -976,7 +984,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
         filterable_fields: [
           { name: "性别", key: "user_field_3", options: ["男", "女"] },
         ],
-      }
+      },
     );
     api.nearby = {
       state: "ready",
@@ -986,17 +994,17 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     await visit("/where-is-my-friends");
 
     await click(
-      "[data-test-filter-group='user_field_3'] [data-test-filter-option='男']"
+      "[data-test-filter-group='user_field_3'] [data-test-filter-option='男']",
     );
     assert.strictEqual(api.lastNearbyParams["filters[user_field_3]"], "男");
 
     await click(
-      "[data-test-filter-group='user_field_3'] [data-test-filter-option='all']"
+      "[data-test-filter-group='user_field_3'] [data-test-filter-option='all']",
     );
     assert.strictEqual(api.nearbyRequests, 3);
     assert.strictEqual(
       api.lastNearbyParams["filters[user_field_3]"],
-      undefined
+      undefined,
     );
   });
 
@@ -1012,7 +1020,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
             options: ["主动", "被动", "双"],
           },
         ],
-      }
+      },
     );
     api.nearby = {
       state: "ready",

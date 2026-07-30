@@ -24,8 +24,8 @@ users = {
   },
   empty_city: {
     location: {
-      city: "乌鲁木齐",
-      region: "新疆"
+      city: "杭州",
+      region: "浙江"
     }
   }
 }.freeze
