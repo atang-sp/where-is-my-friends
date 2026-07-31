@@ -125,7 +125,7 @@ module WhereIsMyFriends
             @publisher.publish!(
               title: formatted.fetch(:title),
               raw: formatted.fetch(:raw),
-              tags: %w[英文精选 安全与边界],
+              tags: [translate("tags.curated"), translate("tags.safety")],
               source_question_id: document.fetch(:question_id)
             )
           record.update!(
@@ -141,9 +141,11 @@ module WhereIsMyFriends
         end
       rescue OpenAiClient::MissingApiKey
         failure(record, "missing_api_key")
-      rescue OpenAiClient::Rejected
+      rescue OpenAiClient::Rejected => error
+        record.add_tokens!(error.token_count)
         failure(record, "model_or_moderation_rejected")
-      rescue OpenAiClient::Error
+      rescue OpenAiClient::Error => error
+        record.add_tokens!(error.token_count)
         failure(record, "ai_error")
       rescue TokenBudget::Exhausted
         failure(record, "monthly_token_budget_exhausted")
@@ -296,6 +298,10 @@ module WhereIsMyFriends
 
       def skipped(code)
         Outcome.new(status: "skipped", failure_code: code)
+      end
+
+      def translate(key)
+        I18n.t("where_is_my_friends.licensed_import.#{key}", locale: :zh_CN)
       end
     end
   end

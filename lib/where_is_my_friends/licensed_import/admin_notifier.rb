@@ -21,7 +21,12 @@ module WhereIsMyFriends
                 topic_title:
                   I18n.t(
                     "where_is_my_friends.notification.licensed_import_reason",
-                    reason: code,
+                    reason:
+                      I18n.t(
+                        "where_is_my_friends.licensed_import.reasons.#{code}",
+                        locale: admin.effective_locale,
+                        default: code.to_s.humanize
+                      ),
                     locale: admin.effective_locale
                   ),
                 where_is_my_friends: true,

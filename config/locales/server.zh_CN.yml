@@ -5,6 +5,46 @@ zh_CN:
     invalid_interests: "请选择 3 至 20 个当前可见的兴趣，并确保每个分类未超出上限"
     invalid_purpose: "请选择你当前使用论坛的主要目的"
     invalid_recommendation: "这条推荐已不可用"
+    licensed_import:
+      title_prefix: "[英文精选·译文]"
+      deleted_source_user: "已删除用户"
+      tags:
+        curated: "英文精选"
+        safety: "安全与边界"
+      redaction_placeholders:
+        contact: "[已删除联系方式]"
+        address: "[已删除精确地址]"
+      redactions:
+        contact_information: "删除联系方式"
+        exact_address: "删除精确地址"
+        image: "删除图片"
+        long_quote: "删除无独立许可的长引用"
+      modifications:
+        translated: "翻译为简体中文"
+        separator: "；"
+      post:
+        disclosure: "本主题由英文精选翻译机器人自动生成，并经过许可、安全与忠实度校验。下文是中文译文；“社区讨论”不是原作者内容。"
+        question_heading: "问题"
+        answer_heading: "优质回答"
+        discussion_heading: "社区讨论"
+        attribution_heading: "来源、署名与许可"
+        question_attribution: "- 问题：%{author} · [原文](%{url}) · %{license}"
+        answer_attribution: "- 回答：%{author} · [原文](%{url}) · %{license}"
+        modification_notice: "- 修改说明：%{modification}。未改变的部分按相同许可转载。"
+      reasons:
+        missing_api_key: "缺少 OpenAI API 密钥"
+        monthly_token_budget_exhausted: "月度 token 预算已耗尽"
+        dry_run_ready_for_review: "三篇干跑预览已等待人工复核"
+        seven_without_human_reply: "连续七篇成熟译文均无七天内真人回复"
+        thirty_day_reply_rate_below_half: "30 天七日真人回复率低于 50%"
+        human_original_topics_declined: "真人原创主题数量下降"
+        copyright_complaint: "已确认版权投诉"
+        serious_safety_miss: "已确认严重安全漏检"
+        attribution_error: "已确认错误署名"
+        source_sync_failure: "来源同步失败"
+        source_error: "英文来源 API 失败"
+        ai_error: "OpenAI API 失败"
+        unexpected_failure: "未预期任务失败"
     interest_catalogue:
       groups:
         sp_psychology:

@@ -7,8 +7,6 @@ module WhereIsMyFriends
         "CC BY-SA 3.0" => "https://creativecommons.org/licenses/by-sa/3.0/",
         "CC BY-SA 4.0" => "https://creativecommons.org/licenses/by-sa/4.0/"
       }.freeze
-      TITLE_PREFIX = "[英文精选·译文]"
-
       def call(document:, content:, translation:)
         translated =
           translation.fetch("segments").index_by { |entry| entry.fetch("id") }
@@ -25,37 +23,37 @@ module WhereIsMyFriends
             .map { |segment| translated.fetch(segment.id).fetch("translation") }
             .join("\n\n")
         modification = [
-          "翻译为简体中文",
+          translate("modifications.translated"),
           *content.redactions.map { |reason| redaction_label(reason) }
-        ].uniq.join("；")
+        ].uniq.join(translate("modifications.separator"))
 
         {
           title:
-            "#{TITLE_PREFIX} #{translation.fetch("translated_title").strip}",
+            "#{translate("title_prefix")} #{translation.fetch("translated_title").strip}",
           raw: <<~MARKDOWN.strip
-            > 本主题由英文精选翻译机器人自动生成，并经过许可、安全与忠实度校验。下文是中文译文；“社区讨论”不是原作者内容。
+            > #{translate("post.disclosure")}
 
-            ## 问题
+            ## #{translate("post.question_heading")}
 
             #{question}
 
-            ## 优质回答
+            ## #{translate("post.answer_heading")}
 
             #{answer}
 
             ---
 
-            ## 社区讨论
+            ## #{translate("post.discussion_heading")}
 
             #{translation.fetch("discussion_prompt").strip}
 
             ---
 
-            ### 来源、署名与许可
+            ### #{translate("post.attribution_heading")}
 
-            - 问题：#{author_link(document.fetch(:question_author), document.fetch(:question_url))} · [原文](#{document.fetch(:question_url)}) · #{license_link(document.fetch(:question_license))}
-            - 回答：#{author_link(document.fetch(:answer_author), document.fetch(:answer_url))} · [原文](#{document.fetch(:answer_url)}) · #{license_link(document.fetch(:answer_license))}
-            - 修改说明：#{modification}。未改变的部分按相同许可转载。
+            #{translate("post.question_attribution", author: author_link(document.fetch(:question_author), document.fetch(:question_url)), url: document.fetch(:question_url), license: license_link(document.fetch(:question_license)))}
+            #{translate("post.answer_attribution", author: author_link(document.fetch(:answer_author), document.fetch(:answer_url)), url: document.fetch(:answer_url), license: license_link(document.fetch(:answer_license)))}
+            #{translate("post.modification_notice", modification: modification)}
           MARKDOWN
         }
       end
@@ -75,12 +73,15 @@ module WhereIsMyFriends
       end
 
       def redaction_label(reason)
-        {
-          "contact_information" => "删除联系方式",
-          "exact_address" => "删除精确地址",
-          "image" => "删除图片",
-          "long_quote" => "删除无独立许可的长引用"
-        }.fetch(reason)
+        translate("redactions.#{reason}")
+      end
+
+      def translate(key, **options)
+        I18n.t(
+          "where_is_my_friends.licensed_import.#{key}",
+          locale: :zh_CN,
+          **options
+        )
       end
     end
   end

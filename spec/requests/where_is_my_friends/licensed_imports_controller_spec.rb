@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe WhereIsMyFriends::LicensedImportsController do
+  fab!(:user)
+  fab!(:admin)
+
   it "exposes Chinese previews and aggregate controls only to administrators" do
     preview =
       WhereIsMyFriendsLicensedImport.create!(
@@ -12,11 +15,11 @@ RSpec.describe WhereIsMyFriends::LicensedImportsController do
         token_count: 123
       )
 
-    sign_in(Fabricate(:user))
+    sign_in(user)
     get "/where-is-my-friends/licensed-imports.json"
     expect(response.status).to eq(403)
 
-    sign_in(Fabricate(:admin))
+    sign_in(admin)
     get "/where-is-my-friends/licensed-imports.json"
 
     expect(response.status).to eq(200)

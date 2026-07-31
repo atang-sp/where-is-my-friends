@@ -105,7 +105,7 @@ module WhereIsMyFriends
           replace(
             text,
             EMAIL_PATTERN,
-            "[已删除联系方式]",
+            placeholder("contact"),
             "contact_information",
             redactions
           )
@@ -113,7 +113,7 @@ module WhereIsMyFriends
           replace(
             text,
             PHONE_PATTERN,
-            "[已删除联系方式]",
+            placeholder("contact"),
             "contact_information",
             redactions
           )
@@ -121,7 +121,7 @@ module WhereIsMyFriends
           replace(
             text,
             HANDLE_PATTERN,
-            "[已删除联系方式]",
+            placeholder("contact"),
             "contact_information",
             redactions
           )
@@ -129,14 +129,14 @@ module WhereIsMyFriends
           replace(
             text,
             STREET_PATTERN,
-            "[已删除精确地址]",
+            placeholder("address"),
             "exact_address",
             redactions
           )
         replace(
           text,
           CHINESE_ADDRESS_PATTERN,
-          "[已删除精确地址]",
+          placeholder("address"),
           "exact_address",
           redactions
         )
@@ -147,6 +147,13 @@ module WhereIsMyFriends
 
         redactions << reason
         text.gsub(pattern, replacement)
+      end
+
+      def placeholder(kind)
+        I18n.t(
+          "where_is_my_friends.licensed_import.redaction_placeholders.#{kind}",
+          locale: :zh_CN
+        )
       end
     end
   end

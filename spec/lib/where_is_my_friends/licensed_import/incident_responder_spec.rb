@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 RSpec.describe WhereIsMyFriends::LicensedImport::IncidentResponder do
+  fab!(:topic) { Fabricate(:topic, visible: true) }
+
   it "immediately disables importing and hides every affected topic" do
     SiteSetting.licensed_import_enabled = true
-    topic = Fabricate(:topic, visible: true)
     record =
       WhereIsMyFriendsLicensedImport.create!(
         source_question_id: 42,

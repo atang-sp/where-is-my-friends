@@ -12,7 +12,9 @@ module WhereIsMyFriends
 
       API_ROOT = "https://api.stackexchange.com/2.3"
       SITE = "interpersonal"
-      PAGE_SIZE = 30
+      PAGE_SIZE = 100
+      MAX_QUESTION_PAGES = 10
+      MAX_ANSWER_PAGES = 20
 
       def initialize(open_timeout: 5, read_timeout: 15)
         @open_timeout = open_timeout
@@ -20,18 +22,36 @@ module WhereIsMyFriends
       end
 
       def candidates
-        response =
-          get_json(
-            "/questions",
-            pagesize: PAGE_SIZE,
-            order: "desc",
-            sort: "votes",
-            site: SITE,
-            filter: "withbody"
+        documents = []
+        1.upto(MAX_QUESTION_PAGES) do |page|
+          response =
+            get_json(
+              "/questions",
+              page: page,
+              pagesize: PAGE_SIZE,
+              order: "desc",
+              sort: "votes",
+              site: SITE,
+              filter: "withbody"
+            )
+          questions = response.fetch("items", [])
+          break if questions.empty?
+
+          answers =
+            answers_for(
+              questions.map { |question| question.fetch("question_id") }
+            )
+          documents.concat(
+            questions.filter_map do |question|
+              build_document(
+                question,
+                answers: answers.fetch(question.fetch("question_id"), [])
+              )
+            end
           )
-        response
-          .fetch("items", [])
-          .filter_map { |question| build_document(question) }
+          break unless response["has_more"]
+        end
+        documents
       end
 
       def fetch(question_id)
@@ -44,22 +64,17 @@ module WhereIsMyFriends
         question = response.fetch("items", []).first
         raise MissingSource if question.blank?
 
-        build_document(question) || raise(MissingSource)
+        answers = answers_for([question.fetch("question_id")])
+        build_document(
+          question,
+          answers: answers.fetch(question.fetch("question_id"), [])
+        ) || raise(MissingSource)
       end
 
       private
 
-      def build_document(question)
+      def build_document(question, answers:)
         question_id = question.fetch("question_id")
-        answers =
-          get_json(
-            "/questions/#{question_id}/answers",
-            pagesize: 100,
-            order: "desc",
-            sort: "votes",
-            site: SITE,
-            filter: "withbody"
-          ).fetch("items", [])
         return if answers.empty?
 
         accepted_id = question["accepted_answer_id"]
@@ -88,8 +103,43 @@ module WhereIsMyFriends
         }
       end
 
+      def answers_for(question_ids)
+        grouped = Hash.new { |hash, question_id| hash[question_id] = [] }
+        path = "/questions/#{question_ids.join(";")}/answers"
+        1.upto(MAX_ANSWER_PAGES) do |page|
+          response =
+            get_json(
+              path,
+              page: page,
+              pagesize: PAGE_SIZE,
+              order: "desc",
+              sort: "votes",
+              site: SITE,
+              filter: "withbody"
+            )
+          response
+            .fetch("items", [])
+            .each do |answer|
+              question_id = answer["question_id"]
+              question_id ||= question_ids.first if question_ids.one?
+              if question_ids.include?(question_id)
+                grouped[question_id] << answer
+              end
+            end
+          break unless response["has_more"]
+        end
+        grouped
+      end
+
       def owner_name(post)
-        CGI.unescapeHTML(post.dig("owner", "display_name").presence || "已删除用户")
+        deleted_user =
+          I18n.t(
+            "where_is_my_friends.licensed_import.deleted_source_user",
+            locale: :zh_CN
+          )
+        CGI.unescapeHTML(
+          post.dig("owner", "display_name").presence || deleted_user
+        )
       end
 
       def get_json(path, params)

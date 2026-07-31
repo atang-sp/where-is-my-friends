@@ -6,6 +6,12 @@ module WhereIsMyFriends
   module LicensedImport
     class OpenAiClient
       class Error < StandardError
+        attr_reader :token_count
+
+        def initialize(message = nil, token_count: 0)
+          @token_count = token_count.to_i
+          super(message)
+        end
       end
       class MissingApiKey < Error
       end
@@ -226,6 +232,7 @@ module WhereIsMyFriends
         developer:,
         user:
       )
+        token_count = 0
         payload =
           post_json(
             "/responses",
@@ -250,19 +257,21 @@ module WhereIsMyFriends
               }
             }
           )
-        raise InvalidResponse unless payload["status"] == "completed"
-        raise Rejected if refusal?(payload)
+        token_count = payload.dig("usage", "total_tokens").to_i
+        unless payload["status"] == "completed"
+          raise InvalidResponse.new(token_count: token_count)
+        end
+        raise Rejected.new(token_count: token_count) if refusal?(payload)
 
-        text = output_text(payload)
+        text = output_text(payload, token_count: token_count)
         data = JSON.parse(text)
-        raise InvalidResponse unless data.is_a?(Hash)
+        unless data.is_a?(Hash)
+          raise InvalidResponse.new(token_count: token_count)
+        end
 
-        Result.new(
-          data: data,
-          token_count: payload.dig("usage", "total_tokens").to_i
-        )
+        Result.new(data: data, token_count: token_count)
       rescue JSON::ParserError
-        raise InvalidResponse
+        raise InvalidResponse.new(token_count: token_count)
       end
 
       def source_payload(content)
@@ -283,7 +292,7 @@ module WhereIsMyFriends
           end
       end
 
-      def output_text(payload)
+      def output_text(payload, token_count:)
         parts =
           payload
             .fetch("output", [])
@@ -294,7 +303,9 @@ module WhereIsMyFriends
                   part["text"] if part["type"] == "output_text"
                 end
             end
-        raise InvalidResponse unless parts.one? && parts.first.present?
+        unless parts.one? && parts.first.present?
+          raise InvalidResponse.new(token_count: token_count)
+        end
 
         parts.first
       end

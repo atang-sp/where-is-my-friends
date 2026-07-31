@@ -5,6 +5,17 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     described_class.new(source: source, ai: ai, publisher: publisher)
   end
 
+  fab!(:recovered_topic) { Fabricate(:topic, user: Discourse.system_user) }
+  fab!(:recovered_first_post) do
+    Fabricate(
+      :post,
+      topic: recovered_topic,
+      user: Discourse.system_user,
+      post_number: 1,
+      raw: "已经创建的中文译文"
+    )
+  end
+
   let(:ai) { instance_spy(WhereIsMyFriends::LicensedImport::OpenAiClient) }
   let(:publisher) { instance_spy(WhereIsMyFriends::LicensedImport::Publisher) }
   let(:source) do
@@ -60,7 +71,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
   end
 
   it "stops the candidate loop after a site-wide API key failure" do
-    words = Array.new(200, "boundary").join(" ")
+    words = "I am an adult. " + Array.new(196, "boundary").join(" ")
     documents =
       [101, 102].map do |question_id|
         {
@@ -99,8 +110,56 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     ).to eq(1)
   end
 
+  it "accounts for tokens returned with an invalid model response" do
+    words = "I am an adult. " + Array.new(196, "boundary").join(" ")
+    allow(source).to receive(:candidates).and_return(
+      [
+        {
+          question_id: 103,
+          answer_id: 1_103,
+          question_url: "https://interpersonal.stackexchange.com/q/103",
+          answer_url: "https://interpersonal.stackexchange.com/a/1103",
+          question_author: "Question Author",
+          answer_author: "Answer Author",
+          question_license: "CC BY-SA 4.0",
+          answer_license: "CC BY-SA 4.0",
+          title: "How can I set a boundary?",
+          question_html: "<p>#{words}</p>",
+          answer_html: "<p>#{words}</p>",
+          revised_at: 1.day.ago
+        }
+      ]
+    )
+    allow(ai).to receive(:moderate!).once.and_return(true)
+    allow(ai).to receive(:classify!).and_return(
+      WhereIsMyFriends::LicensedImport::OpenAiClient::Result.new(
+        data: {
+          "decision" => "allow",
+          "theme" => "boundaries",
+          "adult_status" => "clear",
+          "consent_status" => "clear",
+          "prohibited_reasons" => []
+        },
+        token_count: 10
+      )
+    )
+    allow(ai).to receive(:translate!).and_raise(
+      WhereIsMyFriends::LicensedImport::OpenAiClient::InvalidResponse.new(
+        token_count: 20
+      )
+    )
+
+    outcome = pipeline.run
+
+    expect(outcome).to have_attributes(
+      status: "failed",
+      failure_code: "ai_error"
+    )
+    expect(outcome.record.token_count).to eq(30)
+  end
+
   it "stores an admin-only Chinese preview after every safety and fidelity gate passes" do
-    source_text = Array.new(200, "boundary").join(" ")
+    source_text = "I am an adult. " + Array.new(196, "boundary").join(" ")
     answer_text = Array.new(200, "communicate").join(" ")
     allow(source).to receive(:candidates).and_return(
       [
@@ -272,17 +331,8 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
   end
 
   it "recovers a completed PostCreator side effect on task retry without duplicating the topic" do
-    topic = Fabricate(:topic, user: Discourse.system_user)
-    first_post =
-      Fabricate(
-        :post,
-        topic: topic,
-        user: Discourse.system_user,
-        post_number: 1,
-        raw: "已经创建的中文译文"
-      )
     TopicCustomField.create!(
-      topic_id: topic.id,
+      topic_id: recovered_topic.id,
       name: "where_is_my_friends_licensed_import_source_id",
       value: "42"
     )
@@ -299,8 +349,8 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     expect(outcome.status).to eq("published")
     expect(processing.reload).to have_attributes(
       status: "published",
-      topic_id: topic.id,
-      first_post_id: first_post.id
+      topic_id: recovered_topic.id,
+      first_post_id: recovered_first_post.id
     )
     expect(Topic.count).to eq(topic_count)
   end

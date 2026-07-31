@@ -1,14 +1,30 @@
 # frozen_string_literal: true
 
 RSpec.describe WhereIsMyFriends::RecommendationEngine do
-  it "caps licensed translation topics at two of five recommendations" do
+  before do
     SiteSetting.where_is_my_friends_enabled = true
     SiteSetting.where_is_my_friends_interest_onboarding_enabled = true
     SiteSetting.where_is_my_friends_interest_tags = "boundaries"
     SiteSetting.tagging_enabled = true
-    user = Fabricate(:user)
-    author = Fabricate(:user, last_seen_at: 1.day.ago)
-    tag = Fabricate(:tag, name: "boundaries")
+  end
+
+  fab!(:user)
+  fab!(:author) { Fabricate(:user, last_seen_at: 1.day.ago) }
+  fab!(:tag) { Fabricate(:tag, name: "boundaries") }
+  fab!(:topics) do
+    8.times.map do |index|
+      Fabricate(
+        :topic,
+        user: author,
+        title: "Boundary discussion #{index}",
+        tags: [tag],
+        created_at: index.minutes.ago,
+        bumped_at: index.minutes.ago
+      )
+    end
+  end
+
+  it "caps licensed translation topics at two of five recommendations" do
     profile =
       WhereIsMyFriendsInterestProfile.create!(
         user: user,
@@ -16,17 +32,6 @@ RSpec.describe WhereIsMyFriends::RecommendationEngine do
         completed_at: Time.zone.now
       )
     profile.interests.create!(user: user, tag: tag, position: 0)
-    topics =
-      8.times.map do |index|
-        Fabricate(
-          :topic,
-          user: author,
-          title: "Boundary discussion #{index}",
-          tags: [tag],
-          created_at: index.minutes.ago,
-          bumped_at: index.minutes.ago
-        )
-      end
     topics
       .first(4)
       .each_with_index do |topic, index|

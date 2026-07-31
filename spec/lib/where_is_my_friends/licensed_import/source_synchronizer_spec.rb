@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 RSpec.describe WhereIsMyFriends::LicensedImport::SourceSynchronizer do
+  fab!(:changed_topic) { Fabricate(:topic, visible: true) }
+  fab!(:deleted_topic) { Fabricate(:topic, visible: true) }
+  fab!(:license_topic) { Fabricate(:topic, visible: true) }
+
   it "unlists a published translation when the licensed source has changed" do
-    topic = Fabricate(:topic, visible: true)
+    topic = changed_topic
     record =
       WhereIsMyFriendsLicensedImport.create!(
         source_question_id: 42,
@@ -28,7 +32,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::SourceSynchronizer do
   end
 
   it "unlists a published translation when the licensed source is deleted" do
-    topic = Fabricate(:topic, visible: true)
+    topic = deleted_topic
     record =
       WhereIsMyFriendsLicensedImport.create!(
         source_question_id: 43,
@@ -55,7 +59,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::SourceSynchronizer do
 
   it "unlists a translation when either source license disappears" do
     revised_at = 2.days.ago
-    topic = Fabricate(:topic, visible: true)
+    topic = license_topic
     record =
       WhereIsMyFriendsLicensedImport.create!(
         source_question_id: 44,

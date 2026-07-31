@@ -124,7 +124,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::OpenAiClient do
 
     expect { described_class.new.translate!(content) }.to raise_error(
       described_class::InvalidResponse
-    )
+    ) { |error| expect(error.token_count).to eq(10) }
   end
 
   it "fails closed when moderation flags content" do

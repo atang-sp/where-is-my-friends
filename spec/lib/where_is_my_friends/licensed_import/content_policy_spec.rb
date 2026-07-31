@@ -21,4 +21,14 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ContentPolicy do
       examples.transform_values { |text| policy.failure_code(text) }
     ).to eq(examples.keys.index_with(&:itself))
   end
+
+  it "fails closed when adulthood is unknown or an age is explicitly under 18" do
+    expect(
+      policy.failure_code("How can I set a boundary with a friend?")
+    ).to eq("minor_or_age_unknown")
+    expect(
+      policy.failure_code("My 16-year-old friend needs a boundary.")
+    ).to eq("minor_or_age_unknown")
+    expect(policy.failure_code("I am an adult and need a boundary.")).to be_nil
+  end
 end

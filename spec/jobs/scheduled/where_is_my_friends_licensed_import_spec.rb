@@ -32,9 +32,14 @@ RSpec.describe Jobs::WhereIsMyFriendsLicensedImport do
     allow(WhereIsMyFriends::LicensedImport::AdminNotifier).to receive(
       :new
     ).and_return(notifier)
+    allow(DistributedMutex).to receive(:synchronize).and_yield
 
     described_class.new.execute({})
 
+    expect(DistributedMutex).to have_received(:synchronize).with(
+      a_string_matching(/where_is_my_friends_licensed_import_/),
+      validity: 2.hours
+    )
     expect(SiteSetting.licensed_import_enabled).to eq(false)
     expect(synchronizer).to have_received(:call)
     expect(notifier).to have_received(:notify).with("missing_api_key")
