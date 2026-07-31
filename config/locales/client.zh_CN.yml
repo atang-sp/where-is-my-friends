@@ -263,3 +263,4 @@ zh_CN:
         monthly_digest: "上个月有 %{count} 位新成员加入了你附近"
         nearby_weekly: "本周附近城市有新成员加入"
         profile_location_invite: "你知道 %{city} 有 %{count} 位论坛成员吗？加入同城发现！"
+        licensed_import_halted: "英文精选任务需要管理员处理"

@@ -101,6 +101,7 @@ zh_CN:
       profile_location_invite: "你的资料显示你在 %{city}——你知道附近有 %{count} 位论坛成员吗？加入同城朋友，与他们建立连接！"
       monthly_digest: "上个月有 %{count} 位新成员加入了你附近的同城发现"
       weekly_nearby_digest: "本周附近城市新加入 %{count} 位成员"
+      licensed_import_reason: "英文精选任务已暂停：%{reason}"
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
     where_is_my_friends_interest_onboarding_enabled: "启用首次兴趣引导和个性化推荐"
@@ -118,3 +119,10 @@ zh_CN:
     where_is_my_friends_default_discovery_radius_km: "默认发现半径（公里）。用户可在 50/100/200 中自选。"
     where_is_my_friends_target_category_slug: "同城相关分区的 slug。在该分区中显示更强的引导组件。"
     where_is_my_friends_filterable_user_fields: "允许在发现结果中筛选的自定义用户字段名称（仅限下拉类型），用竖线分隔"
+    licensed_import_enabled: "启用有明确许可的英文精选翻译任务"
+    licensed_import_dry_run: "只生成管理员预览，不创建公开主题"
+    licensed_import_interval_hours: "两次英文精选任务之间的最短小时数"
+    licensed_import_publish_hour: "英文精选任务的北京时间发布小时"
+    licensed_import_model: "翻译与复核使用的固定 OpenAI 模型"
+    licensed_import_monthly_token_budget: "英文精选每月最多使用的生成 token 总量"
+    licensed_import_max_per_day: "每天最多创建的英文精选数量（固定为 1）"

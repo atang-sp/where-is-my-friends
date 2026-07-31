@@ -101,6 +101,7 @@ en:
       profile_location_invite: "Your profile shows you're in %{city} — did you know %{count} forum members are nearby? Join Local Friends to connect with them!"
       monthly_digest: "%{count} new members joined near you last month"
       weekly_nearby_digest: "%{count} members joined nearby cities this week"
+      licensed_import_reason: "Licensed English import paused: %{reason}"
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
     where_is_my_friends_interest_onboarding_enabled: "Enable first-use interest onboarding and personalized recommendations"
@@ -118,3 +119,10 @@ en:
     where_is_my_friends_default_discovery_radius_km: "Default discovery radius in kilometers. Members can choose 50/100/200."
     where_is_my_friends_target_category_slug: "Slug of the local-meetup category. Shows a stronger callout in this category."
     where_is_my_friends_filterable_user_fields: "Custom user field names to enable as discovery filters (dropdown type only), separated by |"
+    licensed_import_enabled: "Enable licensed English translation imports"
+    licensed_import_dry_run: "Generate administrator previews without publishing public topics"
+    licensed_import_interval_hours: "Minimum hours between licensed import runs"
+    licensed_import_publish_hour: "Beijing-time hour for licensed import runs"
+    licensed_import_model: "Fixed OpenAI model used for translation and review"
+    licensed_import_monthly_token_budget: "Maximum monthly generation tokens for licensed imports"
+    licensed_import_max_per_day: "Maximum licensed imports per day (fixed at 1)"

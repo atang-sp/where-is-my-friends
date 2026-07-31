@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.6.0
+# version: 1.7.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0.beta1
@@ -18,6 +18,11 @@ require_relative "lib/where_is_my_friends/engine"
 
 after_initialize do
   require_relative "lib/where_is_my_friends/interest_visibility"
+
+  register_topic_custom_field_type(
+    "where_is_my_friends_licensed_import_source_id",
+    :integer
+  )
 
   UserUpdater::OPTION_ATTR.push(:where_is_my_friends_notify_city)
   UserUpdater::OPTION_ATTR.push(:where_is_my_friends_notify_nearby)

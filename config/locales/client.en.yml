@@ -263,3 +263,4 @@ en:
         monthly_digest: "%{count} new members joined near you last month"
         nearby_weekly: "new members joined nearby cities this week"
         profile_location_invite: "Did you know %{count} members are in %{city}? Join local discovery!"
+        licensed_import_halted: "licensed English imports need administrator attention"

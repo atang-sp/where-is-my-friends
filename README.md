@@ -20,6 +20,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 明确状态：覆盖首次设置、加载、结果、空结果、过期和错误状态。
 - 控制权：用户可更新城市或立即删除位置；位置默认 30 天后由定时任务删除。
 - 隐私统计：只记录白名单事件、位置模式和粗粒度结果桶；事件 90 天后删除。
+- 许可英文精选：安全地将 Interpersonal Skills Stack Exchange 的一篇完整问答翻译为中文；默认只生成管理员预览，校验未全部通过时绝不发帖。
 
 ## 社区发现排序与衡量
 
@@ -49,6 +50,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 只有明确允许“被推荐”且近期活跃的成员才会出现；不会暴露对方的私密兴趣或使用目的。
 - 插件绝不自动订阅标签、分区，也不会改变任何通知级别。
 - 七日公开互动率和首次回复率直接从公开帖子按 onboarding 或推荐曝光时间窗聚合；私信、受限分区、内容和目标 ID 均不会进入统计结果。
+- 英文原文只在单次任务内存中存在，不写数据库或日志；数据库只保存来源、许可、失败代码、token 用量和通过校验的中文内容。OpenAI 密钥只从进程环境读取，管理接口不会返回。
 
 管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据，包括兴趣引导完成率、曝光用户数、曝光到打开率、打开推荐帖子到 24 小时回复率、成员卡到相关帖子率、成员卡到邀请发起率、曝光到 24 小时回复率、曝光后七日公开互动率，以及按入口、候选来源、排序桶、算法版本和结果数量桶划分的分布。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。
 
@@ -63,6 +65,8 @@ bundle exec rake db:migrate
 重启 Discourse 后，在管理后台确认 `where_is_my_friends_enabled`、`where_is_my_friends_interest_onboarding_enabled` 与 `where_is_my_friends_practice_invitations_enabled` 已启用。插件会安装内置细分兴趣目录；管理员还可额外配置最多 20 个论坛标签。目录关系和话题映射维护在 `config/interest_catalogue.yml`。
 
 若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
+
+许可英文精选需要在 Discourse 容器环境中注入 `WHERE_IS_MY_FRIENDS_OPENAI_API_KEY`，不能把密钥写入后台设置、数据库或仓库。首次启用必须保持 `licensed_import_dry_run=true`；完整的三天预览、人工抽查、公开发布、自动暂停和事故处理步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
 
 本版本在 Discourse `2026.7.0-latest`（commit `7c06c152`）上开发和验证，插件元数据要求 Discourse `2026.7.0.beta1` 或更高版本。
 
@@ -83,6 +87,13 @@ bundle exec rake db:migrate
 | `where_is_my_friends_max_users_display` | `50` | 返回用户上限，服务端限制为 10–200 |
 | `where_is_my_friends_location_ttl_days` | `30` | 位置有效期，服务端限制为 1–365 天 |
 | `where_is_my_friends_aggregate_privacy_threshold` | `3` | 显示精确活跃人数的最低参与者数量 |
+| `licensed_import_enabled` | `false` | 英文精选总开关；所有失败和暂停条件均以关闭此开关结束 |
+| `licensed_import_dry_run` | `true` | 只保存管理员可见中文预览，不创建主题 |
+| `licensed_import_interval_hours` | `24` | 两篇之间的最短间隔，后台最小值为 24 小时 |
+| `licensed_import_publish_hour` | `20` | 北京时间执行小时 |
+| `licensed_import_model` | `gpt-5.6-terra` | 固定的翻译、分类和复核模型 |
+| `licensed_import_monthly_token_budget` | `1500000` | 每月生成调用的 token 上限 |
+| `licensed_import_max_per_day` | `1` | 每天最多一篇，固定为 1 |
 
 OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的浏览器 key，必须在供应商控制台限制到论坛域名；插件只把当前选中供应商的 key 发给客户端。详见 [VIRTUAL_LOCATION_GUIDE.md](VIRTUAL_LOCATION_GUIDE.md)。
 
@@ -112,6 +123,7 @@ OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的�
 | `PUT` | `/where-is-my-friends/legacy-practice-bookmarks/:id/dismiss.json` | 移除旧意向书签 |
 | `POST` | `/where-is-my-friends/events.json` | 写入白名单漏斗或无目标 ID 的粗粒度推荐曝光/行动事件 |
 | `GET` | `/where-is-my-friends/debug-stats.json` | 管理员聚合诊断 |
+| `GET` | `/where-is-my-friends/licensed-imports.json` | 管理员预览、失败原因、token 用量与互动门槛状态；不返回密钥或英文原文 |
 
 ## 开发和验证
 
@@ -130,6 +142,7 @@ d/exec bin/lint plugins/where-is-my-friends
 ## 主要目录
 
 - `lib/where_is_my_friends/recommendation_engine.rb`：权限安全、可解释、以参与为目标的话题/成员/兴趣入口推荐。
+- `lib/where_is_my_friends/licensed_import/`：许可校验、内容清理、安全分类、忠实翻译、独立复核、发布和自动停发。
 - `lib/where_is_my_friends/practice_invitation_eligibility.rb`：共同兴趣、信任、屏蔽、opt-out 和私信权限策略。
 - `app/models/where_is_my_friends_practice_invitation.rb`：严格一对一邀请与接受后的私信引用。
 - `app/models/where_is_my_friends_legacy_practice_bookmark.rb`：仅所有者可见、需要重新确认的迁移书签。
