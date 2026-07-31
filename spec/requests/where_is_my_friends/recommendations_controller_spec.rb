@@ -107,7 +107,7 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
       ).not_to include(recent_tag.name)
       expect(response.parsed_body.fetch("selection_limits")).to eq(
         "minimum" => 3,
-        "maximum" => 12
+        "maximum" => 20
       )
     end
 
@@ -990,7 +990,7 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
     too_many_interest_ids =
       Tag
         .where(name: WhereIsMyFriends::InterestCatalogue.names)
-        .limit(13)
+        .limit(21)
         .pluck(:id)
 
     [

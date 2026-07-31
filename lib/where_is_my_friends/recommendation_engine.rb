@@ -7,7 +7,7 @@ module WhereIsMyFriends
     MAX_CATALOGUE = 100
     MAX_CUSTOM_INTERESTS = 20
     MIN_INTERESTS = 3
-    MAX_INTERESTS = 12
+    MAX_INTERESTS = 20
     MAX_TOPIC_CANDIDATES = 100
     MAX_TOPICS = 5
     MAX_USERS = 6
@@ -931,11 +931,15 @@ module WhereIsMyFriends
 
     def serialize_catalogue_group(group)
       key = group.fetch("key")
-      {
+      payload = {
         key: key,
         name: catalogue_group_translation(key, "name"),
-        description: catalogue_group_translation(key, "description")
+        description: catalogue_group_translation(key, "description"),
+        selection_mode: InterestCatalogue.group_selection_mode(group)
       }
+      max = InterestCatalogue.group_max_per_group(group)
+      payload[:max_per_group] = max if max
+      payload
     end
 
     def serialize_catalogue_tag(tag, entry)

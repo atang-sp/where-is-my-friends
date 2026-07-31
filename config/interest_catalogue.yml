@@ -1,5 +1,54 @@
 groups:
+  - key: sp_psychology
+    selection_mode: multi
+    max_per_group: 2
+    interests:
+      - key: pain_lover
+        name: 恋痛型
+        related: [medium_heavy_intensity, heavy_intensity]
+        topic_keywords: [恋痛, 痛感, 疼痛快感]
+      - key: discipline_seeker
+        name: 管教型
+        related: [discipline, rules, ritual]
+        topic_keywords: [管教型, 渴望管教, 规则引导]
+      - key: scene_immersion
+        name: 场景代入型
+        related: [scenario, teacher_student, ancient_court]
+        topic_keywords: [代入, 场景型, 角色代入]
+      - key: affection_seeker
+        name: 疼爱型
+        related: [care, safety_feeling, lighthearted_mood]
+        topic_keywords: [疼爱型, 寻求关怀, 安全感需求]
+      - key: curiosity_explorer
+        name: 好奇探索型
+        related: [beginner, safety_boundaries]
+        topic_keywords: [好奇, 探索, 尝试新体验]
+
+  - key: interaction_role
+    selection_mode: single
+    interests:
+      - key: active_role
+        name: 主动
+        related: [switch_role, passive_role]
+        topic_keywords: [主动方, 主属性, 找主]
+      - key: passive_role
+        name: 被动
+        related: [switch_role, active_role]
+        topic_keywords: [被动方, 贝属性, 找贝]
+      - key: switch_role
+        name: 双向
+        related: [active_role, passive_role]
+        topic_keywords: [双向, 可主可被]
+      - key: brat_interaction
+        name: Brat互动
+        aliases: [brat]
+        related: [game_interaction, discipline]
+        topic_tags: [brat]
+        topic_keywords: [brat, 调皮]
+
   - key: interaction_style
+    selection_mode: multi
+    max_per_group: 3
     interests:
       - key: pure_practice
         name: 纯实践
@@ -30,6 +79,7 @@ groups:
         topic_keywords: [严肃, 严格]
 
   - key: intensity
+    selection_mode: single
     interests:
       - key: light_intensity
         name: 轻度
@@ -48,28 +98,9 @@ groups:
         related: [medium_heavy_intensity, serious_mood]
         topic_keywords: [重度, 重口]
 
-  - key: interaction_role
-    interests:
-      - key: active_role
-        name: 主动
-        related: [switch_role, passive_role]
-        topic_keywords: [主动方, 主属性, 找主]
-      - key: passive_role
-        name: 被动
-        related: [switch_role, active_role]
-        topic_keywords: [被动方, 贝属性, 找贝]
-      - key: switch_role
-        name: 双向
-        related: [active_role, passive_role]
-        topic_keywords: [双向, 可主可被]
-      - key: brat_interaction
-        name: Brat互动
-        aliases: [brat]
-        related: [game_interaction, discipline]
-        topic_tags: [brat]
-        topic_keywords: [brat, 调皮]
-
   - key: emotional_experience
+    selection_mode: multi
+    max_per_group: 3
     interests:
       - key: ritual
         name: 仪式感
@@ -102,7 +133,141 @@ groups:
         related: [care, safety_boundaries, debrief]
         topic_keywords: [安全感, 信任]
 
+  - key: scene_type
+    selection_mode: multi
+    max_per_group: 3
+    interests:
+      - key: teacher_student
+        name: 师生场景
+        related: [discipline, rules, scenario]
+        topic_keywords: [师生, 老师, 学生, 教导]
+      - key: family_discipline
+        name: 家庭管教
+        related: [discipline, care, scenario]
+        topic_keywords: [家庭管教, 兄妹, 姐弟, 家长]
+      - key: friends_scene
+        name: 朋友闺蜜
+        related: [lighthearted_mood, game_interaction, scenario]
+        topic_keywords: [朋友, 闺蜜, 好友]
+      - key: ancient_court
+        name: 古风宫廷
+        related: [ritual, serious_mood, scenario]
+        topic_keywords: [古风, 宫廷, 古装, 宫女]
+      - key: workplace
+        name: 职场上下级
+        related: [discipline, rules, scenario]
+        topic_keywords: [职场, 上下级, 上司, 秘书]
+      - key: military_training
+        name: 军训教官
+        related: [discipline, serious_mood, scenario]
+        topic_keywords: [军训, 教官, 训练]
+
+  - key: position
+    selection_mode: multi
+    max_per_group: 3
+    interests:
+      - key: otk
+        name: OTK膝上
+        related: [hand, lying_over, light_intensity]
+        topic_keywords: [otk, 膝上, 过膝, 趴腿]
+      - key: lying_over
+        name: 趴在桌床上
+        related: [otk, standing_bend, buttocks]
+        topic_keywords: [趴在, 桌上, 床上, 趴好]
+      - key: standing_bend
+        name: 站立弯腰
+        related: [lying_over, kneeling_position, buttocks]
+        topic_keywords: [弯腰, 站好, 撅好]
+      - key: kneeling_position
+        name: 跪姿
+        related: [kneeling, standing_bend, discipline]
+        topic_keywords: [跪姿, 跪好]
+
+  - key: tools
+    selection_mode: multi
+    max_per_group: 4
+    interests:
+      - key: hand
+        name: 徒手
+        related: [soft_tool, leather_paddle]
+        topic_keywords: [徒手, 手掌]
+      - key: belt_tool
+        name: 皮带
+        related: [heavy_paddle, cane]
+        topic_keywords: [皮带]
+      - key: leather_paddle
+        name: 皮拍
+        related: [hand, belt_tool, ruler]
+        topic_keywords: [皮拍, 皮具]
+      - key: hairbrush
+        name: 发刷
+        related: [hand, light_paddle]
+        topic_keywords: [发刷, 刷子]
+      - key: wooden_spoon
+        name: 木勺
+        related: [light_paddle, ruler]
+        topic_keywords: [木勺, 锅铲, 木铲]
+      - key: ruler
+        name: 戒尺
+        related: [leather_paddle, light_paddle]
+        topic_keywords: [戒尺]
+      - key: light_paddle
+        name: 轻板
+        related: [ruler, heavy_paddle]
+        topic_keywords: [轻板, 小板]
+      - key: heavy_paddle
+        name: 重板
+        related: [light_paddle, cane]
+        topic_keywords: [重板, 大板]
+      - key: cane
+        name: 藤条
+        related: [heavy_paddle, ruler]
+        topic_keywords: [藤条]
+      - key: teaching_pointer
+        name: 教鞭
+        related: [ruler, cane]
+        topic_keywords: [教鞭]
+      - key: bamboo_strip
+        name: 竹条
+        related: [cane, ruler]
+        topic_keywords: [竹条, 竹鞭]
+      - key: feather_duster
+        name: 鸡毛掸子
+        related: [soft_tool, hand]
+        topic_keywords: [鸡毛掸子, 掸子]
+      - key: soft_tool
+        name: 软质工具
+        related: [hand, feather_duster]
+        topic_keywords: [软质工具, 橡胶]
+
+  - key: focus_area
+    selection_mode: multi
+    max_per_group: 3
+    interests:
+      - key: buttocks
+        name: 臀部
+        related: [back_thigh, front_thigh]
+        topic_keywords: [臀部, 屁股]
+      - key: back_thigh
+        name: 大腿后侧
+        related: [buttocks, front_thigh]
+        topic_keywords: [大腿后侧, 大腿背面]
+      - key: front_thigh
+        name: 大腿前侧
+        related: [back_thigh, buttocks]
+        topic_keywords: [大腿前侧, 大腿正面]
+      - key: palm
+        name: 手心
+        related: [sole]
+        topic_keywords: [手心]
+      - key: sole
+        name: 脚心
+        related: [palm]
+        topic_keywords: [脚心]
+
   - key: additional_elements
+    selection_mode: multi
+    max_per_group: 4
     interests:
       - key: rules
         name: 规则约定
@@ -128,10 +293,6 @@ groups:
         name: 罚抄
         related: [writing_reflection, task_challenge]
         topic_keywords: [罚抄, 抄写]
-      - key: debrief
-        name: 事后复盘
-        related: [care, safety_feeling, safety_boundaries]
-        topic_keywords: [复盘, 事后照护, aftercare]
       - key: restraint
         name: 身体束缚
         aliases: [捆绑, 绳缚]
@@ -151,61 +312,34 @@ groups:
         related: [group_discussion, game_interaction, safety_boundaries]
         topic_keywords: [多人, 群体实践]
 
-  - key: tools
+  - key: aftercare
+    selection_mode: multi
+    max_per_group: 3
     interests:
-      - key: hand
-        name: 徒手
-        related: [soft_tool, leather_tool]
-        topic_keywords: [徒手, 手掌]
-      - key: leather_tool
-        name: 皮具
-        related: [hand, soft_tool, ruler]
-        topic_keywords: [皮具, 皮拍]
-      - key: ruler
-        name: 戒尺
-        related: [leather_tool, light_paddle]
-        topic_keywords: [戒尺]
-      - key: light_paddle
-        name: 轻板
-        related: [ruler, heavy_paddle]
-        topic_keywords: [轻板, 小板]
-      - key: heavy_paddle
-        name: 重板
-        related: [light_paddle, cane]
-        topic_keywords: [重板, 大板]
-      - key: cane
-        name: 藤条
-        related: [heavy_paddle, ruler]
-        topic_keywords: [藤条]
-      - key: soft_tool
-        name: 软质工具
-        related: [hand, leather_tool]
-        topic_keywords: [软质工具, 橡胶]
-
-  - key: focus_area
-    interests:
-      - key: buttocks
-        name: 臀部
-        related: [back_thigh, front_thigh]
-        topic_keywords: [臀部, 屁股]
-      - key: back_thigh
-        name: 大腿后侧
-        related: [buttocks, front_thigh]
-        topic_keywords: [大腿后侧, 大腿背面]
-      - key: front_thigh
-        name: 大腿前侧
-        related: [back_thigh, buttocks]
-        topic_keywords: [大腿前侧, 大腿正面]
-      - key: palm
-        name: 手心
-        related: [sole]
-        topic_keywords: [手心]
-      - key: sole
-        name: 脚心
-        related: [palm]
-        topic_keywords: [脚心]
+      - key: debrief
+        name: 事后复盘
+        related: [care, safety_feeling, safety_boundaries]
+        topic_keywords: [复盘, 事后照护, aftercare]
+      - key: hug_comfort
+        name: 拥抱安慰
+        related: [care, safety_feeling]
+        topic_keywords: [拥抱, 安慰, 抱抱]
+      - key: check_treat
+        name: 查看上药
+        related: [safety_boundaries, care]
+        topic_keywords: [上药, 查看, 伤痕]
+      - key: post_talk
+        name: 事后聊天
+        related: [care, safety_feeling]
+        topic_keywords: [事后聊天, 复盘聊天]
+      - key: alone_time
+        name: 独处冷静
+        related: [safety_feeling]
+        topic_keywords: [独处, 冷静, 缓一缓]
 
   - key: content_interest
+    selection_mode: multi
+    max_per_group: 3
     interests:
       - key: beginner
         name: 新手入门
@@ -247,6 +381,8 @@ groups:
         topic_keywords: [安全, 边界, 同意, 安全词, 风险]
 
   - key: communication_style
+    selection_mode: multi
+    max_per_group: 3
     interests:
       - key: local_exchange
         name: 同城交流
@@ -264,6 +400,22 @@ groups:
         name: 社群讨论
         related: [online_exchange, group_interaction]
         topic_keywords: [讨论, 交流, 社群]
+
+  - key: practice_frequency
+    selection_mode: single
+    interests:
+      - key: regular_practice
+        name: 定期实践
+        related: [local_exchange, one_to_one_exchange]
+        topic_keywords: [定期, 固定搭档, 长期]
+      - key: occasional_practice
+        name: 偶尔实践
+        related: [local_exchange, online_exchange]
+        topic_keywords: [偶尔, 不定期]
+      - key: online_only
+        name: 仅限线上
+        related: [online_exchange]
+        topic_keywords: [仅线上, 只线上, 不面]
       - key: no_practice
         name: 暂不实践
         related: [online_exchange, group_discussion, safety_boundaries]
