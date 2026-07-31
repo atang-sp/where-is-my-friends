@@ -21,8 +21,8 @@ WHERE_IS_MY_FRIENDS_OPENAI_API_KEY
 1. 完成数据库迁移和 Discourse 重建，保持 `licensed_import_dry_run=true`。
 2. 确认模型为 `gpt-5.6-terra`、北京时间发布小时为 `20`、间隔为 `24`、每日上限为
    `1`、月度预算为 `1500000`。
-3. 打开 `licensed_import_enabled`。任务每小时检查一次，只会在配置的北京时间小时
-   生成一篇预览。
+3. 打开 `licensed_import_enabled`。任务每分钟做一次轻量检查，只会在配置的北京时间
+   整点进入处理并生成一篇预览。
 4. 每天由管理员访问 `/where-is-my-friends/licensed-imports.json`，检查译文、问题和
    回答作者、两个原文链接、两个许可链接、修改说明、段落完整性及讨论问题边界。
 5. 第三篇预览生成后任务会自动关闭总开关并通知管理员。三篇必须全部一次通过；

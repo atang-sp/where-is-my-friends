@@ -12,6 +12,7 @@ module WhereIsMyFriends
         unless beijing_now.hour == SiteSetting.licensed_import_publish_hour.to_i
           return false
         end
+        return false if beijing_now.min.nonzero?
         if completed_today(beijing_now) >=
              SiteSetting.licensed_import_max_per_day.to_i
           return false

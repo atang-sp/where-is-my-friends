@@ -35,9 +35,19 @@ module WhereIsMyFriends
         /\b(?:1[89]|[2-9]\d|1\d{2})[- ]years?[- ]old\b/i,
         /\b(?:1[89]|[2-9]\d|1\d{2})\s*[mf]\b/i
       ].freeze
+      AGE_UNCERTAINTY = [
+        /\b(?:do not|don't|does not|doesn't|did not|didn't) know (?:their|his|her|the) age\b/i,
+        /\b(?:age|ages) (?:is|are|was|were) (?:unknown|unclear|unspecified)\b/i,
+        /\b(?:unknown|unclear|unspecified) age\b/i,
+        /\bnot sure how old\b/i,
+        /\b(?:would not|wouldn't|won't) (?:say|tell me) (?:their|his|her) age\b/i
+      ].freeze
 
       def failure_code(text)
         normalized = text.to_s
+        if AGE_UNCERTAINTY.any? { |pattern| normalized.match?(pattern) }
+          return "minor_or_age_unknown"
+        end
         RULES.each do |code, patterns|
           return code if patterns.any? { |pattern| normalized.match?(pattern) }
         end

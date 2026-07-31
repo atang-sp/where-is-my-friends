@@ -15,6 +15,11 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ScheduleGuard do
     freeze_time Time.utc(2026, 7, 31, 12, 0)
     expect(described_class.new.due?).to eq(true)
 
+    freeze_time Time.utc(2026, 7, 31, 12, 37)
+    expect(described_class.new.due?).to eq(false)
+
+    freeze_time Time.utc(2026, 7, 31, 12, 0)
+
     record =
       WhereIsMyFriendsLicensedImport.create!(
         source_question_id: 42,

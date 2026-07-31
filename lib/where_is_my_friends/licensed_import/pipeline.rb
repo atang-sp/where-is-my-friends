@@ -10,6 +10,7 @@ module WhereIsMyFriends
         monthly_token_budget_exhausted
         ai_error
       ].freeze
+      PROCESSING_STALE_AFTER = 20.hours
 
       def initialize(
         source: StackExchangeClient.new,
@@ -56,6 +57,8 @@ module WhereIsMyFriends
         last_outcome || skipped("no_candidate")
       rescue StackExchangeClient::SourceError
         skipped("source_error")
+      rescue ActiveRecord::RecordNotUnique
+        skipped("already_claimed")
       end
 
       private
@@ -164,6 +167,8 @@ module WhereIsMyFriends
           question_license: document[:question_license],
           answer_license: document[:answer_license],
           source_revised_at: document[:revised_at],
+          scheduled_for_date:
+            Time.zone.now.in_time_zone(ScheduleGuard::ZONE).to_date,
           status: "processing"
         )
       end
@@ -181,6 +186,14 @@ module WhereIsMyFriends
       end
 
       def recover_publication(document)
+        records =
+          WhereIsMyFriendsLicensedImport.where(
+            source_question_id: document.fetch(:question_id)
+          )
+        return if records.successful.exists?
+
+        processing =
+          records.where(status: "processing").order(created_at: :desc).first
         topic_id =
           TopicCustomField
             .where(
@@ -189,20 +202,20 @@ module WhereIsMyFriends
             )
             .order(id: :desc)
             .pick(:topic_id)
-        return if topic_id.blank?
+        if topic_id.blank?
+          return unless processing
+          if processing.updated_at >= PROCESSING_STALE_AFTER.ago
+            return skipped("already_claimed")
+          end
+
+          processing.fail!("interrupted")
+          return
+        end
 
         topic = Topic.find_by(id: topic_id, deleted_at: nil, visible: true)
         return if topic.blank?
 
-        record =
-          WhereIsMyFriendsLicensedImport
-            .where(
-              source_question_id: document.fetch(:question_id),
-              status: "processing"
-            )
-            .order(created_at: :desc)
-            .first
-        record ||= start_record(document)
+        record = processing || start_record(document)
         post = topic.first_post
         record.update!(
           status: "published",

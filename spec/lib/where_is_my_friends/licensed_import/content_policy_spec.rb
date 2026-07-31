@@ -29,6 +29,11 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ContentPolicy do
     expect(
       policy.failure_code("My 16-year-old friend needs a boundary.")
     ).to eq("minor_or_age_unknown")
+    expect(
+      policy.failure_code(
+        "I am an adult, but I don't know the age of the person I met online."
+      )
+    ).to eq("minor_or_age_unknown")
     expect(policy.failure_code("I am an adult and need a boundary.")).to be_nil
   end
 end

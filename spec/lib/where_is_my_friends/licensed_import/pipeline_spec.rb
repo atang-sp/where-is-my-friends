@@ -355,6 +355,47 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     expect(Topic.count).to eq(topic_count)
   end
 
+  it "skips an already published source instead of recreating its database record" do
+    TopicCustomField.create!(
+      topic_id: recovered_topic.id,
+      name: "where_is_my_friends_licensed_import_source_id",
+      value: "42"
+    )
+    WhereIsMyFriendsLicensedImport.create!(
+      source_question_id: 42,
+      status: "published",
+      topic_id: recovered_topic.id,
+      first_post_id: recovered_first_post.id,
+      published_at: 1.day.ago
+    )
+
+    outcome = nil
+    expect { outcome = pipeline.run }.not_to change(
+      WhereIsMyFriendsLicensedImport,
+      :count
+    )
+    expect(outcome).to have_attributes(
+      status: "skipped",
+      failure_code: "duplicate_source"
+    )
+  end
+
+  it "cannot claim a second active import on the same Beijing date" do
+    WhereIsMyFriendsLicensedImport.create!(
+      source_question_id: 999,
+      status: "processing",
+      scheduled_for_date: Time.zone.now.in_time_zone("Asia/Shanghai").to_date
+    )
+
+    outcome = pipeline.run
+
+    expect(outcome).to have_attributes(
+      status: "skipped",
+      failure_code: "already_claimed"
+    )
+    expect(publisher).not_to have_received(:publish!)
+  end
+
   it "rejects the same theme on consecutive successful imports" do
     WhereIsMyFriendsLicensedImport.create!(
       source_question_id: 90,
