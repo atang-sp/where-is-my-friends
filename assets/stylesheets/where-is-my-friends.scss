@@ -820,12 +820,12 @@
     line-height: 1.55;
   }
 
-  label {
+  > label {
     margin-top: 0.4rem;
     font-weight: 650;
   }
 
-  input {
+  input:not([type="checkbox"]) {
     width: 100%;
     min-height: 2.75rem;
     margin: 0;
@@ -981,7 +981,9 @@
   label {
     display: flex;
     gap: 0.5rem;
-    align-items: flex-start;
+    align-items: baseline;
+    font-weight: normal;
+    cursor: pointer;
   }
 }
 
