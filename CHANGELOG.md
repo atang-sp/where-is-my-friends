@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.1 — 2026-07-31
+
+- Fix join-notification checkbox layout: setup input styles no longer leak into
+  the notification fieldset, restoring horizontal label alignment.
+
 ## 1.5.0 — 2026-07-30
 
 - Add a response-first member lobby that highlights privacy-respecting online
