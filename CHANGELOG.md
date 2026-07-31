@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.0 — 2026-07-31
+
+- Expand the interest catalogue from 56 to 84 curated tags with finer SP
+  psychology, scene, position, tool, aftercare, and practice-intent groups.
+- Add per-group selection modes: single-select for intensity, role, and
+  practice frequency; multi-select with per-group caps for the remaining
+  groups.
+- Raise the global interest selection limit from 12 to 20 and validate
+  per-group limits on both client and server.
+- Seed the expanded Discourse tags for existing sites via migration.
+
 ## 1.5.1 — 2026-07-31
 
 - Fix join-notification checkbox layout: setup input styles no longer leak into

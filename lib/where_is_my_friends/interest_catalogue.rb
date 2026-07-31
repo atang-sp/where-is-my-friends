@@ -7,9 +7,24 @@ module WhereIsMyFriends
     Match = Struct.new(:score, :reason_names, :strength, keyword_init: true)
     COMMUNITY_GROUP = { "key" => "community" }.freeze
 
+    SELECTION_MODES = %w[single multi].freeze
+    DEFAULT_SELECTION_MODE = "multi"
+
     class << self
       def groups
         @groups ||= load_groups.freeze
+      end
+
+      def group_selection_mode(group)
+        mode = group["selection_mode"].to_s
+        SELECTION_MODES.include?(mode) ? mode : DEFAULT_SELECTION_MODE
+      end
+
+      def group_max_per_group(group)
+        mode = group_selection_mode(group)
+        return 1 if mode == "single"
+
+        group["max_per_group"]&.to_i
       end
 
       def entries

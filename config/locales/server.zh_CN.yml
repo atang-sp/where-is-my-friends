@@ -2,38 +2,53 @@ zh_CN:
   where_is_my_friends:
     invalid_location: "请提供有效的城市和位置信息"
     invalid_event: "无法记录此活动"
-    invalid_interests: "请选择 3 至 12 个当前可见的兴趣"
+    invalid_interests: "请选择 3 至 20 个当前可见的兴趣，并确保每个分类未超出上限"
     invalid_purpose: "请选择你当前使用论坛的主要目的"
     invalid_recommendation: "这条推荐已不可用"
     interest_catalogue:
       groups:
+        sp_psychology:
+          name: "SP心理类型"
+          description: "你在SP中追求的核心体验是什么？选最像你的 1–2 个。"
+        interaction_role:
+          name: "互动角色"
+          description: "角色可以随关系和场景变化，不代表固定身份。"
         interaction_style:
           name: "互动类型"
           description: "你更感兴趣的互动框架和整体氛围。"
         intensity:
           name: "强度偏好"
           description: "用宽泛区间表达舒适范围，具体边界仍需单独沟通。"
-        interaction_role:
-          name: "互动角色"
-          description: "角色可以随关系和场景变化，不代表固定身份。"
         emotional_experience:
           name: "感受主题"
           description: "描述你想讨论的心理体验，而不是替任何人作判断。"
-        additional_elements:
-          name: "附加元素"
-          description: "查找更细分的经验、复盘和创作讨论。"
+        scene_type:
+          name: "场景类型"
+          description: "你感兴趣的角色扮演和情景设定。"
+        position:
+          name: "姿势偏好"
+          description: "你偏好的实践姿势。"
         tools:
           name: "工具偏好"
           description: "只用于兴趣发现；具体使用必须建立在成年、同意和安全沟通之上。"
         focus_area:
           name: "关注部位"
           description: "帮助查找对应经验；不表示对任何具体行为的同意。"
+        additional_elements:
+          name: "附加元素"
+          description: "查找更细分的经验和创作讨论。"
+        aftercare:
+          name: "事后照护"
+          description: "你期望的实践后照护方式。"
         content_interest:
           name: "内容兴趣"
           description: "选择你更想在论坛里阅读或参与的内容。"
         communication_style:
           name: "交流方式"
           description: "表达你希望如何参与社区，不会自动发起联系或邀请。"
+        practice_frequency:
+          name: "实践意愿"
+          description: "你目前对实践的态度，不影响兴趣匹配。"
         community:
           name: "社区原有标签"
           description: "管理员补充的标签，或你之前已经选择的论坛标签。"

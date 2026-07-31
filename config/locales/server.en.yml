@@ -2,38 +2,53 @@ en:
   where_is_my_friends:
     invalid_location: "Please provide a valid city and location."
     invalid_event: "This activity cannot be recorded."
-    invalid_interests: "Choose 3 to 12 currently visible interests."
+    invalid_interests: "Choose 3 to 20 currently visible interests without exceeding any group limit."
     invalid_purpose: "Choose your current reason for using the community."
     invalid_recommendation: "That recommendation is no longer available."
     interest_catalogue:
       groups:
+        sp_psychology:
+          name: "SP psychology type"
+          description: "What core experience do you seek in SP? Pick 1–2 that fit you best."
+        interaction_role:
+          name: "Interaction role"
+          description: "Roles can change with a relationship or scene and do not define a fixed identity."
         interaction_style:
           name: "Interaction style"
           description: "The interaction framework and overall tone that interest you."
         intensity:
           name: "Intensity"
           description: "Use broad ranges for discovery; specific boundaries still require a separate conversation."
-        interaction_role:
-          name: "Interaction role"
-          description: "Roles can change with a relationship or scene and do not define a fixed identity."
         emotional_experience:
           name: "Experience"
           description: "Describe themes you want to discuss without labeling anyone."
-        additional_elements:
-          name: "Additional elements"
-          description: "Find more detailed experience, debrief, and creative discussions."
+        scene_type:
+          name: "Scene type"
+          description: "Roleplay scenarios and settings that interest you."
+        position:
+          name: "Position preferences"
+          description: "Preferred practice positions."
         tools:
           name: "Tool preferences"
           description: "For discovery only. Any use requires adults, consent, and safety communication."
         focus_area:
           name: "Focus area"
           description: "Find relevant experiences without implying consent to any activity."
+        additional_elements:
+          name: "Additional elements"
+          description: "Find more detailed experience and creative discussions."
+        aftercare:
+          name: "Aftercare"
+          description: "Your preferred post-practice care."
         content_interest:
           name: "Content interests"
           description: "Choose what you would like to read or discuss in the forum."
         communication_style:
           name: "Communication"
           description: "Describe how you want to participate; this never starts contact or an invitation."
+        practice_frequency:
+          name: "Practice intent"
+          description: "Your current attitude toward practice; does not affect interest matching."
         community:
           name: "Existing community tags"
           description: "Tags added by an administrator or preserved from your earlier selections."

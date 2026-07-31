@@ -99,12 +99,24 @@ export default class InterestOnboardingPage extends Component {
     ];
 
     return (configuredGroups.length ? configuredGroups : fallbackGroups)
-      .map((group) => ({
-        ...group,
-        interests: options.filter(
+      .map((group) => {
+        const interests = options.filter(
           (interest) => interest.group_key === group.key
-        ),
-      }))
+        );
+        const selectedCount = interests.filter((i) => i.selected).length;
+        const isSingle = group.selection_mode === "single";
+        const maxPerGroup = isSingle ? 1 : group.max_per_group;
+        const groupFull =
+          maxPerGroup != null && selectedCount >= maxPerGroup;
+        return {
+          ...group,
+          interests,
+          selectedCount,
+          isSingle,
+          maxPerGroup,
+          groupFull,
+        };
+      })
       .filter((group) => group.interests.length > 0);
   }
 
@@ -181,7 +193,25 @@ export default class InterestOnboardingPage extends Component {
     if (next.has(interestId)) {
       next.delete(interestId);
     } else if (next.size < this.maximumInterests) {
-      next.add(interestId);
+      const entry = this.catalogue.find((i) => i.id === interestId);
+      const groupKey = entry?.group_key;
+      const group = this.interestGroups.find((g) => g.key === groupKey);
+
+      if (group?.isSingle) {
+        for (const gi of group.interests) {
+          next.delete(gi.id);
+        }
+        next.add(interestId);
+      } else if (group?.maxPerGroup != null) {
+        const currentGroupCount = group.interests.filter((i) =>
+          next.has(i.id)
+        ).length;
+        if (currentGroupCount < group.maxPerGroup) {
+          next.add(interestId);
+        }
+      } else {
+        next.add(interestId);
+      }
     }
     this.selectedInterestIds = next;
     this.error = null;
@@ -893,16 +923,41 @@ export default class InterestOnboardingPage extends Component {
                 >
                   {{#each this.interestGroups as |group|}}
                     <section
-                      class="interest-onboarding__interest-group"
+                      class="interest-onboarding__interest-group
+                        {{if group.isSingle 'interest-onboarding__interest-group--single'}}"
                       data-test-interest-group={{group.key}}
+                      data-selection-mode={{group.selection_mode}}
                     >
-                      <div>
-                        <h3>{{group.name}}</h3>
+                      <div class="interest-onboarding__group-header">
+                        <h3>{{group.name}}
+                          {{#if group.isSingle}}
+                            <span
+                              class="interest-onboarding__group-badge"
+                            >{{i18n
+                                "where_is_my_friends.interests.single_select"
+                              }}</span>
+                          {{/if}}
+                        </h3>
                         {{#if group.description}}
                           <p>{{group.description}}</p>
                         {{/if}}
+                        {{#if group.maxPerGroup}}
+                          {{#unless group.isSingle}}
+                            <span
+                              class="interest-onboarding__group-count
+                                {{if group.groupFull 'interest-onboarding__group-count--full'}}"
+                            >{{i18n
+                                "where_is_my_friends.interests.group_count"
+                                count=group.selectedCount
+                                maximum=group.maxPerGroup
+                              }}</span>
+                          {{/unless}}
+                        {{/if}}
                       </div>
-                      <div class="interest-onboarding__chips">
+                      <div
+                        class="interest-onboarding__chips"
+                        role={{if group.isSingle "radiogroup" "group"}}
+                      >
                         {{#each group.interests as |interest|}}
                           <DButton
                             @action={{fn

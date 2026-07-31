@@ -17,10 +17,9 @@ module WhereIsMyFriends
     end
 
     def update_profile
-      catalogue_ids =
-        RecommendationEngine
-          .catalogue_for(current_user)
-          .map { |entry| entry[:id] }
+      engine = RecommendationEngine.new(current_user)
+      catalogue = engine.catalogue
+      catalogue_ids = catalogue.map { |entry| entry[:id] }
       interest_ids = Array(params[:interest_ids]).map(&:to_i).uniq
       minimum = [RecommendationEngine::MIN_INTERESTS, catalogue_ids.length].min
 
@@ -28,6 +27,15 @@ module WhereIsMyFriends
                minimum,
                RecommendationEngine::MAX_INTERESTS
              ) && (interest_ids - catalogue_ids).empty?
+        return(
+          render_json_error(
+            I18n.t("where_is_my_friends.invalid_interests"),
+            status: 422
+          )
+        )
+      end
+
+      unless valid_per_group_limits?(interest_ids, catalogue)
         return(
           render_json_error(
             I18n.t("where_is_my_friends.invalid_interests"),
@@ -120,6 +128,22 @@ module WhereIsMyFriends
     end
 
     private
+
+    def valid_per_group_limits?(interest_ids, catalogue)
+      ids_by_group =
+        catalogue
+          .select { |entry| interest_ids.include?(entry[:id]) }
+          .group_by { |entry| entry[:group_key] }
+      ids_by_group.all? do |group_key, entries|
+        group = InterestCatalogue.group(group_key)
+        next true unless group
+
+        max = InterestCatalogue.group_max_per_group(group)
+        next true unless max
+
+        entries.length <= max
+      end
+    end
 
     def current_profile
       WhereIsMyFriendsInterestProfile.find_or_create_by!(
