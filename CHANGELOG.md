@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.7.0 — 2026-07-31
+
+- Add a fail-closed, licensed English Q&A translation pipeline using the Stack
+  Exchange API, DeepSeek V4 Flash for structured generation, and free OpenAI
+  moderation, with deterministic preprocessing and an independent fidelity
+  review. Administrators can switch generation back to GPT-5.6 Terra without
+  redeploying.
+- Add safe-by-default dry-run previews, daily scheduling, theme rotation,
+  monthly token limits, source revision monitoring, attribution, duplicate and
+  retry protection, and administrator notifications.
+- Keep automated posts out of human contribution metrics and cap translated
+  topics at two of the five discussion recommendations.
+- Pause automatically after three previews await review, seven mature posts
+  receive no human reply, or the 30-day reply/original-content gates fail.
+- Add an emergency halt task that disables imports and hides affected topics
+  after copyright, serious safety, or attribution incidents.
+
 ## 1.6.0 — 2026-07-31
 
 - Expand the interest catalogue from 56 to 84 curated tags with finer SP

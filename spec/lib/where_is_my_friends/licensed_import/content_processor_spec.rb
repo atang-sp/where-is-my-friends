@@ -1,0 +1,38 @@
+# frozen_string_literal: true
+
+RSpec.describe WhereIsMyFriends::LicensedImport::ContentProcessor do
+  it "turns allowed HTML into stable segments while removing private and unlicensed material" do
+    long_quote = Array.new(55, "quoted").join(" ")
+    document = {
+      title: "Setting a boundary",
+      question_html: <<~HTML,
+        <p>Please email me at person@example.com.</p>
+        <p>We planned to meet at 123 Main Street.</p>
+        <img src="https://example.com/private.jpg">
+        <blockquote>#{long_quote}</blockquote>
+      HTML
+      answer_html: <<~HTML
+        <p>State the boundary clearly.</p>
+        <p>Listen to the other person's response.</p>
+      HTML
+    }
+
+    content = described_class.new.call(document)
+
+    expect(content.segments.map(&:id)).to eq(
+      %w[question_01 question_02 answer_01 answer_02]
+    )
+    expect(content.segments.map(&:text).join(" ")).not_to include(
+      "person@example.com",
+      "123 Main Street",
+      "private.jpg",
+      long_quote
+    )
+    expect(content.redactions).to contain_exactly(
+      "contact_information",
+      "exact_address",
+      "image",
+      "long_quote"
+    )
+  end
+end

@@ -24,5 +24,6 @@ WhereIsMyFriends::Engine.routes.draw do
   put "/legacy-practice-bookmarks/:id/dismiss" =>
         "legacy_practice_bookmarks#dismiss"
   post "/events" => "events#create"
+  get "/licensed-imports" => "licensed_imports#index"
   get "/debug-stats" => "locations#debug_stats" # 仅管理员可访问
 end

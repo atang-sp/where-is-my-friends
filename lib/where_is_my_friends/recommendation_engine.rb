@@ -383,10 +383,10 @@ module WhereIsMyFriends
 
     def active_contributor_count(topics)
       author_ids =
-        User.where(
-          id: topics.map(&:user_id),
-          last_seen_at: 30.days.ago..
-        ).pluck(:id)
+        User
+          .where(id: topics.map(&:user_id), last_seen_at: 30.days.ago..)
+          .where.not(id: Discourse.system_user.id)
+          .pluck(:id)
       contributor_ids =
         Post
           .where(
@@ -395,6 +395,7 @@ module WhereIsMyFriends
             created_at: 30.days.ago..
           )
           .where(deleted_at: nil)
+          .where.not(user_id: Discourse.system_user.id)
           .visible
           .secured(@guardian)
           .distinct
@@ -633,7 +634,28 @@ module WhereIsMyFriends
         selected << candidate if selected.exclude?(candidate)
       end
 
-      selected.compact.first(MAX_TOPICS)
+      cap_licensed_imports(selected.compact + candidates)
+    end
+
+    def cap_licensed_imports(candidates)
+      unique = candidates.uniq { |candidate| candidate.first.id }
+      imported_ids =
+        WhereIsMyFriendsLicensedImport
+          .published
+          .where(topic_id: unique.map { |candidate| candidate.first.id })
+          .pluck(:topic_id)
+          .to_set
+      imported_count = 0
+      unique.each_with_object([]) do |candidate, selected|
+        topic_id = candidate.first.id
+        if imported_ids.include?(topic_id)
+          next if imported_count >= 2
+
+          imported_count += 1
+        end
+        selected << candidate
+        break selected if selected.length >= MAX_TOPICS
+      end
     end
 
     def refresh_topic_candidates(candidates)
@@ -669,6 +691,7 @@ module WhereIsMyFriends
       Post
         .where(topic_id: topics_by_id.keys, post_type: Post.types[:regular])
         .where(deleted_at: nil)
+        .where.not(user_id: Discourse.system_user.id)
         .visible
         .secured(@guardian)
         .pluck("posts.user_id", "posts.topic_id")

@@ -5,6 +5,46 @@ zh_CN:
     invalid_interests: "请选择 3 至 20 个当前可见的兴趣，并确保每个分类未超出上限"
     invalid_purpose: "请选择你当前使用论坛的主要目的"
     invalid_recommendation: "这条推荐已不可用"
+    licensed_import:
+      title_prefix: "[英文精选·译文]"
+      deleted_source_user: "已删除用户"
+      tags:
+        curated: "英文精选"
+        safety: "安全与边界"
+      redaction_placeholders:
+        contact: "[已删除联系方式]"
+        address: "[已删除精确地址]"
+      redactions:
+        contact_information: "删除联系方式"
+        exact_address: "删除精确地址"
+        image: "删除图片"
+        long_quote: "删除无独立许可的长引用"
+      modifications:
+        translated: "翻译为简体中文"
+        separator: "；"
+      post:
+        disclosure: "本主题由英文精选翻译机器人自动生成，并经过许可、安全与忠实度校验。下文是中文译文；“社区讨论”不是原作者内容。"
+        question_heading: "问题"
+        answer_heading: "优质回答"
+        discussion_heading: "社区讨论"
+        attribution_heading: "来源、署名与许可"
+        question_attribution: "- 问题：%{author} · [原文](%{url}) · %{license}"
+        answer_attribution: "- 回答：%{author} · [原文](%{url}) · %{license}"
+        modification_notice: "- 修改说明：%{modification}。未改变的部分按相同许可转载。"
+      reasons:
+        missing_api_key: "缺少所选模型或 OpenAI 审核所需的 API 密钥"
+        monthly_token_budget_exhausted: "月度 token 预算已耗尽"
+        dry_run_ready_for_review: "三篇干跑预览已等待人工复核"
+        seven_without_human_reply: "连续七篇成熟译文均无七天内真人回复"
+        thirty_day_reply_rate_below_half: "30 天七日真人回复率低于 50%"
+        human_original_topics_declined: "真人原创主题数量下降"
+        copyright_complaint: "已确认版权投诉"
+        serious_safety_miss: "已确认严重安全漏检"
+        attribution_error: "已确认错误署名"
+        source_sync_failure: "来源同步失败"
+        source_error: "英文来源 API 失败"
+        ai_error: "AI 供应商 API 失败"
+        unexpected_failure: "未预期任务失败"
     interest_catalogue:
       groups:
         sp_psychology:
@@ -101,6 +141,7 @@ zh_CN:
       profile_location_invite: "你的资料显示你在 %{city}——你知道附近有 %{count} 位论坛成员吗？加入同城朋友，与他们建立连接！"
       monthly_digest: "上个月有 %{count} 位新成员加入了你附近的同城发现"
       weekly_nearby_digest: "本周附近城市新加入 %{count} 位成员"
+      licensed_import_reason: "英文精选任务已暂停：%{reason}"
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
     where_is_my_friends_interest_onboarding_enabled: "启用首次兴趣引导和个性化推荐"
@@ -118,3 +159,10 @@ zh_CN:
     where_is_my_friends_default_discovery_radius_km: "默认发现半径（公里）。用户可在 50/100/200 中自选。"
     where_is_my_friends_target_category_slug: "同城相关分区的 slug。在该分区中显示更强的引导组件。"
     where_is_my_friends_filterable_user_fields: "允许在发现结果中筛选的自定义用户字段名称（仅限下拉类型），用竖线分隔"
+    licensed_import_enabled: "启用有明确许可的英文精选翻译任务"
+    licensed_import_dry_run: "只生成管理员预览，不创建公开主题"
+    licensed_import_interval_hours: "两次英文精选任务之间的最短小时数"
+    licensed_import_publish_hour: "英文精选任务的北京时间发布小时"
+    licensed_import_model: "分类、翻译与复核使用的模型"
+    licensed_import_monthly_token_budget: "英文精选每月最多使用的生成 token 总量"
+    licensed_import_max_per_day: "每天最多创建的英文精选数量（固定为 1）"
