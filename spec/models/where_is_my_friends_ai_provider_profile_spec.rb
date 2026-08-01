@@ -53,6 +53,14 @@ RSpec.describe WhereIsMyFriendsAiProviderProfile do
     expect(profile.api_key).to eq(saved_key)
   end
 
+  it "rejects API keys longer than the Discourse AI secret limit" do
+    profile = build_profile
+    profile.api_key = "k" * 10_001
+
+    expect(profile).not_to be_valid
+    expect(profile.errors[:api_key]).to be_present
+  end
+
   it "allows only one active profile for each purpose" do
     first = build_profile
     first.save!

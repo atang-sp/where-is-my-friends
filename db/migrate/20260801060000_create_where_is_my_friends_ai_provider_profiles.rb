@@ -9,7 +9,7 @@ class CreateWhereIsMyFriendsAiProviderProfiles < ActiveRecord::Migration[7.2]
       t.string :structured_output_mode, null: false, default: "json_schema"
       t.string :base_url, null: false
       t.string :model, null: false
-      t.text :api_key, null: false
+      t.string :api_key, limit: 10_000, null: false
       t.boolean :active, null: false, default: false
       t.datetime :verified_at
       t.string :verified_config_digest

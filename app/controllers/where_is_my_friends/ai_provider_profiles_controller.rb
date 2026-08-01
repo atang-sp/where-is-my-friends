@@ -21,6 +21,7 @@ module WhereIsMyFriends
       profile.created_by_id = current_user.id
       profile.updated_by_id = current_user.id
       if profile.save
+        log_profile_action("create", profile, api_key_configured: true)
         render json: serialize(profile), status: :created
       else
         render_validation_errors(profile)
@@ -30,8 +31,10 @@ module WhereIsMyFriends
     def update
       attributes = profile_params
       attributes.delete(:api_key) if attributes[:api_key].blank?
+      api_key_updated = attributes.key?(:api_key)
       @profile.updated_by_id = current_user.id
       if @profile.update(attributes)
+        log_profile_action("update", @profile, api_key_updated: api_key_updated)
         render json: serialize(@profile)
       else
         render_validation_errors(@profile)
@@ -40,12 +43,19 @@ module WhereIsMyFriends
 
     def destroy
       @profile.destroy!
+      log_profile_action("delete", @profile)
       SiteSetting.licensed_import_enabled = false
       render json: { success: true }
     end
 
     def test
       result = LicensedImport::ProviderTester.new(profile: @profile).call
+      log_profile_action(
+        "test",
+        @profile,
+        success: result.success?,
+        error_code: result.error_code
+      )
       status = result.success? ? :ok : :unprocessable_entity
       render json: {
                success: result.success?,
@@ -57,6 +67,7 @@ module WhereIsMyFriends
 
     def activate
       @profile.activate!
+      log_profile_action("activate", @profile, active: true)
       render json: { success: true, profile: serialize(@profile) }
     rescue LicensedImport::AiGateway::Error
       render json: {
@@ -110,6 +121,18 @@ module WhereIsMyFriends
                errors: profile.errors.full_messages
              },
              status: :unprocessable_entity
+    end
+
+    def log_profile_action(action, profile, details = {})
+      StaffActionLogger.new(current_user).log_custom(
+        "#{action}_where_is_my_friends_ai_provider_profile",
+        {
+          profile_id: profile.id,
+          profile_name: profile.name,
+          purpose: profile.purpose,
+          subject: profile.name
+        }.merge(details)
+      )
     end
   end
 end

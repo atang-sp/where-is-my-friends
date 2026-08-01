@@ -26,6 +26,7 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
             :api_key,
             presence: true
   validates :purpose, inclusion: { in: PURPOSES }
+  validates :api_key, length: { maximum: 10_000 }
   validates :protocol,
             inclusion: {
               in: GENERATION_PROTOCOLS + [MODERATION_PROTOCOL]

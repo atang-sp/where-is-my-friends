@@ -107,4 +107,85 @@ RSpec.describe WhereIsMyFriends::AiProviderProfilesController do
     expect(profile.reload).to be_active
     expect(SiteSetting.licensed_import_enabled).to eq(false)
   end
+
+  it "audits administrator actions without logging API key values" do
+    sign_in(admin)
+    post "/where-is-my-friends/admin/ai-provider-profiles.json",
+         params: {
+           profile: {
+             name: "Audited gateway",
+             purpose: "generation",
+             protocol: "responses",
+             base_url: "https://api.openai.com/v1",
+             model: "audited-model",
+             api_key: "audit-secret-never-log"
+           }
+         }
+    profile = WhereIsMyFriendsAiProviderProfile.find(response.parsed_body["id"])
+
+    put "/where-is-my-friends/admin/ai-provider-profiles/#{profile.id}.json",
+        params: {
+          profile: {
+            name: profile.name,
+            purpose: profile.purpose,
+            protocol: profile.protocol,
+            base_url: profile.base_url,
+            model: profile.model,
+            api_key: "replacement-secret-never-log"
+          }
+        }
+
+    result =
+      WhereIsMyFriends::LicensedImport::ProviderTester::Result.new(
+        success: true,
+        error_code: nil
+      )
+    allow(WhereIsMyFriends::LicensedImport::ProviderTester).to receive(
+      :new
+    ).and_return(
+      instance_double(
+        WhereIsMyFriends::LicensedImport::ProviderTester,
+        call: result
+      )
+    )
+    post "/where-is-my-friends/admin/ai-provider-profiles/#{profile.id}/test.json"
+
+    profile.reload.update_columns(
+      verified_at: Time.zone.now,
+      verified_config_digest: profile.configuration_digest,
+      last_test_status: "passed"
+    )
+    post "/where-is-my-friends/admin/ai-provider-profiles/#{profile.id}/activate.json"
+    delete "/where-is-my-friends/admin/ai-provider-profiles/#{profile.id}.json"
+
+    histories =
+      UserHistory.where(
+        acting_user_id: admin.id,
+        action: UserHistory.actions[:custom_staff]
+      ).where(
+        custom_type: %w[
+          create_where_is_my_friends_ai_provider_profile
+          update_where_is_my_friends_ai_provider_profile
+          test_where_is_my_friends_ai_provider_profile
+          activate_where_is_my_friends_ai_provider_profile
+          delete_where_is_my_friends_ai_provider_profile
+        ]
+      )
+
+    expect(histories.pluck(:custom_type)).to contain_exactly(
+      "create_where_is_my_friends_ai_provider_profile",
+      "update_where_is_my_friends_ai_provider_profile",
+      "test_where_is_my_friends_ai_provider_profile",
+      "activate_where_is_my_friends_ai_provider_profile",
+      "delete_where_is_my_friends_ai_provider_profile"
+    )
+    expect(histories.pluck(:subject).uniq).to eq(["Audited gateway"])
+    audit_text = histories.pluck(:details).join("\n")
+    expect(audit_text).to include("profile_id: #{profile.id}")
+    expect(audit_text).to include("api_key_updated: true")
+    expect(audit_text).not_to include(
+      "audit-secret-never-log",
+      "replacement-secret-never-log"
+    )
+  end
 end
