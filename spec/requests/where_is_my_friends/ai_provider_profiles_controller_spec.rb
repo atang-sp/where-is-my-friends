@@ -158,27 +158,20 @@ RSpec.describe WhereIsMyFriends::AiProviderProfilesController do
     post "/where-is-my-friends/admin/ai-provider-profiles/#{profile.id}/activate.json"
     delete "/where-is-my-friends/admin/ai-provider-profiles/#{profile.id}.json"
 
+    action_types = %w[
+      create_where_is_my_friends_ai_provider_profile
+      update_where_is_my_friends_ai_provider_profile
+      test_where_is_my_friends_ai_provider_profile
+      activate_where_is_my_friends_ai_provider_profile
+      delete_where_is_my_friends_ai_provider_profile
+    ]
     histories =
       UserHistory.where(
         acting_user_id: admin.id,
         action: UserHistory.actions[:custom_staff]
-      ).where(
-        custom_type: %w[
-          create_where_is_my_friends_ai_provider_profile
-          update_where_is_my_friends_ai_provider_profile
-          test_where_is_my_friends_ai_provider_profile
-          activate_where_is_my_friends_ai_provider_profile
-          delete_where_is_my_friends_ai_provider_profile
-        ]
-      )
+      ).where(custom_type: action_types)
 
-    expect(histories.pluck(:custom_type)).to contain_exactly(
-      "create_where_is_my_friends_ai_provider_profile",
-      "update_where_is_my_friends_ai_provider_profile",
-      "test_where_is_my_friends_ai_provider_profile",
-      "activate_where_is_my_friends_ai_provider_profile",
-      "delete_where_is_my_friends_ai_provider_profile"
-    )
+    expect(histories.pluck(:custom_type)).to contain_exactly(*action_types)
     expect(histories.pluck(:subject).uniq).to eq(["Audited gateway"])
     audit_text = histories.pluck(:details).join("\n")
     expect(audit_text).to include("profile_id: #{profile.id}")
@@ -187,5 +180,10 @@ RSpec.describe WhereIsMyFriends::AiProviderProfilesController do
       "audit-secret-never-log",
       "replacement-secret-never-log"
     )
+    action_types.each do |action_type|
+      key = "admin_js.admin.logs.staff_actions.actions.#{action_type}"
+      expect(I18n.t(key, locale: :en)).not_to include("Translation missing")
+      expect(I18n.t(key, locale: :zh_CN)).not_to include("Translation missing")
+    end
   end
 end

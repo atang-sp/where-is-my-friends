@@ -1,4 +1,14 @@
 en:
+  admin_js:
+    admin:
+      logs:
+        staff_actions:
+          actions:
+            create_where_is_my_friends_ai_provider_profile: "Create Local Friends AI provider"
+            update_where_is_my_friends_ai_provider_profile: "Update Local Friends AI provider"
+            test_where_is_my_friends_ai_provider_profile: "Test Local Friends AI provider"
+            activate_where_is_my_friends_ai_provider_profile: "Activate Local Friends AI provider"
+            delete_where_is_my_friends_ai_provider_profile: "Delete Local Friends AI provider"
   js:
     where_is_my_friends:
       title: "Local Friends"

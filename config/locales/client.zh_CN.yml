@@ -1,4 +1,14 @@
 zh_CN:
+  admin_js:
+    admin:
+      logs:
+        staff_actions:
+          actions:
+            create_where_is_my_friends_ai_provider_profile: "创建同城朋友 AI 供应商"
+            update_where_is_my_friends_ai_provider_profile: "更新同城朋友 AI 供应商"
+            test_where_is_my_friends_ai_provider_profile: "测试同城朋友 AI 供应商"
+            activate_where_is_my_friends_ai_provider_profile: "启用同城朋友 AI 供应商"
+            delete_where_is_my_friends_ai_provider_profile: "删除同城朋友 AI 供应商"
   js:
     where_is_my_friends:
       title: "同城朋友"
