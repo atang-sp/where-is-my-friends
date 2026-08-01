@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.2 — 2026-08-01
+
+- Retry transient model-gateway failures up to three attempts, honoring short
+  `Retry-After` delays for rate limits and using bounded exponential delays for
+  HTTP 408, HTTP 5xx, timeouts, and connection failures.
+- Continue to fail immediately for authentication, request-shape, endpoint
+  policy, and other permanent errors.
+
 ## 1.8.1 — 2026-08-01
 
 - Run licensed imports with one administrator-managed model gateway instead of
