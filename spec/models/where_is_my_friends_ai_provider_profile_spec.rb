@@ -3,19 +3,6 @@
 RSpec.describe WhereIsMyFriendsAiProviderProfile do
   fab!(:admin)
 
-  around do |example|
-    original =
-      ENV[WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV]
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = Base64.strict_encode64("m" * 32)
-    example.run
-  ensure
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = original
-  end
-
   def build_profile
     described_class.new(
       name: "Primary supplier",
@@ -29,13 +16,13 @@ RSpec.describe WhereIsMyFriendsAiProviderProfile do
     )
   end
 
-  it "normalizes configuration and stores only encrypted credentials" do
+  it "normalizes configuration and stores the administrator-managed key" do
     profile = build_profile
     profile.save!
 
     expect(profile.base_url).to eq("https://gateway.example/v1")
-    expect(profile.encrypted_api_key).not_to include("secret-key")
     expect(profile.api_key).to eq("secret-key")
+    expect(profile.api_key!).to eq("secret-key")
   end
 
   it "invalidates verification, deactivates, and disables imports on config change" do
@@ -56,15 +43,14 @@ RSpec.describe WhereIsMyFriendsAiProviderProfile do
     expect(SiteSetting.licensed_import_enabled).to eq(false)
   end
 
-  it "retains the encrypted key when an update omits a new plaintext key" do
+  it "retains the key when an update omits a replacement" do
     profile = build_profile
     profile.save!
-    ciphertext = profile.encrypted_api_key
+    saved_key = profile.api_key
 
     profile.update!(name: "Renamed", updated_by_id: admin.id)
 
-    expect(profile.encrypted_api_key).to eq(ciphertext)
-    expect(profile.api_key).to eq("secret-key")
+    expect(profile.api_key).to eq(saved_key)
   end
 
   it "allows only one active profile for each purpose" do

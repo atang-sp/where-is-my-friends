@@ -3,19 +3,6 @@
 RSpec.describe WhereIsMyFriends::LicensedImport::ProviderTester do
   fab!(:admin)
 
-  around do |example|
-    original =
-      ENV[WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV]
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = Base64.strict_encode64("t" * 32)
-    example.run
-  ensure
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = original
-  end
-
   let(:endpoint_policy) do
     WhereIsMyFriends::LicensedImport::EndpointPolicy.new(
       resolver: ->(_host) { ["1.1.1.1"] }

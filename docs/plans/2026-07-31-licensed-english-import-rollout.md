@@ -6,18 +6,10 @@
 `licensed_import_dry_run=true`。唯一允许的来源是 Interpersonal Skills Stack
 Exchange API 返回、问题和选定回答均明确标记为 CC BY-SA 3.0 或 4.0 的完整问答。
 
-部署时只注入一个长期稳定的凭据加密主密钥：
-
-```bash
-openssl rand -base64 32
-# 将结果通过生产环境的秘密管理方式注入：
-WHERE_IS_MY_FRIENDS_CREDENTIALS_MASTER_KEY
-```
-
-不得把值提交到 Git、日志或管理接口。生产环境应通过现有的秘密管理方式将它注入
-Discourse 容器，并在重建后只验证变量存在，不输出变量值。该主密钥用于 AES-256-GCM
-加密后台保存的供应商密钥；日常只在后台轮换供应商密钥，不要轮换主密钥。丢失或替换
-主密钥会让已有供应商凭据无法解密，需要逐个重新录入。
+供应商 API 密钥由插件数据库直接保存，与当前 Discourse AI 的 `AiSecret` 存储方式一致，
+无需额外环境变量或主密钥。管理接口和页面只返回“已配置”状态，绝不返回密钥；Rails
+日志会过滤 `api_key` 参数。数据库管理员及数据库备份仍可读取密钥，因此数据库访问和
+备份权限应按现有生产规范管理。
 
 重建后进入“管理后台 → 插件 → Where is my friends → AI 供应商”：
 

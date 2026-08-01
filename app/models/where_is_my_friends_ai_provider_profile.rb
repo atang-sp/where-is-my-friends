@@ -15,12 +15,16 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
     structured_output_mode
     base_url
     model
-    encrypted_api_key
+    api_key
   ].freeze
 
-  attr_reader :pending_api_key
-
-  validates :name, :purpose, :protocol, :base_url, :model, presence: true
+  validates :name,
+            :purpose,
+            :protocol,
+            :base_url,
+            :model,
+            :api_key,
+            presence: true
   validates :purpose, inclusion: { in: PURPOSES }
   validates :protocol,
             inclusion: {
@@ -29,27 +33,16 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
   validates :structured_output_mode, inclusion: { in: STRUCTURED_OUTPUT_MODES }
   validate :valid_protocol_for_purpose
   validate :safe_base_url_syntax
-  validate :credential_is_configured
 
   before_validation :normalize_configuration
-  before_validation :encrypt_pending_api_key
   before_save :invalidate_changed_configuration
   after_commit :disable_import_after_configuration_change, on: %i[create update]
 
   scope :active_for, ->(purpose) { where(purpose: purpose, active: true) }
 
-  def api_key=(plaintext)
-    @pending_api_key = plaintext.presence
-  end
-
-  def api_key
-    if encrypted_api_key.blank?
-      raise WhereIsMyFriends::LicensedImport::AiGateway::MissingApiKey
-    end
-
-    WhereIsMyFriends::LicensedImport::CredentialCipher.decrypt(
-      encrypted_api_key
-    )
+  def api_key!
+    api_key.presence ||
+      raise(WhereIsMyFriends::LicensedImport::AiGateway::MissingApiKey)
   end
 
   def configuration_digest
@@ -73,7 +66,7 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
           raise WhereIsMyFriends::LicensedImport::AiGateway::InvalidResponse
         end
 
-        api_key
+        api_key!
         self
           .class
           .where(purpose: purpose, active: true)
@@ -110,16 +103,6 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
     elsif protocol == "responses"
       self.structured_output_mode = "json_schema"
     end
-  end
-
-  def encrypt_pending_api_key
-    return if pending_api_key.blank?
-
-    self.encrypted_api_key =
-      WhereIsMyFriends::LicensedImport::CredentialCipher.encrypt(
-        pending_api_key
-      )
-    @pending_api_key = nil
   end
 
   def invalidate_changed_configuration
@@ -162,9 +145,5 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
     end
 
     errors.add(:base_url, :invalid)
-  end
-
-  def credential_is_configured
-    errors.add(:api_key, :blank) if encrypted_api_key.blank?
   end
 end

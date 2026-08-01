@@ -8,7 +8,6 @@ module("Integration | Component | ai-provider-profiles", function (hooks) {
 
   test("shows masked provider state and gates activation on verification", async function (assert) {
     const initialState = {
-      credential_master_key_configured: true,
       licensed_import_enabled: false,
       profiles: [
         {
@@ -37,12 +36,10 @@ module("Integration | Component | ai-provider-profiles", function (hooks) {
     assert.dom("[data-provider-id='7']").includesText("Configured");
     assert.dom("[data-provider-id='7']").doesNotIncludeText("never-return-this");
     assert.dom("[data-provider-id='7'] .ai-provider-profiles__activate").isDisabled();
-    assert.dom(".ai-provider-profiles__master-key").hasClass("is-ready");
   });
 
   test("shows an explicit empty state before the first provider is added", async function (assert) {
     this.initialState = {
-      credential_master_key_configured: true,
       licensed_import_enabled: false,
       profiles: [],
     };

@@ -267,10 +267,8 @@ en:
       admin:
         ai_providers:
           title: "AI providers"
-          nav_description: "Configure encrypted generation and moderation credentials"
+          nav_description: "Configure generation and moderation credentials"
           description: "Add a generation gateway and the separate OpenAI safety credential. Test the exact configuration before activating it. Changing a configuration pauses licensed imports."
-          master_key_ready: "Credential encryption master key is available."
-          master_key_missing: "Set WHERE_IS_MY_FRIENDS_CREDENTIALS_MASTER_KEY before saving credentials."
           import_running: "Licensed imports are currently enabled. Any provider change will pause them."
           key_configured: "Configured"
           key_missing: "Key missing"

@@ -61,9 +61,7 @@ module WhereIsMyFriends
         last_outcome || skipped("no_candidate")
       rescue StackExchangeClient::SourceError
         skipped("source_error")
-      rescue AiGateway::MissingApiKey,
-             AiGateway::MissingCredentialMasterKey,
-             AiGateway::InvalidCredential
+      rescue AiGateway::MissingApiKey
         Outcome.new(status: "failed", failure_code: "missing_api_key")
       rescue ActiveRecord::RecordNotUnique
         skipped("already_claimed")

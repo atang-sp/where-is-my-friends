@@ -17,12 +17,6 @@ module WhereIsMyFriends
       class MissingApiKey < Error
       end
 
-      class MissingCredentialMasterKey < Error
-      end
-
-      class InvalidCredential < Error
-      end
-
       class Rejected < Error
       end
 

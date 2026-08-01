@@ -4,19 +4,6 @@ RSpec.describe WhereIsMyFriends::AiProviderProfilesController do
   fab!(:user)
   fab!(:admin)
 
-  around do |example|
-    original =
-      ENV[WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV]
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = Base64.strict_encode64("a" * 32)
-    example.run
-  ensure
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = original
-  end
-
   def create_profile
     WhereIsMyFriendsAiProviderProfile.create!(
       name: "Gateway",
@@ -48,7 +35,7 @@ RSpec.describe WhereIsMyFriends::AiProviderProfilesController do
       "api_key_configured" => true,
       "active" => false
     )
-    expect(serialized.keys).not_to include("api_key", "encrypted_api_key")
+    expect(serialized.keys).not_to include("api_key")
     expect(response.body).not_to include("never-return-this")
   end
 
@@ -68,7 +55,7 @@ RSpec.describe WhereIsMyFriends::AiProviderProfilesController do
 
     expect(response.status).to eq(201)
     profile = WhereIsMyFriendsAiProviderProfile.find(response.parsed_body["id"])
-    ciphertext = profile.encrypted_api_key
+    saved_key = profile.api_key
     expect(profile.api_key).to eq("initial-secret")
 
     put "/where-is-my-friends/admin/ai-provider-profiles/#{profile.id}.json",
@@ -85,7 +72,7 @@ RSpec.describe WhereIsMyFriends::AiProviderProfilesController do
 
     expect(response.status).to eq(200)
     expect(profile.reload.name).to eq("Renamed supplier")
-    expect(profile.encrypted_api_key).to eq(ciphertext)
+    expect(profile.api_key).to eq(saved_key)
   end
 
   it "tests and activates only the verified current configuration" do

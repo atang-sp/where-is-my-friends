@@ -3,19 +3,6 @@
 RSpec.describe WhereIsMyFriends::LicensedImport::ResponsesClient do
   fab!(:admin)
 
-  around do |example|
-    original =
-      ENV[WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV]
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = Base64.strict_encode64("g" * 32)
-    example.run
-  ensure
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = original
-  end
-
   let(:endpoint_policy) do
     WhereIsMyFriends::LicensedImport::EndpointPolicy.new(
       resolver: ->(_host) { ["1.1.1.1"] }
@@ -244,7 +231,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ResponsesClient do
 
   it "does not read legacy provider key environment variables" do
     configured = profile(protocol: "responses")
-    configured.update_columns(encrypted_api_key: "")
+    configured.update_columns(api_key: "")
     ENV["WHERE_IS_MY_FRIENDS_DEEPSEEK_API_KEY"] = "legacy-key"
     ENV["WHERE_IS_MY_FRIENDS_OPENAI_API_KEY"] = "legacy-key"
 

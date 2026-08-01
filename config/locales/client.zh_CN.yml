@@ -267,10 +267,8 @@ zh_CN:
       admin:
         ai_providers:
           title: "AI 供应商"
-          nav_description: "配置加密的生成模型与安全审核凭据"
+          nav_description: "配置生成模型与安全审核凭据"
           description: "添加生成模型网关和独立的 OpenAI 安全审核凭据。必须测试当前完整配置后才能激活；任何配置变更都会暂停英文精选任务。"
-          master_key_ready: "凭据加密主密钥已生效。"
-          master_key_missing: "保存凭据前，请先设置 WHERE_IS_MY_FRIENDS_CREDENTIALS_MASTER_KEY。"
           import_running: "英文精选任务当前已启用；修改任何供应商配置都会立即暂停任务。"
           key_configured: "密钥已配置"
           key_missing: "缺少密钥"

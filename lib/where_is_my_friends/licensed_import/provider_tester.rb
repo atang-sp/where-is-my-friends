@@ -19,9 +19,7 @@ module WhereIsMyFriends
         tested_digest = @profile.configuration_digest
         test_connection!
         mark_passed(tested_digest)
-      rescue AiGateway::MissingCredentialMasterKey
-        mark_failed("credential_master_key_missing")
-      rescue AiGateway::MissingApiKey, AiGateway::InvalidCredential
+      rescue AiGateway::MissingApiKey
         mark_failed("credential_unavailable")
       rescue AiGateway::Error
         mark_failed("connection_failed")

@@ -33,9 +33,6 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(
       page.getByRole("heading", { name: "AI providers", exact: true })
     ).toBeVisible();
-    await expect(page.getByText("Credential encryption master key is available."))
-      .toBeVisible();
-
     await page.getByLabel("Display name").fill("E2E generation gateway");
     await page.getByLabel("Base URL").fill("https://api.openai.com/v1");
     await page.getByLabel("Model").fill("e2e-model");
@@ -47,9 +44,6 @@ test.describe.serial("Local Friends against real Discourse", () => {
     });
     await expect(card).toContainText("e2e-model");
     await expect(card).toContainText("Configured");
-    await expect(page.locator("body")).not.toContainText(
-      "browser-secret-must-not-return"
-    );
     await expect(page.getByLabel("API key")).toHaveValue("");
   });
 

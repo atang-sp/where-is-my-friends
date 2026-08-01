@@ -15,7 +15,7 @@ module WhereIsMyFriends
         @http =
           JsonHttpClient.new(
             base_url: profile.base_url,
-            api_key: profile.api_key,
+            api_key: profile.api_key!,
             endpoint_policy: endpoint_policy,
             open_timeout: open_timeout,
             read_timeout: read_timeout

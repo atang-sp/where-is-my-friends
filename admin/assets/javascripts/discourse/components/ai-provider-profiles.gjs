@@ -18,7 +18,6 @@ export default class AiProviderProfiles extends Component {
   @service toasts;
 
   @tracked profiles;
-  @tracked credentialMasterKeyConfigured;
   @tracked licensedImportEnabled;
   @tracked editingId = null;
   @tracked name = "";
@@ -34,8 +33,6 @@ export default class AiProviderProfiles extends Component {
   constructor() {
     super(...arguments);
     this.profiles = this.args.initialState.profiles;
-    this.credentialMasterKeyConfigured =
-      this.args.initialState.credential_master_key_configured;
     this.licensedImportEnabled =
       this.args.initialState.licensed_import_enabled;
   }
@@ -192,8 +189,6 @@ export default class AiProviderProfiles extends Component {
   async reload() {
     const state = await ajax(`${API_ROOT}.json`);
     this.profiles = state.profiles;
-    this.credentialMasterKeyConfigured =
-      state.credential_master_key_configured;
     this.licensedImportEnabled = state.licensed_import_enabled;
   }
 
@@ -216,16 +211,6 @@ export default class AiProviderProfiles extends Component {
           "where_is_my_friends.admin.ai_providers.description"
         }}
       />
-
-      <div
-        class="ai-provider-profiles__master-key {{if this.credentialMasterKeyConfigured 'is-ready' 'is-missing'}}"
-      >
-        {{#if this.credentialMasterKeyConfigured}}
-          {{i18n "where_is_my_friends.admin.ai_providers.master_key_ready"}}
-        {{else}}
-          {{i18n "where_is_my_friends.admin.ai_providers.master_key_missing"}}
-        {{/if}}
-      </div>
 
       {{#if this.licensedImportEnabled}}
         <p class="ai-provider-profiles__running-warning">
@@ -429,7 +414,6 @@ export default class AiProviderProfiles extends Component {
             @label="where_is_my_friends.admin.ai_providers.save"
             @icon="floppy-disk"
             @isLoading={{this.saving}}
-            @disabled={{not this.credentialMasterKeyConfigured}}
             class="btn-primary"
           />
           {{#if this.editingId}}

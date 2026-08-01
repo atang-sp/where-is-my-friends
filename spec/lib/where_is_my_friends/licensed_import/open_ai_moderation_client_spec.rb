@@ -3,19 +3,6 @@
 RSpec.describe WhereIsMyFriends::LicensedImport::OpenAiModerationClient do
   fab!(:admin)
 
-  around do |example|
-    original =
-      ENV[WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV]
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = Base64.strict_encode64("s" * 32)
-    example.run
-  ensure
-    ENV[
-      WhereIsMyFriends::LicensedImport::CredentialCipher::MASTER_KEY_ENV
-    ] = original
-  end
-
   let(:profile) do
     WhereIsMyFriendsAiProviderProfile.create!(
       name: "OpenAI safety",
@@ -35,7 +22,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::OpenAiModerationClient do
     )
   end
 
-  it "uses the separately encrypted official OpenAI moderation profile" do
+  it "uses the separate official OpenAI moderation profile" do
     stub_request(:post, "https://api.openai.com/v1/moderations").to_return(
       status: 200,
       body: { results: [{ flagged: false }] }.to_json
@@ -77,7 +64,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::OpenAiModerationClient do
   end
 
   it "does not fall back to the legacy OpenAI key environment variable" do
-    profile.update_columns(encrypted_api_key: "")
+    profile.update_columns(api_key: "")
     ENV["WHERE_IS_MY_FRIENDS_OPENAI_API_KEY"] = "legacy-key"
 
     expect {

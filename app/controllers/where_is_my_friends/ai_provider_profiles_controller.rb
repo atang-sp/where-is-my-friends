@@ -8,8 +8,6 @@ module WhereIsMyFriends
 
     def index
       render json: {
-               credential_master_key_configured:
-                 LicensedImport::CredentialCipher.configured?,
                licensed_import_enabled: SiteSetting.licensed_import_enabled,
                profiles:
                  WhereIsMyFriendsAiProviderProfile
@@ -95,7 +93,7 @@ module WhereIsMyFriends
         structured_output_mode: profile.structured_output_mode,
         base_url: profile.base_url,
         model: profile.model,
-        api_key_configured: profile.encrypted_api_key.present?,
+        api_key_configured: profile.api_key.present?,
         active: profile.active,
         verified: profile.verified_for_current_configuration?,
         verified_at: profile.verified_at,

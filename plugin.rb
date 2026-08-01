@@ -24,7 +24,7 @@ register_seedfu_fixtures(
 require_relative "lib/where_is_my_friends/engine"
 
 after_initialize do
-  Rails.application.config.filter_parameters |= %i[api_key encrypted_api_key]
+  Rails.application.config.filter_parameters |= %i[api_key]
 
   require_relative "lib/where_is_my_friends/interest_visibility"
 
