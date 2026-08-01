@@ -50,7 +50,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 只有明确允许“被推荐”且近期活跃的成员才会出现；不会暴露对方的私密兴趣或使用目的。
 - 插件绝不自动订阅标签、分区，也不会改变任何通知级别。
 - 七日公开互动率和首次回复率直接从公开帖子按 onboarding 或推荐曝光时间窗聚合；私信、受限分区、内容和目标 ID 均不会进入统计结果。
-- 英文原文只在单次任务内存中存在，不写插件数据库或日志；数据库只保存来源、许可、失败代码、token 用量和通过校验的中文内容。DeepSeek 和 OpenAI 密钥只从进程环境读取，管理接口不会返回。发送给 DeepSeek 的内容已经过许可校验和隐私清理；DeepSeek 官方 API 默认仍会建立磁盘上下文缓存，通常数小时到数天后清理。
+- 英文原文只在单次任务内存中存在，不写插件数据库或日志；数据库只保存来源、许可、失败代码、token 用量和通过校验的中文内容。模型 API 密钥与 Discourse AI 的 `AiSecret` 一样由数据库保存；管理接口只返回“已配置”状态，绝不返回密钥，日志也会过滤密钥参数。数据库管理员和数据库备份仍可读取密钥。发送给模型供应商的内容已经过许可校验和隐私清理；供应商的数据保留、日志和缓存政策需由管理员单独确认。
 
 管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据，包括兴趣引导完成率、曝光用户数、曝光到打开率、打开推荐帖子到 24 小时回复率、成员卡到相关帖子率、成员卡到邀请发起率、曝光到 24 小时回复率、曝光后七日公开互动率，以及按入口、候选来源、排序桶、算法版本和结果数量桶划分的分布。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。
 
@@ -66,7 +66,7 @@ bundle exec rake db:migrate
 
 若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
 
-许可英文精选默认由 DeepSeek V4 Flash 完成分类、翻译和复核，由 OpenAI 免费 Moderation 完成前后安全审核。需要在 Discourse 容器环境中同时注入 `WHERE_IS_MY_FRIENDS_DEEPSEEK_API_KEY` 和 `WHERE_IS_MY_FRIENDS_OPENAI_API_KEY`，不能把密钥写入后台设置、数据库或仓库。首次启用必须保持 `licensed_import_dry_run=true`；完整的三天预览、人工抽查、公开发布、自动暂停和事故处理步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
+许可英文精选的生成供应商可在插件管理页配置 Responses API 或 OpenAI-compatible Chat Completions 的 Base URL、模型和 API 密钥；Chat Completions 可选择严格 JSON Schema，或供应商兼容性更广的 JSON object 加本地严格校验。前后安全审核保持为独立的 OpenAI `omni-moderation-latest` 凭据。供应商密钥可直接在后台轮换，无需环境变量或重建；旧的 DeepSeek/OpenAI 供应商密钥环境变量不会被读取。首次启用必须保持 `licensed_import_dry_run=true`；完整配置、三天预览、人工抽查、公开发布、自动暂停和事故处理步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
 
 本版本在 Discourse `2026.7.0-latest`（commit `7c06c152`）上开发和验证，插件元数据要求 Discourse `2026.7.0.beta1` 或更高版本。
 
@@ -91,7 +91,6 @@ bundle exec rake db:migrate
 | `licensed_import_dry_run` | `true` | 只保存管理员可见中文预览，不创建主题 |
 | `licensed_import_interval_hours` | `24` | 两篇之间的最短间隔，后台最小值为 24 小时 |
 | `licensed_import_publish_hour` | `20` | 北京时间执行小时 |
-| `licensed_import_model` | `deepseek-v4-flash` | 分类、翻译和复核模型；可在后台切回 `gpt-5.6-terra` |
 | `licensed_import_monthly_token_budget` | `1500000` | 每月生成调用的 token 上限 |
 | `licensed_import_max_per_day` | `1` | 每天最多一篇，固定为 1 |
 
@@ -113,6 +112,7 @@ OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的�
 | `POST` | `/where-is-my-friends/recommendations/skip.json` | 跳过一次性引导 |
 | `POST` | `/where-is-my-friends/recommendations/dismiss.json` | 对当前可见推荐标记“不感兴趣” |
 | `GET` | `/where-is-my-friends/practice-invitations.json` | 当前用户的私密收件箱和发件记录 |
+| `GET/POST/PUT/DELETE` | `/where-is-my-friends/admin/ai-provider-profiles...` | 仅管理员可用的供应商配置、测试和激活 API；任何响应都不含密钥 |
 | `GET` | `/where-is-my-friends/practice-invitations/availability.json` | 查询某资料页成员当前可用的共同兴趣 |
 | `POST` | `/where-is-my-friends/practice-invitations.json` | 创建严格一对一邀请 |
 | `PUT` | `/where-is-my-friends/practice-invitations/:id/accept.json` | 收件人接受并创建两人私信 |

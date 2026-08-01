@@ -1,38 +1,52 @@
 # frozen_string_literal: true
 
 RSpec.describe WhereIsMyFriends::LicensedImport::OpenAiModerationClient do
-  around do |example|
-    original = ENV["WHERE_IS_MY_FRIENDS_OPENAI_API_KEY"]
-    ENV["WHERE_IS_MY_FRIENDS_OPENAI_API_KEY"] = "openai-test-key"
-    example.run
-  ensure
-    ENV["WHERE_IS_MY_FRIENDS_OPENAI_API_KEY"] = original
+  fab!(:admin)
+
+  let(:profile) do
+    WhereIsMyFriendsAiProviderProfile.create!(
+      name: "OpenAI safety",
+      purpose: "moderation",
+      protocol: "ignored-by-normalization",
+      base_url: "https://ignored.invalid",
+      model: "ignored-model",
+      api_key: "moderation-secret",
+      created_by_id: admin.id,
+      updated_by_id: admin.id
+    )
   end
 
-  it "uses OpenAI moderation independently of the generation provider" do
+  let(:endpoint_policy) do
+    WhereIsMyFriends::LicensedImport::EndpointPolicy.new(
+      resolver: ->(_host) { ["1.1.1.1"] }
+    )
+  end
+
+  it "uses the separate official OpenAI moderation profile" do
     stub_request(:post, "https://api.openai.com/v1/moderations").to_return(
       status: 200,
-      body: { results: [{ flagged: false }] }.to_json,
-      headers: {
-        "Content-Type" => "application/json"
-      }
+      body: { results: [{ flagged: false }] }.to_json
     )
 
-    expect(described_class.new.moderate!("safe text")).to eq(true)
+    expect(
+      described_class.new(
+        profile: profile,
+        endpoint_policy: endpoint_policy
+      ).moderate!("safe text")
+    ).to eq(true)
+    expect(profile.protocol).to eq("openai_moderation")
+    expect(profile.model).to eq("omni-moderation-latest")
     expect(
       a_request(
         :post,
         "https://api.openai.com/v1/moderations"
       ).with do |request|
         body = JSON.parse(request.body)
-        request.headers["Authorization"] == "Bearer openai-test-key" &&
+        request.headers["Authorization"] == "Bearer moderation-secret" &&
           body ==
             { "model" => "omni-moderation-latest", "input" => "safe text" }
       end
     ).to have_been_made.once
-    expect(
-      a_request(:post, %r{\Ahttps://api\.deepseek\.com/})
-    ).not_to have_been_made
   end
 
   it "fails closed when OpenAI flags content" do
@@ -41,16 +55,22 @@ RSpec.describe WhereIsMyFriends::LicensedImport::OpenAiModerationClient do
       body: { results: [{ flagged: true }] }.to_json
     )
 
-    expect { described_class.new.moderate!("unsafe") }.to raise_error(
-      WhereIsMyFriends::LicensedImport::AiGateway::Rejected
-    )
+    expect {
+      described_class.new(
+        profile: profile,
+        endpoint_policy: endpoint_policy
+      ).moderate!("unsafe")
+    }.to raise_error(WhereIsMyFriends::LicensedImport::AiGateway::Rejected)
   end
 
-  it "fails closed when the OpenAI moderation key is missing" do
-    ENV.delete("WHERE_IS_MY_FRIENDS_OPENAI_API_KEY")
+  it "does not fall back to the legacy OpenAI key environment variable" do
+    profile.update_columns(api_key: "")
+    ENV["WHERE_IS_MY_FRIENDS_OPENAI_API_KEY"] = "legacy-key"
 
-    expect { described_class.new.moderate!("safe text") }.to raise_error(
-      WhereIsMyFriends::LicensedImport::AiGateway::MissingApiKey
-    )
+    expect {
+      described_class.new(profile: profile, endpoint_policy: endpoint_policy)
+    }.to raise_error(WhereIsMyFriends::LicensedImport::AiGateway::MissingApiKey)
+  ensure
+    ENV.delete("WHERE_IS_MY_FRIENDS_OPENAI_API_KEY")
   end
 end

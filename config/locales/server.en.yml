@@ -163,6 +163,5 @@ en:
     licensed_import_dry_run: "Generate administrator previews without publishing public topics"
     licensed_import_interval_hours: "Minimum hours between licensed import runs"
     licensed_import_publish_hour: "Beijing-time hour for licensed import runs"
-    licensed_import_model: "Model used for classification, translation, and review"
     licensed_import_monthly_token_budget: "Maximum monthly generation tokens for licensed imports"
     licensed_import_max_per_day: "Maximum licensed imports per day (fixed at 1)"

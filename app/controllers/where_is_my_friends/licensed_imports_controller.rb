@@ -11,7 +11,8 @@ module WhereIsMyFriends
       render json: {
                enabled: SiteSetting.licensed_import_enabled,
                dry_run: SiteSetting.licensed_import_dry_run,
-               model: SiteSetting.licensed_import_model,
+               generation_provider: active_generation_provider,
+               moderation_provider: active_moderation_provider,
                interval_hours: SiteSetting.licensed_import_interval_hours,
                publish_hour_beijing: SiteSetting.licensed_import_publish_hour,
                monthly_token_budget:
@@ -25,6 +26,26 @@ module WhereIsMyFriends
     end
 
     private
+
+    def active_generation_provider
+      active_provider("generation")
+    end
+
+    def active_moderation_provider
+      active_provider("moderation")
+    end
+
+    def active_provider(purpose)
+      profile = WhereIsMyFriendsAiProviderProfile.active_for(purpose).first
+      return if profile.blank?
+
+      {
+        id: profile.id,
+        name: profile.name,
+        protocol: profile.protocol,
+        model: profile.model
+      }
+    end
 
     def previews
       WhereIsMyFriendsLicensedImport

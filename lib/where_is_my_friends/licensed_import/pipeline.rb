@@ -14,8 +14,8 @@ module WhereIsMyFriends
 
       def initialize(
         source: StackExchangeClient.new,
-        moderator: OpenAiModerationClient.new,
-        model: ResponsesClient.new,
+        moderator: nil,
+        model: nil,
         publisher: Publisher.new,
         processor: ContentProcessor.new,
         policy: ContentPolicy.new,
@@ -34,6 +34,8 @@ module WhereIsMyFriends
 
       def run
         return skipped("disabled") unless SiteSetting.licensed_import_enabled
+
+        prepare_ai_clients!
 
         documents = @source.candidates
         return skipped("no_candidate") if documents.blank?
@@ -59,11 +61,18 @@ module WhereIsMyFriends
         last_outcome || skipped("no_candidate")
       rescue StackExchangeClient::SourceError
         skipped("source_error")
+      rescue AiGateway::MissingApiKey
+        Outcome.new(status: "failed", failure_code: "missing_api_key")
       rescue ActiveRecord::RecordNotUnique
         skipped("already_claimed")
       end
 
       private
+
+      def prepare_ai_clients!
+        @moderator ||= OpenAiModerationClient.new
+        @model ||= ResponsesClient.new
+      end
 
       def process(document)
         record = start_record(document)

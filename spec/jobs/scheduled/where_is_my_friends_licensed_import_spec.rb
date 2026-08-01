@@ -44,4 +44,35 @@ RSpec.describe Jobs::WhereIsMyFriendsLicensedImport do
     expect(synchronizer).to have_received(:call)
     expect(notifier).to have_received(:notify).with("missing_api_key")
   end
+
+  it "stops future runs after an AI provider error" do
+    allow(WhereIsMyFriends::LicensedImport::ScheduleGuard).to receive(
+      :new
+    ).and_return(double(due?: true))
+    allow(WhereIsMyFriends::LicensedImport::EngagementGuard).to receive(
+      :new
+    ).and_return(double(allow_publication?: true))
+    allow(WhereIsMyFriends::LicensedImport::SourceSynchronizer).to receive(
+      :new
+    ).and_return(double(call: true))
+    outcome =
+      WhereIsMyFriends::LicensedImport::Pipeline::Outcome.new(
+        status: "failed",
+        failure_code: "ai_error"
+      )
+    allow(WhereIsMyFriends::LicensedImport::Pipeline).to receive(
+      :new
+    ).and_return(double(run: outcome))
+    notifier = instance_spy(WhereIsMyFriends::LicensedImport::AdminNotifier)
+    allow(notifier).to receive(:notify)
+    allow(WhereIsMyFriends::LicensedImport::AdminNotifier).to receive(
+      :new
+    ).and_return(notifier)
+    allow(DistributedMutex).to receive(:synchronize).and_yield
+
+    described_class.new.execute({})
+
+    expect(SiteSetting.licensed_import_enabled).to eq(false)
+    expect(notifier).to have_received(:notify).with("ai_error")
+  end
 end
