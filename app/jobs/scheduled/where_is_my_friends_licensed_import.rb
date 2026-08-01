@@ -8,19 +8,17 @@ module Jobs
       missing_api_key
       monthly_token_budget_exhausted
       ai_error
+      publication_category_missing
     ].freeze
     DRY_RUN_PREVIEW_LIMIT = 3
-    LOCK_VALIDITY = 2.hours
 
     def execute(_args)
       return unless SiteSetting.where_is_my_friends_enabled
       return unless SiteSetting.licensed_import_enabled
 
-      site = RailsMultisite::ConnectionManagement.current_db
-      DistributedMutex.synchronize(
-        "where_is_my_friends_licensed_import_#{site}",
-        validity: LOCK_VALIDITY
-      ) { execute_once }
+      WhereIsMyFriends::LicensedImport::PublicationLock.synchronize do
+        execute_once
+      end
     rescue StandardError
       SiteSetting.licensed_import_enabled = false
       WhereIsMyFriends::LicensedImport::AdminNotifier.new.notify(

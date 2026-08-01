@@ -5,9 +5,9 @@ require "net/http"
 module WhereIsMyFriends
   module LicensedImport
     class StackExchangeClient
-      class SourceError < StandardError
+      class SourceError < ::WhereIsMyFriends::LicensedImport::SourceError
       end
-      class MissingSource < SourceError
+      class MissingSource < ::WhereIsMyFriends::LicensedImport::MissingSource
       end
 
       API_ROOT = "https://api.stackexchange.com/2.3"
@@ -15,6 +15,7 @@ module WhereIsMyFriends
       PAGE_SIZE = 100
       MAX_QUESTION_PAGES = 10
       MAX_ANSWER_PAGES = 20
+      SOURCE_TYPE = "stack_exchange"
 
       def initialize(open_timeout: 5, read_timeout: 15)
         @open_timeout = open_timeout
@@ -54,6 +55,10 @@ module WhereIsMyFriends
         documents
       end
 
+      def source_type
+        SOURCE_TYPE
+      end
+
       def fetch(question_id)
         response =
           get_json(
@@ -86,6 +91,7 @@ module WhereIsMyFriends
         ].compact.max
 
         {
+          source_type: SOURCE_TYPE,
           question_id: question_id,
           answer_id: answer.fetch("answer_id"),
           question_url: question.fetch("link"),

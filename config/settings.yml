@@ -149,6 +149,13 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
+  licensed_import_category_id:
+    default: ""
+    type: category
+    description: "英文精选公开主题的发布分区"
+    category: "where_is_my_friends"
+    translated: true
+
   licensed_import_interval_hours:
     default: 24
     min: 24

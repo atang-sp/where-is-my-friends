@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.9.0 — 2026-08-01
+
+- Add curated CC BY-SA 4.0 Wikipedia excerpts for adult consensual aftercare,
+  erotic spanking, discipline, and implement-related education, with live
+  site-license verification and permanent revision attribution.
+- Keep explicit minors, unclear consent, coercion, explicit erotic stories,
+  injury or medical instructions, and other existing hard-risk families out of
+  the import pipeline while allowing adult educational BDSM material.
+- Format articles separately from Q&A, namespace source identities across
+  providers, and synchronize or halt incidents against the exact source type.
+- Publish to an administrator-selected public category and add the `sp知识` tag
+  to approved spanking, discipline, aftercare, and tools themes.
+- Add an idempotent operator task that promotes one validated preview without
+  bypassing live source and license revalidation, source identity, record
+  state, category checks, theme rotation, or the publication interval.
+
 ## 1.8.2 — 2026-08-01
 
 - Retry transient model-gateway failures up to three attempts, honoring short

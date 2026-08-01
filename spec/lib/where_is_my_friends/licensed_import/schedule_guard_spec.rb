@@ -38,4 +38,20 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ScheduleGuard do
     )
     expect(described_class.new.due?).to eq(false)
   end
+
+  it "uses an old preview's actual promotion time for daily and interval limits" do
+    freeze_time Time.utc(2026, 8, 1, 12, 0)
+    record =
+      WhereIsMyFriendsLicensedImport.create!(
+        source_question_id: 44,
+        status: "published",
+        created_at: 3.days.ago,
+        published_at: 1.hour.ago
+      )
+
+    expect(described_class.new.due?).to eq(false)
+
+    record.update_column(:published_at, 25.hours.ago)
+    expect(described_class.new.due?).to eq(true)
+  end
 end

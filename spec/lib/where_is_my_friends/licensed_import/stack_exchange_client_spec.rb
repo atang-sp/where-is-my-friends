@@ -65,6 +65,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::StackExchangeClient do
     candidate = described_class.new.candidates.first
 
     expect(candidate).to include(
+      source_type: "stack_exchange",
       question_id: 42,
       answer_id: 84,
       answer_html: "<p>Accepted answer</p>",

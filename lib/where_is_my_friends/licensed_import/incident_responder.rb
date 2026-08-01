@@ -14,11 +14,12 @@ module WhereIsMyFriends
         @notifier = notifier
       end
 
-      def halt!(source_question_id:, reason:)
+      def halt!(source_type:, source_question_id:, reason:)
         raise ArgumentError if REASONS.exclude?(reason)
 
         records =
           WhereIsMyFriendsLicensedImport.where(
+            source_type: source_type,
             source_question_id: source_question_id,
             status: %w[preview published]
           )

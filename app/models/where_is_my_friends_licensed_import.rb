@@ -2,10 +2,12 @@
 
 class WhereIsMyFriendsLicensedImport < ActiveRecord::Base
   STATUSES = %w[processing failed preview published hidden superseded].freeze
+  SOURCE_TYPES = %w[stack_exchange wikimedia].freeze
 
   belongs_to :topic, optional: true
 
   validates :source_question_id, presence: true
+  validates :source_type, inclusion: { in: SOURCE_TYPES }
   validates :status, inclusion: { in: STATUSES }
 
   scope :successful, -> { where(status: %w[preview published]) }

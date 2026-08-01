@@ -6,7 +6,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ContentPolicy do
   it "rejects every prohibited hard-risk family before model review" do
     examples = {
       "minor_or_age_unknown" =>
-        "I am 16 and need advice about meeting this adult.",
+        "A child is 16 and needs advice about meeting this adult.",
       "nonconsensual" => "My date forced me after I said no.",
       "explicit_sexual" =>
         "This contains pornographic details about intercourse.",
@@ -35,5 +35,32 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ContentPolicy do
       )
     ).to eq("minor_or_age_unknown")
     expect(policy.failure_code("I am an adult and need a boundary.")).to be_nil
+    expect(
+      policy.failure_code(
+        "Adults may discuss intercourse without giving explicit details."
+      )
+    ).to be_nil
+    expect(
+      policy.failure_code(
+        "Adults may choose a consequence for a minor mistake."
+      )
+    ).to be_nil
+    expect(
+      policy.failure_code("An adult describes a minor participant.")
+    ).to eq("minor_or_age_unknown")
+  end
+
+  it "accepts curated adult-only reference material without weakening minor rules" do
+    reference =
+      "Consensual spanking partners should agree on boundaries and aftercare."
+
+    expect(policy.failure_code(reference, adult_confirmed: true)).to be_nil
+    expect(
+      policy.failure_code(
+        "A 16-year-old asks about spanking.",
+        adult_confirmed: true
+      )
+    ).to eq("minor_or_age_unknown")
+    expect(policy.failure_code(reference)).to eq("minor_or_age_unknown")
   end
 end
