@@ -2,14 +2,10 @@
 
 RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
   subject(:pipeline) do
-    described_class.new(
-      source: source,
-      moderator: moderator,
-      model: model,
-      publisher: publisher
-    )
+    described_class.new(source: source, model: model, publisher: publisher)
   end
 
+  fab!(:admin)
   fab!(:recovered_topic) { Fabricate(:topic, user: Discourse.system_user) }
   fab!(:recovered_first_post) do
     Fabricate(
@@ -21,9 +17,6 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     )
   end
 
-  let(:moderator) do
-    instance_spy(WhereIsMyFriends::LicensedImport::OpenAiModerationClient)
-  end
   let(:model) do
     instance_spy(WhereIsMyFriends::LicensedImport::ResponsesClient)
   end
@@ -60,6 +53,39 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     SiteSetting.licensed_import_dry_run = true
   end
 
+  it "starts with only an active generation provider configured" do
+    profile =
+      WhereIsMyFriendsAiProviderProfile.create!(
+        name: "Generation gateway",
+        purpose: "generation",
+        protocol: "responses",
+        base_url: "https://gateway.example/v1",
+        model: "supplier-model",
+        api_key: "provider-key",
+        created_by_id: admin.id,
+        updated_by_id: admin.id
+      )
+    profile.update_columns(
+      verified_at: Time.zone.now,
+      verified_config_digest: profile.configuration_digest,
+      last_test_status: "passed"
+    )
+    profile.activate!
+    SiteSetting.licensed_import_enabled = true
+    empty_source =
+      instance_double(
+        WhereIsMyFriends::LicensedImport::StackExchangeClient,
+        candidates: []
+      )
+
+    outcome = described_class.new(source: empty_source).run
+
+    expect(outcome).to have_attributes(
+      status: "skipped",
+      failure_code: "no_candidate"
+    )
+  end
+
   it "fails before source retrieval when active provider profiles are missing" do
     outcome = described_class.new.run
 
@@ -72,7 +98,6 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
   it "fails closed before AI or publishing when either post lacks a CC BY-SA license" do
     outcome = pipeline.run
 
-    expect(moderator).not_to have_received(:moderate!)
     expect(model).not_to have_received(:classify!)
     expect(model).not_to have_received(:translate!)
     expect(publisher).not_to have_received(:publish!)
@@ -111,7 +136,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         }
       end
     allow(source).to receive(:candidates).and_return(documents)
-    allow(moderator).to receive(:moderate!).and_raise(
+    allow(model).to receive(:classify!).and_raise(
       WhereIsMyFriends::LicensedImport::AiGateway::MissingApiKey
     )
 
@@ -121,7 +146,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
       status: "failed",
       failure_code: "missing_api_key"
     )
-    expect(moderator).to have_received(:moderate!).once
+    expect(model).to have_received(:classify!).once
     expect(
       WhereIsMyFriendsLicensedImport.where(
         source_question_id: documents.pluck(:question_id)
@@ -149,7 +174,6 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         }
       ]
     )
-    allow(moderator).to receive(:moderate!).once.and_return(true)
     allow(model).to receive(:classify!).and_return(
       WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
         data: {
@@ -198,7 +222,6 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         }
       ]
     )
-    allow(moderator).to receive(:moderate!).twice.and_return(true)
     allow(model).to receive(:classify!).and_return(
       WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
         data: {
@@ -307,11 +330,6 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
           WhereIsMyFriends::LicensedImport::StackExchangeClient,
           candidates: [document]
         )
-      bad_moderator =
-        instance_spy(
-          WhereIsMyFriends::LicensedImport::OpenAiModerationClient,
-          moderate!: true
-        )
       bad_model =
         instance_spy(WhereIsMyFriends::LicensedImport::ResponsesClient)
       allow(bad_model).to receive(:classify!).and_return(
@@ -341,7 +359,6 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
       outcome =
         described_class.new(
           source: bad_source,
-          moderator: bad_moderator,
           model: bad_model,
           publisher: publisher
         ).run
@@ -369,7 +386,6 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     topic_count = Topic.count
     outcome = pipeline.run
 
-    expect(moderator).not_to have_received(:moderate!)
     expect(publisher).not_to have_received(:publish!)
     expect(outcome.status).to eq("published")
     expect(processing.reload).to have_attributes(
@@ -446,7 +462,6 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         }
       ]
     )
-    allow(moderator).to receive(:moderate!).once.and_return(true)
     allow(model).to receive(:classify!).and_return(
       WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
         data: {
@@ -476,7 +491,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     )
     outcome = pipeline.run
 
-    expect(moderator).not_to have_received(:moderate!)
+    expect(model).not_to have_received(:classify!)
     expect(outcome).to have_attributes(
       status: "skipped",
       failure_code: "duplicate_source"

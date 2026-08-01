@@ -32,7 +32,7 @@ en:
         answer_attribution: "- Answer: %{author} · [source](%{url}) · %{license}"
         modification_notice: "- Modifications: %{modification}. Unchanged portions are reused under the same license."
       reasons:
-        missing_api_key: "the selected model API key or OpenAI moderation key is missing"
+        missing_api_key: "the selected model API key is missing"
         monthly_token_budget_exhausted: "the monthly token budget is exhausted"
         dry_run_ready_for_review: "three dry-run previews are ready for human review"
         seven_without_human_reply: "seven mature translations received no human reply within seven days"

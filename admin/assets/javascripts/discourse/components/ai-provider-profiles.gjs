@@ -21,7 +21,6 @@ export default class AiProviderProfiles extends Component {
   @tracked licensedImportEnabled;
   @tracked editingId = null;
   @tracked name = "";
-  @tracked purpose = "generation";
   @tracked protocol = "responses";
   @tracked structuredOutputMode = "json_schema";
   @tracked baseUrl = "";
@@ -37,10 +36,6 @@ export default class AiProviderProfiles extends Component {
       this.args.initialState.licensed_import_enabled;
   }
 
-  get isGeneration() {
-    return this.purpose === "generation";
-  }
-
   get isChatCompletions() {
     return this.protocol === "chat_completions";
   }
@@ -48,11 +43,6 @@ export default class AiProviderProfiles extends Component {
   @action
   updateName(event) {
     this.name = event.target.value;
-  }
-
-  @action
-  updatePurpose(event) {
-    this.purpose = event.target.value;
   }
 
   @action
@@ -84,7 +74,6 @@ export default class AiProviderProfiles extends Component {
   edit(profile) {
     this.editingId = profile.id;
     this.name = profile.name;
-    this.purpose = profile.purpose;
     this.protocol = profile.protocol;
     this.structuredOutputMode = profile.structured_output_mode;
     this.baseUrl = profile.base_url;
@@ -109,7 +98,6 @@ export default class AiProviderProfiles extends Component {
         data: {
           profile: {
             name: this.name,
-            purpose: this.purpose,
             protocol: this.protocol,
             structured_output_mode: this.structuredOutputMode,
             base_url: this.baseUrl,
@@ -195,7 +183,6 @@ export default class AiProviderProfiles extends Component {
   resetForm() {
     this.editingId = null;
     this.name = "";
-    this.purpose = "generation";
     this.protocol = "responses";
     this.structuredOutputMode = "json_schema";
     this.baseUrl = "";
@@ -228,23 +215,15 @@ export default class AiProviderProfiles extends Component {
             <div>
               <h3>{{profile.name}}</h3>
               <p>
-                {{#if (eq profile.purpose "generation")}}
-                  {{i18n "where_is_my_friends.admin.ai_providers.generation"}}
-                {{else}}
-                  {{i18n "where_is_my_friends.admin.ai_providers.moderation"}}
-                {{/if}}
+                {{i18n "where_is_my_friends.admin.ai_providers.generation"}}
                 ·
                 {{#if (eq profile.protocol "responses")}}
                   {{i18n
                     "where_is_my_friends.admin.ai_providers.protocol_responses"
                   }}
-                {{else if (eq profile.protocol "chat_completions")}}
-                  {{i18n
-                    "where_is_my_friends.admin.ai_providers.protocol_chat_completions"
-                  }}
                 {{else}}
                   {{i18n
-                    "where_is_my_friends.admin.ai_providers.protocol_moderation"
+                    "where_is_my_friends.admin.ai_providers.protocol_chat_completions"
                   }}
                 {{/if}}
                 ·
@@ -321,78 +300,62 @@ export default class AiProviderProfiles extends Component {
           />
         </label>
         <label>
-          {{i18n "where_is_my_friends.admin.ai_providers.purpose"}}
-          <select value={{this.purpose}} {{on "change" this.updatePurpose}}>
-            <option value="generation">
-              {{i18n "where_is_my_friends.admin.ai_providers.generation"}}
+          {{i18n "where_is_my_friends.admin.ai_providers.protocol"}}
+          <select value={{this.protocol}} {{on "change" this.updateProtocol}}>
+            <option value="responses">
+              {{i18n
+                "where_is_my_friends.admin.ai_providers.protocol_responses"
+              }}
             </option>
-            <option value="moderation">
-              {{i18n "where_is_my_friends.admin.ai_providers.moderation"}}
+            <option value="chat_completions">
+              {{i18n
+                "where_is_my_friends.admin.ai_providers.protocol_chat_completions"
+              }}
             </option>
           </select>
         </label>
-
-        {{#if this.isGeneration}}
+        {{#if this.isChatCompletions}}
           <label>
-            {{i18n "where_is_my_friends.admin.ai_providers.protocol"}}
-            <select value={{this.protocol}} {{on "change" this.updateProtocol}}>
-              <option value="responses">
+            {{i18n
+              "where_is_my_friends.admin.ai_providers.structured_output_mode"
+            }}
+            <select
+              value={{this.structuredOutputMode}}
+              {{on "change" this.updateStructuredOutputMode}}
+            >
+              <option value="json_schema">
                 {{i18n
-                  "where_is_my_friends.admin.ai_providers.protocol_responses"
+                  "where_is_my_friends.admin.ai_providers.mode_json_schema"
                 }}
               </option>
-              <option value="chat_completions">
+              <option value="json_object">
                 {{i18n
-                  "where_is_my_friends.admin.ai_providers.protocol_chat_completions"
+                  "where_is_my_friends.admin.ai_providers.mode_json_object"
                 }}
               </option>
             </select>
           </label>
-          {{#if this.isChatCompletions}}
-            <label>
-              {{i18n
-                "where_is_my_friends.admin.ai_providers.structured_output_mode"
-              }}
-              <select
-                value={{this.structuredOutputMode}}
-                {{on "change" this.updateStructuredOutputMode}}
-              >
-                <option value="json_schema">
-                  {{i18n
-                    "where_is_my_friends.admin.ai_providers.mode_json_schema"
-                  }}
-                </option>
-                <option value="json_object">
-                  {{i18n
-                    "where_is_my_friends.admin.ai_providers.mode_json_object"
-                  }}
-                </option>
-              </select>
-            </label>
-          {{/if}}
-          <label>
-            {{i18n "where_is_my_friends.admin.ai_providers.base_url"}}
-            <input
-              type="url"
-              value={{this.baseUrl}}
-              placeholder={{i18n
-                "where_is_my_friends.admin.ai_providers.base_url_placeholder"
-              }}
-              {{on "input" this.updateBaseUrl}}
-              required
-            />
-          </label>
-          <label>
-            {{i18n "where_is_my_friends.admin.ai_providers.model"}}
-            <input
-              value={{this.model}}
-              {{on "input" this.updateModel}}
-              required
-            />
-          </label>
-        {{else}}
-          <p>{{i18n "where_is_my_friends.admin.ai_providers.moderation_fixed"}}</p>
         {{/if}}
+        <label>
+          {{i18n "where_is_my_friends.admin.ai_providers.base_url"}}
+          <input
+            type="url"
+            value={{this.baseUrl}}
+            placeholder={{i18n
+              "where_is_my_friends.admin.ai_providers.base_url_placeholder"
+            }}
+            {{on "input" this.updateBaseUrl}}
+            required
+          />
+        </label>
+        <label>
+          {{i18n "where_is_my_friends.admin.ai_providers.model"}}
+          <input
+            value={{this.model}}
+            {{on "input" this.updateModel}}
+            required
+          />
+        </label>
 
         <label>
           {{i18n "where_is_my_friends.admin.ai_providers.api_key"}}

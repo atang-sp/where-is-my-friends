@@ -45,7 +45,7 @@ RSpec.describe WhereIsMyFriends::AiProviderProfilesController do
          params: {
            profile: {
              name: "Compatible supplier",
-             purpose: "generation",
+             purpose: "moderation",
              protocol: "chat_completions",
              base_url: "https://api.openai.com/v1/",
              model: "vendor-model",
@@ -57,12 +57,13 @@ RSpec.describe WhereIsMyFriends::AiProviderProfilesController do
     profile = WhereIsMyFriendsAiProviderProfile.find(response.parsed_body["id"])
     saved_key = profile.api_key
     expect(profile.api_key).to eq("initial-secret")
+    expect(profile.purpose).to eq("generation")
 
     put "/where-is-my-friends/admin/ai-provider-profiles/#{profile.id}.json",
         params: {
           profile: {
             name: "Renamed supplier",
-            purpose: "generation",
+            purpose: "moderation",
             protocol: "chat_completions",
             base_url: "https://api.openai.com/v1",
             model: "vendor-model",

@@ -32,7 +32,7 @@ zh_CN:
         answer_attribution: "- 回答：%{author} · [原文](%{url}) · %{license}"
         modification_notice: "- 修改说明：%{modification}。未改变的部分按相同许可转载。"
       reasons:
-        missing_api_key: "缺少所选模型或 OpenAI 审核所需的 API 密钥"
+        missing_api_key: "缺少所选模型的 API 密钥"
         monthly_token_budget_exhausted: "月度 token 预算已耗尽"
         dry_run_ready_for_review: "三篇干跑预览已等待人工复核"
         seven_without_human_reply: "连续七篇成熟译文均无七天内真人回复"

@@ -28,19 +28,10 @@ module WhereIsMyFriends
       private
 
       def test_connection!
-        if @profile.purpose == "generation"
-          ResponsesClient.new(
-            profile: @profile,
-            endpoint_policy: @endpoint_policy
-          ).test_connection!
-        elsif @profile.purpose == "moderation"
-          OpenAiModerationClient.new(
-            profile: @profile,
-            endpoint_policy: @endpoint_policy
-          ).moderate!("This is a harmless connection test.")
-        else
-          raise AiGateway::Error
-        end
+        ResponsesClient.new(
+          profile: @profile,
+          endpoint_policy: @endpoint_policy
+        ).test_connection!
       end
 
       def mark_passed(tested_digest)

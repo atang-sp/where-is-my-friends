@@ -29,7 +29,8 @@ RSpec.describe WhereIsMyFriends::LicensedImportsController do
     )
     expect(response.parsed_body.keys).not_to include(
       "api_key",
-      "openai_api_key"
+      "openai_api_key",
+      "moderation_provider"
     )
   end
 end

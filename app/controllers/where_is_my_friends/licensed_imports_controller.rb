@@ -12,7 +12,6 @@ module WhereIsMyFriends
                enabled: SiteSetting.licensed_import_enabled,
                dry_run: SiteSetting.licensed_import_dry_run,
                generation_provider: active_generation_provider,
-               moderation_provider: active_moderation_provider,
                interval_hours: SiteSetting.licensed_import_interval_hours,
                publish_hour_beijing: SiteSetting.licensed_import_publish_hour,
                monthly_token_budget:
@@ -29,10 +28,6 @@ module WhereIsMyFriends
 
     def active_generation_provider
       active_provider("generation")
-    end
-
-    def active_moderation_provider
-      active_provider("moderation")
     end
 
     def active_provider(purpose)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.1 — 2026-08-01
+
+- Run licensed imports with one administrator-managed model gateway instead of
+  requiring a separate OpenAI Moderation profile.
+- Retain deterministic content rules, model scope and safety classification,
+  strict translation validation, and the independent fidelity review.
+- Simplify the provider page to the single configuration the pipeline uses.
+
 ## 1.8.0 — 2026-08-01
 
 - Add an administrator AI-provider page for generation and moderation

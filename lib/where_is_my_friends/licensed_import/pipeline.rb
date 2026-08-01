@@ -14,7 +14,6 @@ module WhereIsMyFriends
 
       def initialize(
         source: StackExchangeClient.new,
-        moderator: nil,
         model: nil,
         publisher: Publisher.new,
         processor: ContentProcessor.new,
@@ -23,7 +22,6 @@ module WhereIsMyFriends
         budget: TokenBudget.new
       )
         @source = source
-        @moderator = moderator
         @model = model
         @publisher = publisher
         @processor = processor
@@ -70,7 +68,6 @@ module WhereIsMyFriends
       private
 
       def prepare_ai_clients!
-        @moderator ||= OpenAiModerationClient.new
         @model ||= ResponsesClient.new
       end
 
@@ -89,7 +86,6 @@ module WhereIsMyFriends
           )
         return failure(record, hard_failure) if hard_failure
 
-        @moderator.moderate!(english_text(content))
         classification =
           call_model(record, estimate: content_bytes(content) + 800) do
             @model.classify!(content)
@@ -108,7 +104,6 @@ module WhereIsMyFriends
           return failure(record, "invalid_translation")
         end
 
-        @moderator.moderate!(chinese_text(translation.data))
         review =
           call_model(
             record,
@@ -157,7 +152,7 @@ module WhereIsMyFriends
         failure(record, "missing_api_key")
       rescue AiGateway::Rejected => error
         record.add_tokens!(error.token_count)
-        failure(record, "model_or_moderation_rejected")
+        failure(record, "model_rejected")
       rescue AiGateway::Error => error
         record.add_tokens!(error.token_count)
         failure(record, "ai_error")

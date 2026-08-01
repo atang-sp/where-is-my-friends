@@ -59,34 +59,6 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ProviderTester do
     expect(profile).to be_active
   end
 
-  it "tests moderation separately and records a generic failure code" do
-    profile =
-      create_profile(
-        purpose: "moderation",
-        protocol: "ignored",
-        base_url: "https://ignored.invalid",
-        model: "ignored"
-      )
-    stub_request(:post, "https://api.openai.com/v1/moderations").to_return(
-      status: 401,
-      body: { error: { message: "secret should never be persisted" } }.to_json
-    )
-    SiteSetting.licensed_import_enabled = true
-
-    result =
-      described_class.new(
-        profile: profile,
-        endpoint_policy: endpoint_policy
-      ).call
-
-    expect(result).not_to be_success
-    expect(result.error_code).to eq("connection_failed")
-    expect(profile.reload.last_test_status).to eq("failed")
-    expect(profile.last_test_error_code).to eq("connection_failed")
-    expect(profile.verified_at).to be_nil
-    expect(SiteSetting.licensed_import_enabled).to eq(false)
-  end
-
   it "refuses activation after any tested configuration changes" do
     profile =
       create_profile(

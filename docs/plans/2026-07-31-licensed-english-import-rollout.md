@@ -2,7 +2,7 @@
 
 ## 安全默认值
 
-部署 1.8.0 不会自动开始翻译或发帖：`licensed_import_enabled=false`，且
+部署 1.8.1 不会自动开始翻译或发帖：`licensed_import_enabled=false`，且
 `licensed_import_dry_run=true`。唯一允许的来源是 Interpersonal Skills Stack
 Exchange API 返回、问题和选定回答均明确标记为 CC BY-SA 3.0 或 4.0 的完整问答。
 
@@ -17,11 +17,8 @@ Exchange API 返回、问题和选定回答均明确标记为 CC BY-SA 3.0 或 4
    `Chat Completions`，填写 HTTPS Base URL、模型名和 API 密钥。Chat Completions
    若不支持 strict JSON Schema，可选择 `JSON object + local validation`；程序仍会按
    完整 schema 在本地拒绝缺字段、增字段或类型错误的结果。
-2. 添加“安全审核”凭据。端点和模型固定为 OpenAI 官方
-   `https://api.openai.com/v1` 与 `omni-moderation-latest`，只需填写密钥。
-3. 分别点击“测试”。生成测试会验证真实鉴权、模型可用性和严格 JSON Schema 输出；
-   安全审核测试会调用一条无害文本。
-4. 测试通过后分别激活。两个用途都必须有一个活动配置，任务才会运行。
+2. 点击“测试”，验证真实鉴权、模型可用性和严格 JSON Schema 输出。
+3. 测试通过后激活。流水线只需要这一个活动配置。
 
 Base URL 只允许 HTTPS、公网 DNS/IP、无 URL 凭据、查询参数或片段；连接固定到校验过的
 IP，且不跟随重定向。程序不会在失败时自动切换供应商，也不会读取旧的
@@ -36,7 +33,7 @@ IP，且不跟随重定向。程序不会在失败时自动切换供应商，也
 ## 三天干跑
 
 1. 完成数据库迁移和 Discourse 重建，保持 `licensed_import_dry_run=true`。
-2. 确认生成与安全审核配置均已测试和激活、北京时间发布小时为 `20`、间隔为 `24`、
+2. 确认模型配置已测试和激活、北京时间发布小时为 `20`、间隔为 `24`、
    每日上限为 `1`、月度预算为 `1500000`。
 3. 打开 `licensed_import_enabled`。任务每分钟做一次轻量检查，只会在配置的北京时间
    整点进入处理并生成一篇预览。
@@ -46,7 +43,7 @@ IP，且不跟随重定向。程序不会在失败时自动切换供应商，也
    任一篇需要返工都不得进入公开阶段。
 
 若三篇预览无法全部一次通过，可在 AI 供应商页新增或修改生成配置，测试并激活后重新
-开始干跑；切换不需要重新部署。生成供应商切换不会替换独立的 OpenAI Moderation。
+开始干跑；切换不需要重新部署，也不需要单独配置审核供应商。
 
 预览只保存中文成品和来源元数据。英文正文不会保存，因此人工抽查应通过返回的原文
 链接与中文预览逐项核对。
