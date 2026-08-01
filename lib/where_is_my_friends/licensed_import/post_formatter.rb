@@ -8,6 +8,16 @@ module WhereIsMyFriends
         "CC BY-SA 4.0" => "https://creativecommons.org/licenses/by-sa/4.0/"
       }.freeze
       def call(document:, content:, translation:)
+        if document[:content_kind] == "article"
+          return format_article(document, content, translation)
+        end
+
+        format_qa(document, content, translation)
+      end
+
+      private
+
+      def format_qa(document, content, translation)
         translated =
           translation.fetch("segments").index_by { |entry| entry.fetch("id") }
         question =
@@ -58,7 +68,53 @@ module WhereIsMyFriends
         }
       end
 
-      private
+      def format_article(document, content, translation)
+        translated =
+          translation.fetch("segments").index_by { |entry| entry.fetch("id") }
+        body =
+          content
+            .segments
+            .map { |segment| article_segment(segment, translated) }
+            .join("\n\n")
+        modification = [
+          translate("modifications.excerpted"),
+          translate("modifications.translated"),
+          *content.redactions.map { |reason| redaction_label(reason) }
+        ].uniq.join(translate("modifications.separator"))
+
+        {
+          title:
+            "#{translate("title_prefix")} #{translation.fetch("translated_title").strip}",
+          raw: <<~MARKDOWN.strip
+            > #{translate("post.disclosure")}
+
+            ## #{translate("post.article_heading")}
+
+            #{body}
+
+            ---
+
+            ## #{translate("post.discussion_heading")}
+
+            #{translation.fetch("discussion_prompt").strip}
+
+            ---
+
+            ### #{translate("post.attribution_heading")}
+
+            #{translate("post.article_attribution", author: author_link(document.fetch(:question_author), document.fetch(:question_url)), revision_url: document.fetch(:answer_url), license: license_link(document.fetch(:question_license)))}
+            #{translate("post.modification_notice", modification: modification)}
+          MARKDOWN
+        }
+      end
+
+      def article_segment(segment, translated)
+        text = translated.fetch(segment.id).fetch("translation").strip
+        return text if segment.heading_level.blank?
+
+        level = [[segment.heading_level + 1, 3].max, 6].min
+        "#{"#" * level} #{text}"
+      end
 
       def author_link(name, url)
         "[#{escape_label(name)}](#{url})"

@@ -9,11 +9,12 @@ module WhereIsMyFriends
         missing_api_key
         monthly_token_budget_exhausted
         ai_error
+        publication_category_missing
       ].freeze
       PROCESSING_STALE_AFTER = 20.hours
 
       def initialize(
-        source: StackExchangeClient.new,
+        source: SourceCatalog.new,
         model: nil,
         publisher: Publisher.new,
         processor: ContentProcessor.new,
@@ -57,7 +58,7 @@ module WhereIsMyFriends
           end
         end
         last_outcome || skipped("no_candidate")
-      rescue StackExchangeClient::SourceError
+      rescue SourceError
         skipped("source_error")
       rescue AiGateway::MissingApiKey
         Outcome.new(status: "failed", failure_code: "missing_api_key")
@@ -73,6 +74,9 @@ module WhereIsMyFriends
 
       def process(document)
         record = start_record(document)
+        unless SiteSetting.licensed_import_dry_run
+          @publisher.validate_configuration!
+        end
         return failure(record, "license_missing") unless licensed?(document)
 
         content = @processor.call(document)
@@ -82,7 +86,8 @@ module WhereIsMyFriends
 
         hard_failure =
           @policy.failure_code(
-            ([content.title] + content.segments.map(&:text)).join("\n")
+            ([content.title] + content.segments.map(&:text)).join("\n"),
+            adult_confirmed: document.fetch(:adult_confirmed, false)
           )
         return failure(record, hard_failure) if hard_failure
 
@@ -134,7 +139,8 @@ module WhereIsMyFriends
             @publisher.publish!(
               title: formatted.fetch(:title),
               raw: formatted.fetch(:raw),
-              tags: [translate("tags.curated"), translate("tags.safety")],
+              tags: PublicationTags.for(theme),
+              source_type: document.fetch(:source_type, "stack_exchange"),
               source_question_id: document.fetch(:question_id)
             )
           record.update!(
@@ -158,12 +164,15 @@ module WhereIsMyFriends
         failure(record, "ai_error")
       rescue TokenBudget::Exhausted
         failure(record, "monthly_token_budget_exhausted")
+      rescue Publisher::MissingCategory
+        failure(record, "publication_category_missing")
       rescue KeyError, ArgumentError
         failure(record, "invalid_model_output")
       end
 
       def start_record(document)
         WhereIsMyFriendsLicensedImport.create!(
+          source_type: document.fetch(:source_type, "stack_exchange"),
           source_question_id: document.fetch(:question_id),
           source_answer_id: document[:answer_id],
           source_question_url: document[:question_url],
@@ -187,14 +196,18 @@ module WhereIsMyFriends
 
       def imported?(document)
         WhereIsMyFriendsLicensedImport.successful.exists?(
+          source_type: document.fetch(:source_type, "stack_exchange"),
           source_question_id: document.fetch(:question_id)
         )
       end
 
       def recover_publication(document)
+        source_type = document.fetch(:source_type, "stack_exchange")
+        source_id = document.fetch(:question_id)
         records =
           WhereIsMyFriendsLicensedImport.where(
-            source_question_id: document.fetch(:question_id)
+            source_type: source_type,
+            source_question_id: source_id
           )
         return if records.successful.exists?
 
@@ -203,11 +216,21 @@ module WhereIsMyFriends
         topic_id =
           TopicCustomField
             .where(
-              name: "where_is_my_friends_licensed_import_source_id",
-              value: document.fetch(:question_id).to_s
+              name: "where_is_my_friends_licensed_import_source_key",
+              value: "#{source_type}:#{source_id}"
             )
             .order(id: :desc)
             .pick(:topic_id)
+        if topic_id.blank? && source_type == "stack_exchange"
+          topic_id =
+            TopicCustomField
+              .where(
+                name: "where_is_my_friends_licensed_import_source_id",
+                value: source_id.to_s
+              )
+              .order(id: :desc)
+              .pick(:topic_id)
+        end
         if topic_id.blank?
           return unless processing
           if processing.updated_at >= PROCESSING_STALE_AFTER.ago

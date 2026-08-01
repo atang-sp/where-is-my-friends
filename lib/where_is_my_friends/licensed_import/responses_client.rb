@@ -177,12 +177,18 @@ module WhereIsMyFriends
           schema: CLASSIFICATION_SCHEMA,
           max_output_tokens: 800,
           developer: <<~PROMPT,
-            Classify this licensed English Q&A for a Chinese community.
-            Allow only useful material about boundaries, online dating or
-            meeting safety, relationship communication, or making friends.
-            Reject if every person is not clearly an adult, consent is unclear,
-            or the content includes explicit sexual material, self-harm,
-            medical or legal advice, illegal conduct, or personal information.
+            Classify this licensed English source for a Chinese community.
+            Allow useful material about boundaries, online dating or meeting
+            safety, relationship communication, making friends, or consensual
+            adult education about spanking or impact play, negotiated
+            discipline, aftercare, and tools or implements. Reject minors,
+            unclear consent, coercion, explicit erotic storytelling, injury or
+            medical instructions, legal advice, illegal conduct, and personal
+            information. Educational descriptions of adult consensual BDSM are
+            not explicit sexual material by themselves. A true
+            adult_confirmed flag comes only from a program-curated adult source;
+            it permits absent ages but never overrides explicit evidence of a
+            minor. Use theme_hint only when the content actually supports it.
             Do not translate or add advice.
           PROMPT
           user: source_payload(content)
@@ -328,6 +334,9 @@ module WhereIsMyFriends
       def source_payload(content)
         {
           title: content.title,
+          content_kind: content.content_kind,
+          adult_confirmed: content.adult_confirmed,
+          theme_hint: content.theme_hint,
           segments:
             content.segments.map do |segment|
               { id: segment.id, kind: segment.kind, text: segment.text }

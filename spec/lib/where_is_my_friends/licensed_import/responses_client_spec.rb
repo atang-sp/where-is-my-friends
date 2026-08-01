@@ -25,7 +25,10 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ResponsesClient do
         )
       ],
       redactions: [],
-      word_count: 400
+      word_count: 400,
+      content_kind: "article",
+      adult_confirmed: true,
+      theme_hint: "aftercare"
     )
   end
 
@@ -145,6 +148,65 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ResponsesClient do
           body.dig("messages", 0, "role") == "system" &&
           body.dig("response_format", "type") == "json_schema" &&
           body.dig("response_format", "json_schema", "strict") == true
+      end
+    ).to have_been_made.once
+  end
+
+  it "classifies consensual adult aftercare as an explicit supported theme" do
+    configured = profile(protocol: "responses")
+    classification = {
+      decision: "allow",
+      theme: "aftercare",
+      adult_status: "clear",
+      consent_status: "clear",
+      prohibited_reasons: []
+    }
+    stub_request(:post, "https://gateway.example/v1/responses").to_return(
+      status: 200,
+      body: {
+        status: "completed",
+        output: [
+          {
+            type: "message",
+            content: [{ type: "output_text", text: classification.to_json }]
+          }
+        ],
+        usage: {
+          total_tokens: 20
+        }
+      }.to_json
+    )
+
+    result =
+      described_class.new(
+        profile: configured,
+        endpoint_policy: endpoint_policy
+      ).classify!(content)
+
+    expect(result.data).to eq(classification.deep_stringify_keys)
+    expect(
+      a_request(:post, "https://gateway.example/v1/responses").with do |request|
+        body = JSON.parse(request.body)
+        prompt = body.dig("input", 0, "content")
+        body.dig(
+          "text",
+          "format",
+          "schema",
+          "properties",
+          "theme",
+          "enum"
+        ).include?("aftercare") &&
+          prompt.match?(/consensual\s+adult education/) &&
+          JSON.parse(body.dig("input", 1, "content")).slice(
+            "content_kind",
+            "adult_confirmed",
+            "theme_hint"
+          ) ==
+            {
+              "content_kind" => "article",
+              "adult_confirmed" => true,
+              "theme_hint" => "aftercare"
+            }
       end
     ).to have_been_made.once
   end

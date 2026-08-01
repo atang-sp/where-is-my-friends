@@ -3,13 +3,17 @@
 module WhereIsMyFriends
   module LicensedImport
     class ContentProcessor
-      Segment = Struct.new(:id, :kind, :text, keyword_init: true)
+      Segment =
+        Struct.new(:id, :kind, :text, :heading_level, keyword_init: true)
       ProcessedContent =
         Struct.new(
           :title,
           :segments,
           :redactions,
           :word_count,
+          :content_kind,
+          :adult_confirmed,
+          :theme_hint,
           keyword_init: true
         )
 
@@ -40,7 +44,10 @@ module WhereIsMyFriends
           title: clean_text(document.fetch(:title).to_s, redactions),
           segments: segments,
           redactions: redactions.uniq,
-          word_count: words
+          word_count: words,
+          content_kind: document[:content_kind],
+          adult_confirmed: document.fetch(:adult_confirmed, false),
+          theme_hint: document[:theme_hint]
         )
       end
 
@@ -79,7 +86,13 @@ module WhereIsMyFriends
           Segment.new(
             id: format("%s_%02d", kind, index),
             kind: kind,
-            text: text
+            text: text,
+            heading_level:
+              (
+                if node.name.match?(/\Ah[1-6]\z/)
+                  node.name.delete_prefix("h").to_i
+                end
+              )
           )
         end
       end

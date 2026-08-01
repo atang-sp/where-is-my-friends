@@ -11,6 +11,7 @@ module WhereIsMyFriends
       render json: {
                enabled: SiteSetting.licensed_import_enabled,
                dry_run: SiteSetting.licensed_import_dry_run,
+               category_id: SiteSetting.licensed_import_category_id,
                generation_provider: active_generation_provider,
                interval_hours: SiteSetting.licensed_import_interval_hours,
                publish_hour_beijing: SiteSetting.licensed_import_publish_hour,
@@ -50,6 +51,7 @@ module WhereIsMyFriends
         .map do |record|
           {
             id: record.id,
+            source_type: record.source_type,
             source_question_id: record.source_question_id,
             source_question_url: record.source_question_url,
             source_answer_url: record.source_answer_url,
@@ -71,9 +73,16 @@ module WhereIsMyFriends
         .where(status: "failed")
         .order(created_at: :desc)
         .limit(50)
-        .pluck(:source_question_id, :failure_code, :token_count, :created_at)
-        .map do |source_question_id, failure_code, token_count, created_at|
+        .pluck(
+          :source_type,
+          :source_question_id,
+          :failure_code,
+          :token_count,
+          :created_at
+        )
+        .map do |source_type, source_question_id, failure_code, token_count, created_at|
           {
+            source_type: source_type,
             source_question_id: source_question_id,
             failure_code: failure_code,
             token_count: token_count,

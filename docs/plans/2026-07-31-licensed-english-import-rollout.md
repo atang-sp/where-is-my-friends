@@ -2,9 +2,17 @@
 
 ## 安全默认值
 
-部署 1.8.1 不会自动开始翻译或发帖：`licensed_import_enabled=false`，且
-`licensed_import_dry_run=true`。唯一允许的来源是 Interpersonal Skills Stack
-Exchange API 返回、问题和选定回答均明确标记为 CC BY-SA 3.0 或 4.0 的完整问答。
+部署不会自动开始翻译或发帖：默认 `licensed_import_enabled=false`，且
+`licensed_import_dry_run=true`。允许的来源只有：
+
+- Interpersonal Skills Stack Exchange API 返回、问题和选定回答均明确标记为
+  CC BY-SA 3.0 或 4.0 的完整问答；
+- 程序固定白名单中的 Wikipedia 成人教育章节，目前覆盖 aftercare、erotic spanking
+  （含工具与安全章节）和 discipline。程序每次抓取都验证 Wikipedia 声明的
+  CC BY-SA 4.0 许可，并将译文署名链接固定到实际翻译的修订版本。
+
+Wikipedia 白名单只允许成年、自愿、非露骨的教育内容。明确未成年人、同意不清、强迫、
+露骨色情故事、伤害或医疗操作说明仍会在发布前失败关闭。
 
 供应商 API 密钥由插件数据库直接保存，与当前 Discourse AI 的 `AiSecret` 存储方式一致，
 无需额外环境变量或主密钥。管理接口和页面只返回“已配置”状态，绝不返回密钥；Rails
@@ -34,11 +42,12 @@ IP，且不跟随重定向。程序不会在失败时自动切换供应商，也
 
 1. 完成数据库迁移和 Discourse 重建，保持 `licensed_import_dry_run=true`。
 2. 确认模型配置已测试和激活、北京时间发布小时为 `20`、间隔为 `24`、
-   每日上限为 `1`、月度预算为 `1500000`。
+   每日上限为 `1`、月度预算为 `1500000`，并选择公开主题目标分区。
 3. 打开 `licensed_import_enabled`。任务每分钟做一次轻量检查，只会在配置的北京时间
    整点进入处理并生成一篇预览。
 4. 每天由管理员访问 `/where-is-my-friends/licensed-imports.json`，检查译文、问题和
-   回答作者、两个原文链接、两个许可链接、修改说明、段落完整性及讨论问题边界。
+   回答作者、两个原文链接、两个许可链接、修改说明、段落完整性及讨论问题边界；文章
+   节选则检查贡献者署名、当前页面、固定修订版本、许可及节选说明。
 5. 第三篇预览生成后任务会自动关闭总开关并通知管理员。三篇必须全部一次通过；
    任一篇需要返工都不得进入公开阶段。
 
@@ -52,8 +61,21 @@ IP，且不跟随重定向。程序不会在失败时自动切换供应商，也
 
 三篇均通过后，将 `licensed_import_dry_run` 改为 `false`，再打开
 `licensed_import_enabled`。系统使用透明的 Discourse 系统用户创建主题，标题带
-`[英文精选·译文]`，并添加 `英文精选`、`安全与边界` 标签；任一程序校验失败都只
-保存失败代码，不创建主题。
+`[英文精选·译文]`，并添加 `英文精选`、`安全与边界` 标签；SP 教育主题还会添加
+`sp知识` 标签。任一程序校验失败都只保存失败代码，不创建主题。公开运行前必须在后台
+选择成员可读的目标分区。
+
+若要把某一篇已经人工确认的预览原样转为公开主题，使用：
+
+```bash
+bundle exec rake "where_is_my_friends:licensed_import:publish_preview[预览记录ID]"
+```
+
+提升前程序会重新抓取实时来源，确认固定版本、作者、链接和许可仍与预览一致，并复用
+定时发布的每日上限、最小间隔和主题轮换规则；来源无法访问或已发生变化时不会发帖。
+
+该任务只接受状态为 `preview` 且中文标题、正文完整的记录，使用后台选择的分区和正式
+标签，幂等更新原记录，并拒绝同一北京时间日期发布第二篇。
 
 运行期间每天检查管理员接口。以下情况会自动关闭总开关：
 
@@ -70,9 +92,9 @@ IP，且不跟随重定向。程序不会在失败时自动切换供应商，也
 确认版权投诉、严重安全漏检或错误署名时，立即运行：
 
 ```bash
-bundle exec rake "where_is_my_friends:licensed_import:halt[来源问题ID,copyright_complaint]"
-bundle exec rake "where_is_my_friends:licensed_import:halt[来源问题ID,serious_safety_miss]"
-bundle exec rake "where_is_my_friends:licensed_import:halt[来源问题ID,attribution_error]"
+bundle exec rake "where_is_my_friends:licensed_import:halt[来源类型,来源ID,copyright_complaint]"
+bundle exec rake "where_is_my_friends:licensed_import:halt[来源类型,来源ID,serious_safety_miss]"
+bundle exec rake "where_is_my_friends:licensed_import:halt[来源类型,来源ID,attribution_error]"
 ```
 
 任务会关闭总开关、隐藏该来源的预览或已发布主题并通知管理员。调查、修复和复核完成

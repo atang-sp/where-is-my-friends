@@ -41,6 +41,10 @@ SiteSetting.default_locale = "en"
 SiteSetting.login_required = false
 SiteSetting.tagging_enabled = true
 
+WhereIsMyFriendsAiProviderProfile.where(
+  name: "E2E generation gateway"
+).delete_all
+
 client_ips = [
   "127.0.0.1",
   ENV.fetch("LOCAL_FRIENDS_E2E_CLIENT_IP", "172.17.0.1")

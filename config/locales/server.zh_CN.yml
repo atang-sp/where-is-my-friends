@@ -11,6 +11,7 @@ zh_CN:
       tags:
         curated: "英文精选"
         safety: "安全与边界"
+        sp_education: "sp知识"
       redaction_placeholders:
         contact: "[已删除联系方式]"
         address: "[已删除精确地址]"
@@ -20,16 +21,19 @@ zh_CN:
         image: "删除图片"
         long_quote: "删除无独立许可的长引用"
       modifications:
+        excerpted: "节选指定章节"
         translated: "翻译为简体中文"
         separator: "；"
       post:
         disclosure: "本主题由英文精选翻译机器人自动生成，并经过许可、安全与忠实度校验。下文是中文译文；“社区讨论”不是原作者内容。"
+        article_heading: "精选译文"
         question_heading: "问题"
         answer_heading: "优质回答"
         discussion_heading: "社区讨论"
         attribution_heading: "来源、署名与许可"
         question_attribution: "- 问题：%{author} · [原文](%{url}) · %{license}"
         answer_attribution: "- 回答：%{author} · [原文](%{url}) · %{license}"
+        article_attribution: "- 来源：%{author} · [固定版本](%{revision_url}) · %{license}"
         modification_notice: "- 修改说明：%{modification}。未改变的部分按相同许可转载。"
       reasons:
         missing_api_key: "缺少所选模型的 API 密钥"
@@ -44,6 +48,7 @@ zh_CN:
         source_sync_failure: "来源同步失败"
         source_error: "英文来源 API 失败"
         ai_error: "AI 供应商 API 失败"
+        publication_category_missing: "未配置成员可读的英文精选发布分区"
         unexpected_failure: "未预期任务失败"
     interest_catalogue:
       groups:
@@ -161,6 +166,7 @@ zh_CN:
     where_is_my_friends_filterable_user_fields: "允许在发现结果中筛选的自定义用户字段名称（仅限下拉类型），用竖线分隔"
     licensed_import_enabled: "启用有明确许可的英文精选翻译任务"
     licensed_import_dry_run: "只生成管理员预览，不创建公开主题"
+    licensed_import_category_id: "英文精选公开主题的发布分区"
     licensed_import_interval_hours: "两次英文精选任务之间的最短小时数"
     licensed_import_publish_hour: "英文精选任务的北京时间发布小时"
     licensed_import_monthly_token_budget: "英文精选每月最多使用的生成 token 总量"

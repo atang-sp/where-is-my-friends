@@ -8,13 +8,15 @@ module WhereIsMyFriends
           /\b(?:i am|i'm|aged?)\s+(?:[0-9]|1[0-7])\b/i,
           /\b(?:[0-9]|1[0-7])[- ]years?[- ]old\b/i,
           /\b(?:[0-9]|1[0-7])\s*[mf]\b/i,
-          /\b(?:minor|underage|high schooler?|middle schooler?|teenager)\b/i
+          /\b(?:child|children|underage|high schooler?|middle schooler?|teenager)\b/i,
+          /\b(?:a|an|the|this|that|any) minor(?! (?:mistake|injur|issue|change|detail|difference))\b/i,
+          /\bminor(?:s| (?:person|people|participant|user|child))\b/i
         ],
         "nonconsensual" => [
           /\b(?:forced|coerced|without (?:my|their) consent|said no|non-?consensual|assaulted)\b/i
         ],
         "explicit_sexual" => [
-          /\b(?:porn(?:ographic)?|intercourse|explicit sex|sexual services?|genitals?)\b/i
+          /\b(?:porn(?:ographic)?|explicit sex|sexual services?|genitals?)\b/i
         ],
         "self_harm" => [
           /\b(?:suicide|kill myself|self[- ]harm|cut myself|eating disorder)\b/i
@@ -43,7 +45,7 @@ module WhereIsMyFriends
         /\b(?:would not|wouldn't|won't) (?:say|tell me) (?:their|his|her) age\b/i
       ].freeze
 
-      def failure_code(text)
+      def failure_code(text, adult_confirmed: false)
         normalized = text.to_s
         if AGE_UNCERTAINTY.any? { |pattern| normalized.match?(pattern) }
           return "minor_or_age_unknown"
@@ -51,7 +53,8 @@ module WhereIsMyFriends
         RULES.each do |code, patterns|
           return code if patterns.any? { |pattern| normalized.match?(pattern) }
         end
-        unless ADULT_EVIDENCE.any? { |pattern| normalized.match?(pattern) }
+        unless adult_confirmed ||
+                 ADULT_EVIDENCE.any? { |pattern| normalized.match?(pattern) }
           return "minor_or_age_unknown"
         end
 

@@ -53,6 +53,25 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     SiteSetting.licensed_import_dry_run = true
   end
 
+  it "fails before model calls when public publishing has no valid category" do
+    SiteSetting.licensed_import_dry_run = false
+    SiteSetting.licensed_import_category_id = ""
+
+    outcome =
+      described_class.new(
+        source: source,
+        model: model,
+        publisher: WhereIsMyFriends::LicensedImport::Publisher.new
+      ).run
+
+    expect(model).not_to have_received(:classify!)
+    expect(outcome).to have_attributes(
+      status: "failed",
+      failure_code: "publication_category_missing"
+    )
+    expect(outcome.record.status).to eq("failed")
+  end
+
   it "starts with only an active generation provider configured" do
     profile =
       WhereIsMyFriendsAiProviderProfile.create!(
@@ -268,6 +287,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     expect(publisher).not_to have_received(:publish!)
     expect(outcome.status).to eq("preview")
     expect(outcome.record).to have_attributes(
+      source_type: "stack_exchange",
       theme: "boundaries",
       token_count: 150,
       translated_title: "[英文精选·译文] 如何设定边界"
@@ -372,11 +392,89 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     end
   end
 
+  it "accepts a curated adult article and preserves its source namespace" do
+    words = Array.new(210, "aftercare").join(" ")
+    document = {
+      source_type: "wikimedia",
+      content_kind: "article",
+      adult_confirmed: true,
+      question_id: 1_008_761,
+      answer_id: 123,
+      question_url: "https://en.wikipedia.org/wiki/Aftercare_(BDSM)",
+      answer_url:
+        "https://en.wikipedia.org/w/index.php?title=Aftercare_%28BDSM%29&oldid=123",
+      question_author: "Wikipedia contributors",
+      answer_author: "Wikipedia contributors",
+      question_license: "CC BY-SA 4.0",
+      answer_license: "CC BY-SA 4.0",
+      title: "Aftercare (BDSM)",
+      question_html: "<p>#{words}</p>",
+      answer_html: "<p>#{words}</p>",
+      revised_at: nil
+    }
+    allow(source).to receive(:candidates).and_return([document])
+    allow(model).to receive(:classify!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
+        data: {
+          "decision" => "allow",
+          "theme" => "aftercare",
+          "adult_status" => "clear",
+          "consent_status" => "clear",
+          "prohibited_reasons" => []
+        },
+        token_count: 10
+      )
+    )
+    allow(model).to receive(:translate!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
+        data: {
+          "decision" => "allow",
+          "translated_title" => "BDSM 事后照护",
+          "segments" => [
+            { "id" => "question_01", "translation" => "第一部分译文。" },
+            { "id" => "answer_01", "translation" => "第二部分译文。" }
+          ],
+          "discussion_prompt" => "你希望如何提前沟通事后照护？",
+          "redactions" => []
+        },
+        token_count: 20
+      )
+    )
+    allow(model).to receive(:review!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
+        data: {
+          "verdict" => "pass",
+          "omitted_meaning" => false,
+          "added_facts_or_advice" => false,
+          "numbers_names_links_consistent" => true,
+          "tone_strengthened" => false,
+          "high_risk_mistranslation" => false,
+          "covered_segment_ids" => %w[question_01 answer_01]
+        },
+        token_count: 10
+      )
+    )
+
+    outcome = pipeline.run
+
+    expect(outcome).to have_attributes(status: "preview")
+    expect(outcome.record).to have_attributes(
+      source_type: "wikimedia",
+      theme: "aftercare",
+      source_answer_id: 123
+    )
+    expect(outcome.record.translated_body).to include(
+      "## 精选译文",
+      "固定版本",
+      "Wikipedia contributors"
+    )
+  end
+
   it "recovers a completed PostCreator side effect on task retry without duplicating the topic" do
     TopicCustomField.create!(
       topic_id: recovered_topic.id,
-      name: "where_is_my_friends_licensed_import_source_id",
-      value: "42"
+      name: "where_is_my_friends_licensed_import_source_key",
+      value: "stack_exchange:42"
     )
     processing =
       WhereIsMyFriendsLicensedImport.create!(
@@ -496,5 +594,23 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
       status: "skipped",
       failure_code: "duplicate_source"
     )
+  end
+
+  it "keeps identical numeric IDs from different source systems independent" do
+    WhereIsMyFriendsLicensedImport.create!(
+      source_type: "wikimedia",
+      source_question_id: 42,
+      status: "preview"
+    )
+
+    outcome = pipeline.run
+
+    expect(outcome).to have_attributes(
+      status: "failed",
+      failure_code: "license_missing"
+    )
+    expect(
+      WhereIsMyFriendsLicensedImport.where(source_question_id: 42).count
+    ).to eq(2)
   end
 end

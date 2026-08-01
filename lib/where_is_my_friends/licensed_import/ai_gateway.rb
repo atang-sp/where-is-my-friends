@@ -3,7 +3,16 @@
 module WhereIsMyFriends
   module LicensedImport
     module AiGateway
-      THEMES = %w[boundaries online_safety communication making_friends].freeze
+      THEMES = %w[
+        boundaries
+        online_safety
+        communication
+        making_friends
+        spanking
+        discipline
+        aftercare
+        tools
+      ].freeze
 
       class Error < StandardError
         attr_reader :token_count
