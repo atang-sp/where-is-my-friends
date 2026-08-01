@@ -22,7 +22,7 @@ module WhereIsMyFriends
       PHONE_PATTERN = /(?<!\w)(?:\+?\d[\d ().-]{7,}\d)(?!\w)/
       HANDLE_PATTERN = /(?<!\w)@[A-Za-z0-9_]{2,32}\b/
       STREET_PATTERN =
-        /\b\d{1,6}\s+[A-Za-z0-9.' -]{1,60}\s(?:Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct)\b/i
+        /\b\d{1,6}(?:-\d{1,6})?,?\s+[A-Za-z0-9.' -]{1,60}\s(?:Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct)\b/i
       CHINESE_ADDRESS_PATTERN =
         /[\p{Han}]{2,20}(?:路|街|巷|道)\d{1,5}号(?:\d{1,4}(?:室|房))?/
 

@@ -12,6 +12,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ContentProcessor do
         <h2>Overview</h2>
         <p>Please email me at person@example.com.</p>
         <p>We planned to meet at 123 Main Street.</p>
+        <p>The old office was at 127-129, Example Road.</p>
         <img src="https://example.com/private.jpg">
         <blockquote>#{long_quote}</blockquote>
       HTML
@@ -24,7 +25,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ContentProcessor do
     content = described_class.new.call(document)
 
     expect(content.segments.map(&:id)).to eq(
-      %w[question_01 question_02 question_03 answer_01 answer_02]
+      %w[question_01 question_02 question_03 question_04 answer_01 answer_02]
     )
     expect(content.segments.first).to have_attributes(
       text: "Overview",
@@ -33,6 +34,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ContentProcessor do
     expect(content.segments.map(&:text).join(" ")).not_to include(
       "person@example.com",
       "123 Main Street",
+      "127-129, Example Road",
       "private.jpg",
       long_quote
     )

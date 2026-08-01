@@ -41,7 +41,11 @@ module WhereIsMyFriends
               @publisher.publish!(
                 title: record.translated_title,
                 raw: record.translated_body,
-                tags: PublicationTags.for(record.theme),
+                tags:
+                  PublicationTags.for(
+                    record.theme,
+                    source_type: record.source_type
+                  ),
                 source_type: record.source_type,
                 source_question_id: record.source_question_id
               )
@@ -89,9 +93,21 @@ module WhereIsMyFriends
                  record.token_count.positive? && record.failure_code.blank? &&
                  record.translated_title.to_s.start_with?(
                    "#{translate("title_prefix")} "
-                 ) && valid_body
+                 ) && valid_body && valid_gfdl_body?(record)
           raise InvalidPreview
         end
+      end
+
+      def valid_gfdl_body?(record)
+        return true unless record.source_type == "spanking_art"
+
+        body = record.translated_body.to_s
+        [
+          PostFormatter::GFDL_NOTICE,
+          PostFormatter::GFDL_TEXT,
+          "## #{translate("post.gfdl_history_heading")}",
+          "Copyright ©"
+        ].all? { |required| body.include?(required) }
       end
 
       def existing_post(record)

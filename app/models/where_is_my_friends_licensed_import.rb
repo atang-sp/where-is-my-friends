@@ -2,7 +2,7 @@
 
 class WhereIsMyFriendsLicensedImport < ActiveRecord::Base
   STATUSES = %w[processing failed preview published hidden superseded].freeze
-  SOURCE_TYPES = %w[stack_exchange wikimedia].freeze
+  SOURCE_TYPES = %w[stack_exchange wikimedia spanking_art].freeze
 
   belongs_to :topic, optional: true
 
