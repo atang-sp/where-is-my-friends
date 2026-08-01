@@ -3,14 +3,18 @@
 module WhereIsMyFriends
   module LicensedImport
     class SourceCatalog
-      def initialize(sources: [WikimediaClient.new, StackExchangeClient.new])
-        @sources = sources
+      def initialize(candidate_sources: nil, verification_sources: nil)
+        spanking_art = SpankingArtClient.new
+        @candidate_sources = candidate_sources || [spanking_art]
+        @verification_sources =
+          verification_sources ||
+            [spanking_art, WikimediaClient.new, StackExchangeClient.new]
       end
 
       def candidates
         documents = []
         failures = 0
-        @sources.each do |source|
+        @candidate_sources.each do |source|
           documents.concat(source.candidates)
         rescue SourceError
           failures += 1
@@ -22,7 +26,9 @@ module WhereIsMyFriends
 
       def fetch(source_type, source_id)
         source =
-          @sources.find { |candidate| candidate.source_type == source_type }
+          @verification_sources.find do |candidate|
+            candidate.source_type == source_type
+          end
         raise MissingSource if source.blank?
 
         source.fetch(source_id)

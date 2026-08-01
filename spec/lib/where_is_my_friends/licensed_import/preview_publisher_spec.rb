@@ -91,6 +91,111 @@ RSpec.describe WhereIsMyFriends::LicensedImport::PreviewPublisher do
     ).twice
   end
 
+  it "adds the SP education tag to a Spanking Art preview with a rotation theme" do
+    allow(DistributedMutex).to receive(:synchronize).and_yield
+    document =
+      source_document(
+        source_type: "spanking_art",
+        question_id: 1_232,
+        answer_id: 152_283,
+        question_url: "https://spankingart.org/wiki/Safeword",
+        answer_url:
+          "https://web.archive.org/web/20250101070711id_/https://spankingart.org/wiki/Safeword",
+        question_author: "Spanking Art Wiki contributors",
+        answer_author: "Spanking Art Wiki contributors",
+        question_license: "GFDL 1.3",
+        answer_license: "GFDL 1.3"
+      )
+    record =
+      WhereIsMyFriendsLicensedImport.create!(
+        valid_preview_attributes(
+          source_type: "spanking_art",
+          source_question_id: 1_232,
+          source_answer_id: 152_283,
+          source_question_url: document.fetch(:question_url),
+          source_answer_url: document.fetch(:answer_url),
+          question_author: document.fetch(:question_author),
+          answer_author: document.fetch(:answer_author),
+          question_license: "GFDL 1.3",
+          answer_license: "GFDL 1.3",
+          theme: "boundaries",
+          translated_body:
+            valid_preview_attributes
+              .fetch(:translated_body)
+              .gsub(
+                "https://en.wikipedia.org/wiki/Aftercare_(BDSM)",
+                document.fetch(:question_url)
+              )
+              .gsub(
+                "https://en.wikipedia.org/w/index.php?title=Aftercare_%28BDSM%29&oldid=123",
+                document.fetch(:answer_url)
+              )
+              .gsub("Wikipedia contributors", document.fetch(:question_author))
+              .gsub("CC BY-SA 4.0", "GFDL 1.3") +
+              "\n\n#{WhereIsMyFriends::LicensedImport::PostFormatter::GFDL_NOTICE}" +
+              "\n\n## 修改历史 (History)\n\nCopyright © 2026" +
+              "\n\n#{WhereIsMyFriends::LicensedImport::PostFormatter::GFDL_TEXT}"
+        )
+      )
+
+    post = preview_publisher(document: document).call(record.id)
+
+    expect(post.topic.tags.pluck(:name)).to contain_exactly(
+      "英文精选",
+      "安全与边界",
+      "sp知识"
+    )
+  end
+
+  it "rejects an incomplete GFDL preview before public publishing" do
+    document =
+      source_document(
+        source_type: "spanking_art",
+        question_id: 1_232,
+        answer_id: 152_283,
+        question_url: "https://spankingart.org/wiki/Safeword",
+        answer_url:
+          "https://web.archive.org/web/20250101070711id_/https://spankingart.org/wiki/Safeword",
+        question_author: "Spanking Art Wiki contributors",
+        answer_author: "Spanking Art Wiki contributors",
+        question_license: "GFDL 1.3",
+        answer_license: "GFDL 1.3"
+      )
+    incomplete_body =
+      valid_preview_attributes
+        .fetch(:translated_body)
+        .gsub(
+          "https://en.wikipedia.org/wiki/Aftercare_(BDSM)",
+          document.fetch(:question_url)
+        )
+        .gsub(
+          "https://en.wikipedia.org/w/index.php?title=Aftercare_%28BDSM%29&oldid=123",
+          document.fetch(:answer_url)
+        )
+        .gsub("Wikipedia contributors", document.fetch(:question_author))
+        .gsub("CC BY-SA 4.0", "GFDL 1.3")
+    record =
+      WhereIsMyFriendsLicensedImport.create!(
+        valid_preview_attributes(
+          source_type: "spanking_art",
+          source_question_id: 1_232,
+          source_answer_id: 152_283,
+          source_question_url: document.fetch(:question_url),
+          source_answer_url: document.fetch(:answer_url),
+          question_author: document.fetch(:question_author),
+          answer_author: document.fetch(:answer_author),
+          question_license: "GFDL 1.3",
+          answer_license: "GFDL 1.3",
+          theme: "boundaries",
+          translated_body: incomplete_body
+        )
+      )
+
+    expect { preview_publisher(document: document).call(record.id) }.to(
+      raise_error(described_class::InvalidPreview)
+    )
+  end
+
   it "does not publish a second preview on the same Beijing day" do
     WhereIsMyFriendsLicensedImport.create!(
       source_question_id: 42,

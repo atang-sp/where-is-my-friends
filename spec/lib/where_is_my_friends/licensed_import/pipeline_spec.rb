@@ -133,6 +133,59 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     )
   end
 
+  it "accepts a fixed GFDL article license before invoking content classification" do
+    words = Array.new(65, "adult consent communication").join(" ")
+    allow(source).to receive(:candidates).and_return(
+      [
+        {
+          source_type: "spanking_art",
+          content_kind: "article",
+          adult_confirmed: true,
+          theme_hint: "boundaries",
+          minimum_word_count: 390,
+          question_id: 1_232,
+          answer_id: 152_283,
+          question_url: "https://spankingart.org/wiki/Safeword",
+          answer_url:
+            "https://web.archive.org/web/20250101070711id_/https://spankingart.org/wiki/Safeword",
+          question_author: "Spanking Art Wiki contributors",
+          answer_author: "Spanking Art Wiki contributors",
+          question_license: "GFDL 1.3",
+          answer_license: "GFDL 1.3",
+          title: "Safeword",
+          question_html: "<p>#{words}</p>",
+          answer_html: "<p>#{words}</p>",
+          revised_at: nil
+        }
+      ]
+    )
+    allow(model).to receive(:classify!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
+        data: {
+          "decision" => "reject",
+          "theme" => "none",
+          "adult_status" => "clear",
+          "consent_status" => "clear",
+          "prohibited_reasons" => ["test rejection"]
+        },
+        token_count: 10
+      )
+    )
+
+    outcome = pipeline.run
+
+    expect(model).to have_received(:classify!).once
+    expect(outcome).to have_attributes(
+      status: "failed",
+      failure_code: "scope_or_safety_rejected"
+    )
+    expect(outcome.record).to have_attributes(
+      source_type: "spanking_art",
+      question_license: "GFDL 1.3",
+      answer_license: "GFDL 1.3"
+    )
+  end
+
   it "stops the candidate loop after a site-wide API key failure" do
     words = "I am an adult. " + Array.new(196, "boundary").join(" ")
     documents =
@@ -303,6 +356,99 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
       source_text,
       answer_text
     )
+  end
+
+  it "fails closed when the fully formatted post exceeds the site limit" do
+    source_text = Array.new(200, "adult boundary").join(" ")
+    answer_text = Array.new(200, "communicate").join(" ")
+    allow(source).to receive(:candidates).and_return(
+      [
+        {
+          source_type: "spanking_art",
+          content_kind: "article",
+          adult_confirmed: true,
+          theme_hint: "boundaries",
+          question_id: 1_232,
+          answer_id: 152_283,
+          question_url: "https://spankingart.org/wiki/Safeword",
+          answer_url:
+            "https://web.archive.org/web/20250101070711id_/https://spankingart.org/wiki/Safeword",
+          question_author: "Spanking Art Wiki contributors",
+          answer_author: "Spanking Art Wiki contributors",
+          question_license: "GFDL 1.3",
+          answer_license: "GFDL 1.3",
+          title: "Safeword",
+          question_html: "<p>#{source_text}</p>",
+          answer_html: "<p>#{answer_text}</p>",
+          revised_at: nil
+        }
+      ]
+    )
+    allow(model).to receive(:classify!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
+        data: {
+          "decision" => "allow",
+          "theme" => "boundaries",
+          "adult_status" => "clear",
+          "consent_status" => "clear",
+          "prohibited_reasons" => []
+        },
+        token_count: 10
+      )
+    )
+    allow(model).to receive(:translate!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
+        data: {
+          "decision" => "allow",
+          "translated_title" => "安全词",
+          "segments" => [
+            { "id" => "question_01", "translation" => "安全词译文。" },
+            { "id" => "answer_01", "translation" => "沟通译文。" }
+          ],
+          "discussion_prompt" => "你会怎样沟通安全词？",
+          "redactions" => []
+        },
+        token_count: 20
+      )
+    )
+    allow(model).to receive(:review!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
+        data: {
+          "verdict" => "pass",
+          "omitted_meaning" => false,
+          "added_facts_or_advice" => false,
+          "numbers_names_links_consistent" => true,
+          "tone_strengthened" => false,
+          "high_risk_mistranslation" => false,
+          "covered_segment_ids" => %w[question_01 answer_01]
+        },
+        token_count: 10
+      )
+    )
+    oversized = {
+      title: "[英文精选·译文] 安全词",
+      raw: "x" * (SiteSetting.max_post_length + 1)
+    }
+    formatter =
+      instance_double(
+        WhereIsMyFriends::LicensedImport::PostFormatter,
+        call: oversized
+      )
+
+    outcome =
+      described_class.new(
+        source: source,
+        model: model,
+        publisher: publisher,
+        formatter: formatter
+      ).run
+
+    expect(outcome).to have_attributes(
+      status: "failed",
+      failure_code: "formatted_post_too_long"
+    )
+    expect(outcome.record.translated_body).to be_nil
+    expect(publisher).not_to have_received(:publish!)
   end
 
   it "rejects missing, extra, reordered, or numerically changed translation segments" do

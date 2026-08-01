@@ -1,7 +1,13 @@
 # frozen_string_literal: true
 
 RSpec.describe WhereIsMyFriends::LicensedImport::SourceCatalog do
-  it "prioritizes curated Wikimedia articles and dispatches refreshes by source type" do
+  it "offers only Spanking Art candidates while dispatching legacy refreshes by source type" do
+    spanking_art =
+      instance_double(
+        WhereIsMyFriends::LicensedImport::SpankingArtClient,
+        source_type: "spanking_art",
+        candidates: [{ source_type: "spanking_art", question_id: 50 }]
+      )
     wikimedia =
       instance_double(
         WhereIsMyFriends::LicensedImport::WikimediaClient,
@@ -19,12 +25,20 @@ RSpec.describe WhereIsMyFriends::LicensedImport::SourceCatalog do
       question_id: 100
     )
 
-    catalog = described_class.new(sources: [wikimedia, stack_exchange])
-
-    expect(catalog.candidates.pluck(:source_type)).to eq(
-      %w[wikimedia stack_exchange]
+    allow(spanking_art).to receive(:fetch).with(50).and_return(
+      source_type: "spanking_art",
+      question_id: 50
     )
+    catalog =
+      described_class.new(
+        candidate_sources: [spanking_art],
+        verification_sources: [spanking_art, wikimedia, stack_exchange]
+      )
+
+    expect(catalog.candidates.pluck(:source_type)).to eq(%w[spanking_art])
+    expect(catalog.fetch("spanking_art", 50)).to include(question_id: 50)
     expect(catalog.fetch("wikimedia", 100)).to include(question_id: 100)
+    expect(spanking_art).to have_received(:fetch).with(50)
     expect(wikimedia).to have_received(:fetch).with(100)
   end
 
@@ -45,7 +59,9 @@ RSpec.describe WhereIsMyFriends::LicensedImport::SourceCatalog do
       )
 
     expect {
-      described_class.new(sources: [failed_source, empty_source]).candidates
+      described_class.new(
+        candidate_sources: [failed_source, empty_source]
+      ).candidates
     }.to raise_error(WhereIsMyFriends::LicensedImport::SourceError)
   end
 end

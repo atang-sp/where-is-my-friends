@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.10.0 — 2026-08-01
+
+- Add five fixed Spanking Art Wiki excerpts about safewords, spanko community,
+  the history of *Janus*, BDSM terminology, and adult spanking clubs.
+- Fetch immutable Internet Archive snapshots because the original site blocks
+  automated access, and fail closed if the page ID, revision ID, or page-level
+  GFDL notice differs from the reviewed source.
+- Remove images, navigation, contact details, exact addresses, unselected
+  sections, and paragraphs involving minors, ageplay, non-consent, pornography,
+  or explicit sex before any model call.
+- Publish each translation as a GFDL 1.3 Modified Version with a distinct title,
+  original contributors and history, source and archive locations, modification
+  history and copyright notice, publisher details, and the complete unaltered
+  GFDL 1.3 text embedded in the topic.
+- Limit new publication candidates to the five reviewed Spanking Art entries;
+  legacy Wikimedia and Stack Exchange clients remain available only to verify
+  records imported by earlier releases.
+
 ## 1.9.0 — 2026-08-01
 
 - Add curated CC BY-SA 4.0 Wikipedia excerpts for adult consensual aftercare,

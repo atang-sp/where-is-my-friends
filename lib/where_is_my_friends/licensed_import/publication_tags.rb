@@ -5,9 +5,11 @@ module WhereIsMyFriends
     class PublicationTags
       SP_THEMES = %w[spanking discipline aftercare tools].freeze
 
-      def self.for(theme)
+      def self.for(theme, source_type: nil)
         tags = [translate("tags.curated"), translate("tags.safety")]
-        tags << translate("tags.sp_education") if SP_THEMES.include?(theme)
+        if source_type == "spanking_art" || SP_THEMES.include?(theme)
+          tags << translate("tags.sp_education")
+        end
         tags
       end
 

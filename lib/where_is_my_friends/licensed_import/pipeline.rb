@@ -4,7 +4,7 @@ module WhereIsMyFriends
   module LicensedImport
     class Pipeline
       Outcome = Struct.new(:status, :failure_code, :record, keyword_init: true)
-      LICENSE_PATTERN = /\ACC BY-SA (?:3\.0|4\.0)\z/
+      LICENSE_PATTERN = /\A(?:CC BY-SA (?:3\.0|4\.0)|GFDL 1\.3)\z/
       TERMINAL_FAILURE_CODES = %w[
         missing_api_key
         monthly_token_budget_exhausted
@@ -80,7 +80,8 @@ module WhereIsMyFriends
         return failure(record, "license_missing") unless licensed?(document)
 
         content = @processor.call(document)
-        unless content.word_count.between?(400, 3_500)
+        minimum_word_count = document.fetch(:minimum_word_count, 400)
+        unless content.word_count.between?(minimum_word_count, 3_500)
           return failure(record, "word_count_out_of_range")
         end
 
@@ -98,7 +99,11 @@ module WhereIsMyFriends
         unless allowed_classification?(classification.data)
           return failure(record, "scope_or_safety_rejected")
         end
-        theme = classification.data.fetch("theme")
+        theme =
+          document[:theme_hint].presence || classification.data.fetch("theme")
+        if AiGateway::THEMES.exclude?(theme)
+          return failure(record, "invalid_theme")
+        end
         return failure(record, "repeated_theme") if repeated_theme?(theme)
 
         translation =
@@ -126,6 +131,9 @@ module WhereIsMyFriends
             content: content,
             translation: translation.data
           )
+        if formatted.fetch(:raw).length > SiteSetting.max_post_length
+          return failure(record, "formatted_post_too_long")
+        end
         if SiteSetting.licensed_import_dry_run
           record.update!(
             status: "preview",
@@ -139,7 +147,11 @@ module WhereIsMyFriends
             @publisher.publish!(
               title: formatted.fetch(:title),
               raw: formatted.fetch(:raw),
-              tags: PublicationTags.for(theme),
+              tags:
+                PublicationTags.for(
+                  theme,
+                  source_type: document.fetch(:source_type, "stack_exchange")
+                ),
               source_type: document.fetch(:source_type, "stack_exchange"),
               source_question_id: document.fetch(:question_id)
             )
