@@ -25,5 +25,15 @@ WhereIsMyFriends::Engine.routes.draw do
         "legacy_practice_bookmarks#dismiss"
   post "/events" => "events#create"
   get "/licensed-imports" => "licensed_imports#index"
+  scope "/admin" do
+    resources :ai_provider_profiles,
+              path: "ai-provider-profiles",
+              only: %i[index create update destroy] do
+      member do
+        post :test
+        post :activate
+      end
+    end
+  end
   get "/debug-stats" => "locations#debug_stats" # 仅管理员可访问
 end

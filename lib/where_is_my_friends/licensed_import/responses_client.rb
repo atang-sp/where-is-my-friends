@@ -1,19 +1,17 @@
 # frozen_string_literal: true
 
-require "net/http"
-
 module WhereIsMyFriends
   module LicensedImport
     class ResponsesClient
-      PROVIDERS = {
-        "deepseek-v4-flash" => {
-          api_root: "https://api.deepseek.com",
-          api_key_env: "WHERE_IS_MY_FRIENDS_DEEPSEEK_API_KEY"
+      TEST_SCHEMA = {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          ok: {
+            type: "boolean"
+          }
         },
-        "gpt-5.6-terra" => {
-          api_root: "https://api.openai.com/v1",
-          api_key_env: "WHERE_IS_MY_FRIENDS_OPENAI_API_KEY"
-        }
+        required: %w[ok]
       }.freeze
       CLASSIFICATION_SCHEMA = {
         type: "object",
@@ -138,11 +136,39 @@ module WhereIsMyFriends
         ]
       }.freeze
 
-      def initialize(open_timeout: 5, read_timeout: 60)
-        @open_timeout = open_timeout
-        @read_timeout = read_timeout
-        @model = SiteSetting.licensed_import_model
-        @provider = PROVIDERS.fetch(@model) { raise AiGateway::Error }
+      def initialize(
+        profile: WhereIsMyFriendsAiProviderProfile.active_profile!(
+          "generation"
+        ),
+        endpoint_policy: EndpointPolicy.new,
+        open_timeout: 5,
+        read_timeout: 60
+      )
+        @protocol = profile.protocol
+        @structured_output_mode = profile.structured_output_mode
+        @model = profile.model
+        @http =
+          JsonHttpClient.new(
+            base_url: profile.base_url,
+            api_key: profile.api_key,
+            endpoint_policy: endpoint_policy,
+            open_timeout: open_timeout,
+            read_timeout: read_timeout
+          )
+      end
+
+      def test_connection!
+        result =
+          structured_response(
+            name: "licensed_import_connection_test",
+            schema: TEST_SCHEMA,
+            max_output_tokens: 32,
+            developer: "Return JSON with ok set to true. Do nothing else.",
+            user: "Test this configured model connection."
+          )
+        raise AiGateway::InvalidResponse unless result.data == { "ok" => true }
+
+        true
       end
 
       def classify!(content)
@@ -213,7 +239,35 @@ module WhereIsMyFriends
       )
         token_count = 0
         payload =
-          post_json(
+          request_structured_response(
+            name: name,
+            schema: schema,
+            max_output_tokens: max_output_tokens,
+            developer: developer,
+            user: user
+          )
+        raise AiGateway::InvalidResponse unless payload.is_a?(Hash)
+
+        token_count = response_token_count!(payload)
+        text = extract_text!(payload, token_count: token_count)
+        data = JSON.parse(text)
+        JsonSchemaValidator.validate!(data, schema)
+
+        AiGateway::Result.new(data: data, token_count: token_count)
+      rescue JSON::ParserError, AiGateway::InvalidResponse
+        raise AiGateway::InvalidResponse.new(token_count: token_count)
+      end
+
+      def request_structured_response(
+        name:,
+        schema:,
+        max_output_tokens:,
+        developer:,
+        user:
+      )
+        case @protocol
+        when "responses"
+          @http.post(
             "/responses",
             model: @model,
             store: false,
@@ -236,23 +290,39 @@ module WhereIsMyFriends
               }
             }
           )
-        token_count = response_token_count(payload)
-        unless payload["status"] == "completed"
-          raise AiGateway::InvalidResponse.new(token_count: token_count)
+        when "chat_completions"
+          chat_developer = developer
+          response_format =
+            if @structured_output_mode == "json_object"
+              chat_developer = <<~PROMPT
+                #{developer}
+                Return only one JSON object matching this JSON Schema exactly:
+                #{schema.to_json}
+              PROMPT
+              { type: "json_object" }
+            else
+              {
+                type: "json_schema",
+                json_schema: {
+                  name: name,
+                  strict: true,
+                  schema: schema
+                }
+              }
+            end
+          @http.post(
+            "/chat/completions",
+            model: @model,
+            max_tokens: max_output_tokens,
+            messages: [
+              { role: "system", content: chat_developer },
+              { role: "user", content: user }
+            ],
+            response_format: response_format
+          )
+        else
+          raise AiGateway::Error
         end
-        if refusal?(payload)
-          raise AiGateway::Rejected.new(token_count: token_count)
-        end
-
-        text = output_text(payload, token_count: token_count)
-        data = JSON.parse(text)
-        unless data.is_a?(Hash)
-          raise AiGateway::InvalidResponse.new(token_count: token_count)
-        end
-
-        AiGateway::Result.new(data: data, token_count: token_count)
-      rescue JSON::ParserError
-        raise AiGateway::InvalidResponse.new(token_count: token_count)
       end
 
       def source_payload(content)
@@ -265,25 +335,41 @@ module WhereIsMyFriends
         }.to_json
       end
 
-      def refusal?(payload)
-        payload
-          .fetch("output", [])
-          .any? do |item|
-            item.fetch("content", []).any? { |part| part["type"] == "refusal" }
+      def responses_refusal?(payload)
+        output = payload["output"]
+        raise AiGateway::InvalidResponse unless output.is_a?(Array)
+
+        output.any? do |item|
+          raise AiGateway::InvalidResponse unless item.is_a?(Hash)
+
+          content = item["content"]
+          raise AiGateway::InvalidResponse unless content.is_a?(Array)
+
+          content.any? do |part|
+            raise AiGateway::InvalidResponse unless part.is_a?(Hash)
+
+            part["type"] == "refusal"
           end
+        end
       end
 
-      def output_text(payload, token_count:)
+      def responses_output_text(payload, token_count:)
+        output = payload["output"]
+        raise AiGateway::InvalidResponse unless output.is_a?(Array)
+
         parts =
-          payload
-            .fetch("output", [])
-            .flat_map do |item|
-              item
-                .fetch("content", [])
-                .filter_map do |part|
-                  part["text"] if part["type"] == "output_text"
-                end
+          output.flat_map do |item|
+            raise AiGateway::InvalidResponse unless item.is_a?(Hash)
+
+            content = item["content"]
+            raise AiGateway::InvalidResponse unless content.is_a?(Array)
+
+            content.filter_map do |part|
+              raise AiGateway::InvalidResponse unless part.is_a?(Hash)
+
+              part["text"] if part["type"] == "output_text"
             end
+          end
         unless parts.one? && parts.first.present?
           raise AiGateway::InvalidResponse.new(token_count: token_count)
         end
@@ -291,46 +377,60 @@ module WhereIsMyFriends
         parts.first
       end
 
-      def response_token_count(payload)
+      def response_token_count!(payload)
         total = payload.dig("usage", "total_tokens")
-        return total.to_i unless total.nil?
+        return total.to_i if total.is_a?(Numeric)
 
-        payload.dig("usage", "input_tokens").to_i +
-          payload.dig("usage", "output_tokens").to_i
+        input = payload.dig("usage", "input_tokens")
+        output = payload.dig("usage", "output_tokens")
+        if input.is_a?(Numeric) && output.is_a?(Numeric)
+          return input.to_i + output.to_i
+        end
+
+        prompt = payload.dig("usage", "prompt_tokens")
+        completion = payload.dig("usage", "completion_tokens")
+        if prompt.is_a?(Numeric) && completion.is_a?(Numeric)
+          return prompt.to_i + completion.to_i
+        end
+
+        raise AiGateway::InvalidResponse
       end
 
-      def post_json(path, body)
-        uri = URI("#{@provider.fetch(:api_root)}#{path}")
-        request = Net::HTTP::Post.new(uri)
-        request["Authorization"] = "Bearer #{api_key}"
-        request["Content-Type"] = "application/json"
-        request["Accept"] = "application/json"
-        request["User-Agent"] = "where-is-my-friends-licensed-import"
-        request.body = body.to_json
-        response =
-          Net::HTTP.start(
-            uri.host,
-            uri.port,
-            use_ssl: true,
-            open_timeout: @open_timeout,
-            read_timeout: @read_timeout
-          ) { |http| http.request(request) }
-        raise AiGateway::Error unless response.is_a?(Net::HTTPSuccess)
+      def extract_text!(payload, token_count:)
+        if @protocol == "responses"
+          unless payload["status"] == "completed"
+            raise AiGateway::InvalidResponse.new(token_count: token_count)
+          end
+          if responses_refusal?(payload)
+            raise AiGateway::Rejected.new(token_count: token_count)
+          end
 
-        JSON.parse(response.body)
-      rescue JSON::ParserError,
-             Timeout::Error,
-             SocketError,
-             SystemCallError,
-             OpenSSL::SSL::SSLError
-        raise AiGateway::Error
-      end
+          responses_output_text(payload, token_count: token_count)
+        else
+          choices = payload["choices"]
+          unless choices.is_a?(Array) && choices.one? &&
+                   choices.first.is_a?(Hash)
+            raise AiGateway::InvalidResponse.new(token_count: token_count)
+          end
+          choice = choices.first
+          if choice["finish_reason"] != "stop"
+            raise AiGateway::InvalidResponse.new(token_count: token_count)
+          end
+          message = choice["message"]
+          unless message.is_a?(Hash)
+            raise AiGateway::InvalidResponse.new(token_count: token_count)
+          end
+          if message["refusal"].present?
+            raise AiGateway::Rejected.new(token_count: token_count)
+          end
 
-      def api_key
-        ENV.fetch(@provider.fetch(:api_key_env)).presence ||
-          raise(AiGateway::MissingApiKey)
-      rescue KeyError
-        raise AiGateway::MissingApiKey
+          text = message["content"]
+          unless text.is_a?(String) && text.present?
+            raise AiGateway::InvalidResponse.new(token_count: token_count)
+          end
+
+          text
+        end
       end
     end
   end

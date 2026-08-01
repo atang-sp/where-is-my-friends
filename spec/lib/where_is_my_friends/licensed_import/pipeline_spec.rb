@@ -60,6 +60,15 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     SiteSetting.licensed_import_dry_run = true
   end
 
+  it "fails before source retrieval when active provider profiles are missing" do
+    outcome = described_class.new.run
+
+    expect(outcome).to have_attributes(
+      status: "failed",
+      failure_code: "missing_api_key"
+    )
+  end
+
   it "fails closed before AI or publishing when either post lacks a CC BY-SA license" do
     outcome = pipeline.run
 

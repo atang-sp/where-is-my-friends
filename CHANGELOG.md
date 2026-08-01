@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.8.0 — 2026-08-01
+
+- Add an administrator AI-provider page for encrypted generation and moderation
+  credentials, connection tests, and explicit activation without redeploying.
+- Support strict structured output through either the Responses API or an
+  OpenAI-compatible Chat Completions endpoint with configurable Base URL and
+  model.
+- Keep OpenAI moderation on a separate fixed official endpoint while allowing
+  its credential to be rotated from the same administrator page.
+- Encrypt API keys at rest with an environment-injected AES-256-GCM master key,
+  mask them from every API response, filter credential parameters from logs,
+  and reject non-HTTPS or non-public endpoints.
+- Remove legacy provider-key environment fallbacks. Configuration changes pause
+  imports and require a fresh successful test before activation; failures never
+  trigger automatic provider fallback.
+
 ## 1.7.0 — 2026-07-31
 
 - Add a fail-closed, licensed English Q&A translation pipeline using the Stack

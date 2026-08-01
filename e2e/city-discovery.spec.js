@@ -23,6 +23,36 @@ async function openDiscovery(context, page, username) {
 }
 
 test.describe.serial("Local Friends against real Discourse", () => {
+  test("administrator can save a masked AI provider from the plugin page", async ({
+    context,
+    page,
+  }) => {
+    await authenticate(context, "admin");
+    await page.goto("/admin/plugins/where-is-my-friends/ai-providers");
+
+    await expect(
+      page.getByRole("heading", { name: "AI providers", exact: true })
+    ).toBeVisible();
+    await expect(page.getByText("Credential encryption master key is available."))
+      .toBeVisible();
+
+    await page.getByLabel("Display name").fill("E2E generation gateway");
+    await page.getByLabel("Base URL").fill("https://api.openai.com/v1");
+    await page.getByLabel("Model").fill("e2e-model");
+    await page.getByLabel("API key").fill("browser-secret-must-not-return");
+    await page.getByRole("button", { name: "Save" }).click();
+
+    const card = page.locator("[data-provider-id]").filter({
+      hasText: "E2E generation gateway",
+    });
+    await expect(card).toContainText("e2e-model");
+    await expect(card).toContainText("Configured");
+    await expect(page.locator("body")).not.toContainText(
+      "browser-secret-must-not-return"
+    );
+    await expect(page.getByLabel("API key")).toHaveValue("");
+  });
+
   test("interest onboarding introduces visible topics and opted-in contributors", async ({
     context,
     page,
