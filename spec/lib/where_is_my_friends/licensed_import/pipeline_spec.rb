@@ -2,7 +2,12 @@
 
 RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
   subject(:pipeline) do
-    described_class.new(source: source, ai: ai, publisher: publisher)
+    described_class.new(
+      source: source,
+      moderator: moderator,
+      model: model,
+      publisher: publisher
+    )
   end
 
   fab!(:recovered_topic) { Fabricate(:topic, user: Discourse.system_user) }
@@ -16,7 +21,12 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     )
   end
 
-  let(:ai) { instance_spy(WhereIsMyFriends::LicensedImport::OpenAiClient) }
+  let(:moderator) do
+    instance_spy(WhereIsMyFriends::LicensedImport::OpenAiModerationClient)
+  end
+  let(:model) do
+    instance_spy(WhereIsMyFriends::LicensedImport::ResponsesClient)
+  end
   let(:publisher) { instance_spy(WhereIsMyFriends::LicensedImport::Publisher) }
   let(:source) do
     Class
@@ -53,9 +63,9 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
   it "fails closed before AI or publishing when either post lacks a CC BY-SA license" do
     outcome = pipeline.run
 
-    expect(ai).not_to have_received(:moderate!)
-    expect(ai).not_to have_received(:classify!)
-    expect(ai).not_to have_received(:translate!)
+    expect(moderator).not_to have_received(:moderate!)
+    expect(model).not_to have_received(:classify!)
+    expect(model).not_to have_received(:translate!)
     expect(publisher).not_to have_received(:publish!)
     expect(outcome).to have_attributes(
       status: "failed",
@@ -92,8 +102,8 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         }
       end
     allow(source).to receive(:candidates).and_return(documents)
-    allow(ai).to receive(:moderate!).and_raise(
-      WhereIsMyFriends::LicensedImport::OpenAiClient::MissingApiKey
+    allow(moderator).to receive(:moderate!).and_raise(
+      WhereIsMyFriends::LicensedImport::AiGateway::MissingApiKey
     )
 
     outcome = pipeline.run
@@ -102,7 +112,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
       status: "failed",
       failure_code: "missing_api_key"
     )
-    expect(ai).to have_received(:moderate!).once
+    expect(moderator).to have_received(:moderate!).once
     expect(
       WhereIsMyFriendsLicensedImport.where(
         source_question_id: documents.pluck(:question_id)
@@ -130,9 +140,9 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         }
       ]
     )
-    allow(ai).to receive(:moderate!).once.and_return(true)
-    allow(ai).to receive(:classify!).and_return(
-      WhereIsMyFriends::LicensedImport::OpenAiClient::Result.new(
+    allow(moderator).to receive(:moderate!).once.and_return(true)
+    allow(model).to receive(:classify!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
         data: {
           "decision" => "allow",
           "theme" => "boundaries",
@@ -143,8 +153,8 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         token_count: 10
       )
     )
-    allow(ai).to receive(:translate!).and_raise(
-      WhereIsMyFriends::LicensedImport::OpenAiClient::InvalidResponse.new(
+    allow(model).to receive(:translate!).and_raise(
+      WhereIsMyFriends::LicensedImport::AiGateway::InvalidResponse.new(
         token_count: 20
       )
     )
@@ -179,9 +189,9 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         }
       ]
     )
-    allow(ai).to receive(:moderate!).twice.and_return(true)
-    allow(ai).to receive(:classify!).and_return(
-      WhereIsMyFriends::LicensedImport::OpenAiClient::Result.new(
+    allow(moderator).to receive(:moderate!).twice.and_return(true)
+    allow(model).to receive(:classify!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
         data: {
           "decision" => "allow",
           "theme" => "boundaries",
@@ -192,8 +202,8 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         token_count: 20
       )
     )
-    allow(ai).to receive(:translate!).and_return(
-      WhereIsMyFriends::LicensedImport::OpenAiClient::Result.new(
+    allow(model).to receive(:translate!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
         data: {
           "decision" => "allow",
           "translated_title" => "如何设定边界",
@@ -207,8 +217,8 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         token_count: 100
       )
     )
-    allow(ai).to receive(:review!).and_return(
-      WhereIsMyFriends::LicensedImport::OpenAiClient::Result.new(
+    allow(model).to receive(:review!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
         data: {
           "verdict" => "pass",
           "omitted_meaning" => false,
@@ -288,10 +298,15 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
           WhereIsMyFriends::LicensedImport::StackExchangeClient,
           candidates: [document]
         )
-      bad_ai = instance_spy(WhereIsMyFriends::LicensedImport::OpenAiClient)
-      allow(bad_ai).to receive(:moderate!).once.and_return(true)
-      allow(bad_ai).to receive(:classify!).and_return(
-        WhereIsMyFriends::LicensedImport::OpenAiClient::Result.new(
+      bad_moderator =
+        instance_spy(
+          WhereIsMyFriends::LicensedImport::OpenAiModerationClient,
+          moderate!: true
+        )
+      bad_model =
+        instance_spy(WhereIsMyFriends::LicensedImport::ResponsesClient)
+      allow(bad_model).to receive(:classify!).and_return(
+        WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
           data: {
             "decision" => "allow",
             "theme" => "boundaries",
@@ -302,8 +317,8 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
           token_count: 10
         )
       )
-      allow(bad_ai).to receive(:translate!).and_return(
-        WhereIsMyFriends::LicensedImport::OpenAiClient::Result.new(
+      allow(bad_model).to receive(:translate!).and_return(
+        WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
           data: {
             "decision" => "allow",
             "translated_title" => "边界问题",
@@ -317,11 +332,12 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
       outcome =
         described_class.new(
           source: bad_source,
-          ai: bad_ai,
+          moderator: bad_moderator,
+          model: bad_model,
           publisher: publisher
         ).run
 
-      expect(bad_ai).not_to have_received(:review!)
+      expect(bad_model).not_to have_received(:review!)
       expect(publisher).not_to have_received(:publish!)
       expect(outcome).to have_attributes(
         status: "failed",
@@ -344,7 +360,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     topic_count = Topic.count
     outcome = pipeline.run
 
-    expect(ai).not_to have_received(:moderate!)
+    expect(moderator).not_to have_received(:moderate!)
     expect(publisher).not_to have_received(:publish!)
     expect(outcome.status).to eq("published")
     expect(processing.reload).to have_attributes(
@@ -421,9 +437,9 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
         }
       ]
     )
-    allow(ai).to receive(:moderate!).once.and_return(true)
-    allow(ai).to receive(:classify!).and_return(
-      WhereIsMyFriends::LicensedImport::OpenAiClient::Result.new(
+    allow(moderator).to receive(:moderate!).once.and_return(true)
+    allow(model).to receive(:classify!).and_return(
+      WhereIsMyFriends::LicensedImport::AiGateway::Result.new(
         data: {
           "decision" => "allow",
           "theme" => "boundaries",
@@ -436,7 +452,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     )
     outcome = pipeline.run
 
-    expect(ai).not_to have_received(:translate!)
+    expect(model).not_to have_received(:translate!)
     expect(outcome).to have_attributes(
       status: "failed",
       failure_code: "repeated_theme"
@@ -451,7 +467,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
     )
     outcome = pipeline.run
 
-    expect(ai).not_to have_received(:moderate!)
+    expect(moderator).not_to have_received(:moderate!)
     expect(outcome).to have_attributes(
       status: "skipped",
       failure_code: "duplicate_source"

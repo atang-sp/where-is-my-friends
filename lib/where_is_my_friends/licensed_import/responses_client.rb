@@ -4,26 +4,17 @@ require "net/http"
 
 module WhereIsMyFriends
   module LicensedImport
-    class OpenAiClient
-      class Error < StandardError
-        attr_reader :token_count
-
-        def initialize(message = nil, token_count: 0)
-          @token_count = token_count.to_i
-          super(message)
-        end
-      end
-      class MissingApiKey < Error
-      end
-      class Rejected < Error
-      end
-      class InvalidResponse < Error
-      end
-
-      Result = Struct.new(:data, :token_count, keyword_init: true)
-      API_ROOT = "https://api.openai.com/v1"
-      THEMES = %w[boundaries online_safety communication making_friends].freeze
-
+    class ResponsesClient
+      PROVIDERS = {
+        "deepseek-v4-flash" => {
+          api_root: "https://api.deepseek.com",
+          api_key_env: "WHERE_IS_MY_FRIENDS_DEEPSEEK_API_KEY"
+        },
+        "gpt-5.6-terra" => {
+          api_root: "https://api.openai.com/v1",
+          api_key_env: "WHERE_IS_MY_FRIENDS_OPENAI_API_KEY"
+        }
+      }.freeze
       CLASSIFICATION_SCHEMA = {
         type: "object",
         additionalProperties: false,
@@ -34,7 +25,7 @@ module WhereIsMyFriends
           },
           theme: {
             type: "string",
-            enum: THEMES + ["none"]
+            enum: AiGateway::THEMES + ["none"]
           },
           adult_status: {
             type: "string",
@@ -150,20 +141,8 @@ module WhereIsMyFriends
       def initialize(open_timeout: 5, read_timeout: 60)
         @open_timeout = open_timeout
         @read_timeout = read_timeout
-      end
-
-      def moderate!(text)
-        payload =
-          post_json(
-            "/moderations",
-            model: "omni-moderation-latest",
-            input: text.to_s
-          )
-        results = payload["results"]
-        raise InvalidResponse unless results.is_a?(Array) && results.one?
-        raise Rejected if results.first["flagged"] != false
-
-        true
+        @model = SiteSetting.licensed_import_model
+        @provider = PROVIDERS.fetch(@model) { raise AiGateway::Error }
       end
 
       def classify!(content)
@@ -236,7 +215,7 @@ module WhereIsMyFriends
         payload =
           post_json(
             "/responses",
-            model: SiteSetting.licensed_import_model,
+            model: @model,
             store: false,
             reasoning: {
               effort: "low"
@@ -257,21 +236,23 @@ module WhereIsMyFriends
               }
             }
           )
-        token_count = payload.dig("usage", "total_tokens").to_i
+        token_count = response_token_count(payload)
         unless payload["status"] == "completed"
-          raise InvalidResponse.new(token_count: token_count)
+          raise AiGateway::InvalidResponse.new(token_count: token_count)
         end
-        raise Rejected.new(token_count: token_count) if refusal?(payload)
+        if refusal?(payload)
+          raise AiGateway::Rejected.new(token_count: token_count)
+        end
 
         text = output_text(payload, token_count: token_count)
         data = JSON.parse(text)
         unless data.is_a?(Hash)
-          raise InvalidResponse.new(token_count: token_count)
+          raise AiGateway::InvalidResponse.new(token_count: token_count)
         end
 
-        Result.new(data: data, token_count: token_count)
+        AiGateway::Result.new(data: data, token_count: token_count)
       rescue JSON::ParserError
-        raise InvalidResponse.new(token_count: token_count)
+        raise AiGateway::InvalidResponse.new(token_count: token_count)
       end
 
       def source_payload(content)
@@ -304,14 +285,22 @@ module WhereIsMyFriends
                 end
             end
         unless parts.one? && parts.first.present?
-          raise InvalidResponse.new(token_count: token_count)
+          raise AiGateway::InvalidResponse.new(token_count: token_count)
         end
 
         parts.first
       end
 
+      def response_token_count(payload)
+        total = payload.dig("usage", "total_tokens")
+        return total.to_i unless total.nil?
+
+        payload.dig("usage", "input_tokens").to_i +
+          payload.dig("usage", "output_tokens").to_i
+      end
+
       def post_json(path, body)
-        uri = URI("#{API_ROOT}#{path}")
+        uri = URI("#{@provider.fetch(:api_root)}#{path}")
         request = Net::HTTP::Post.new(uri)
         request["Authorization"] = "Bearer #{api_key}"
         request["Content-Type"] = "application/json"
@@ -326,7 +315,7 @@ module WhereIsMyFriends
             open_timeout: @open_timeout,
             read_timeout: @read_timeout
           ) { |http| http.request(request) }
-        raise Error unless response.is_a?(Net::HTTPSuccess)
+        raise AiGateway::Error unless response.is_a?(Net::HTTPSuccess)
 
         JSON.parse(response.body)
       rescue JSON::ParserError,
@@ -334,14 +323,14 @@ module WhereIsMyFriends
              SocketError,
              SystemCallError,
              OpenSSL::SSL::SSLError
-        raise Error
+        raise AiGateway::Error
       end
 
       def api_key
-        ENV.fetch("WHERE_IS_MY_FRIENDS_OPENAI_API_KEY").presence ||
-          raise(MissingApiKey)
+        ENV.fetch(@provider.fetch(:api_key_env)).presence ||
+          raise(AiGateway::MissingApiKey)
       rescue KeyError
-        raise MissingApiKey
+        raise AiGateway::MissingApiKey
       end
     end
   end

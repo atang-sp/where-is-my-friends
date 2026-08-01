@@ -14,7 +14,8 @@ module WhereIsMyFriends
 
       def initialize(
         source: StackExchangeClient.new,
-        ai: OpenAiClient.new,
+        moderator: OpenAiModerationClient.new,
+        model: ResponsesClient.new,
         publisher: Publisher.new,
         processor: ContentProcessor.new,
         policy: ContentPolicy.new,
@@ -22,7 +23,8 @@ module WhereIsMyFriends
         budget: TokenBudget.new
       )
         @source = source
-        @ai = ai
+        @moderator = moderator
+        @model = model
         @publisher = publisher
         @processor = processor
         @policy = policy
@@ -78,10 +80,10 @@ module WhereIsMyFriends
           )
         return failure(record, hard_failure) if hard_failure
 
-        @ai.moderate!(english_text(content))
+        @moderator.moderate!(english_text(content))
         classification =
           call_model(record, estimate: content_bytes(content) + 800) do
-            @ai.classify!(content)
+            @model.classify!(content)
           end
         unless allowed_classification?(classification.data)
           return failure(record, "scope_or_safety_rejected")
@@ -91,20 +93,20 @@ module WhereIsMyFriends
 
         translation =
           call_model(record, estimate: content_bytes(content) + 8_192) do
-            @ai.translate!(content)
+            @model.translate!(content)
           end
         unless valid_translation?(content, translation.data)
           return failure(record, "invalid_translation")
         end
 
-        @ai.moderate!(chinese_text(translation.data))
+        @moderator.moderate!(chinese_text(translation.data))
         review =
           call_model(
             record,
             estimate:
               content_bytes(content) + chinese_text(translation.data).bytesize +
                 1_500
-          ) { @ai.review!(content, translation.data) }
+          ) { @model.review!(content, translation.data) }
         unless passing_review?(content, review.data)
           return failure(record, "quality_review_failed")
         end
@@ -142,12 +144,12 @@ module WhereIsMyFriends
           )
           Outcome.new(status: "published", record: record)
         end
-      rescue OpenAiClient::MissingApiKey
+      rescue AiGateway::MissingApiKey
         failure(record, "missing_api_key")
-      rescue OpenAiClient::Rejected => error
+      rescue AiGateway::Rejected => error
         record.add_tokens!(error.token_count)
         failure(record, "model_or_moderation_rejected")
-      rescue OpenAiClient::Error => error
+      rescue AiGateway::Error => error
         record.add_tokens!(error.token_count)
         failure(record, "ai_error")
       rescue TokenBudget::Exhausted
@@ -237,7 +239,7 @@ module WhereIsMyFriends
 
       def allowed_classification?(data)
         data["decision"] == "allow" &&
-          OpenAiClient::THEMES.include?(data["theme"]) &&
+          AiGateway::THEMES.include?(data["theme"]) &&
           data["adult_status"] == "clear" &&
           data["consent_status"] == "clear" && data["prohibited_reasons"] == []
       end

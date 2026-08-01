@@ -6,20 +6,28 @@
 `licensed_import_dry_run=true`。唯一允许的来源是 Interpersonal Skills Stack
 Exchange API 返回、问题和选定回答均明确标记为 CC BY-SA 3.0 或 4.0 的完整问答。
 
-OpenAI 密钥只能通过 Discourse 进程环境变量注入：
+DeepSeek 生成密钥与 OpenAI Moderation 密钥只能通过 Discourse 进程环境变量注入：
 
 ```text
+WHERE_IS_MY_FRIENDS_DEEPSEEK_API_KEY
 WHERE_IS_MY_FRIENDS_OPENAI_API_KEY
 ```
 
 不得把值写入 `app.yml` 的 Git 仓库副本、Discourse SiteSetting、数据库、日志或
 管理员接口。生产环境应通过现有的秘密管理方式向容器注入，并在重建后验证进程能
-看到变量名；验证时不要输出变量值。
+看到两个变量名；验证时不要输出变量值。
+
+默认使用 DeepSeek 官方 `https://api.deepseek.com` 的
+`deepseek-v4-flash` 完成分类、翻译和复核；OpenAI
+`omni-moderation-latest` 只承担免费的前后安全审核。不得把生成请求改到匿名中转站。
+DeepSeek Responses API 始终返回 `store:false`，但其官方磁盘上下文缓存默认开启，
+通常数小时到数天后清理。因此程序只发送已通过许可检查并删除联系方式、精确地址和
+个人信息的公开原文。若这一缓存策略不再可接受，应关闭总开关，而不是绕过清理规则。
 
 ## 三天干跑
 
 1. 完成数据库迁移和 Discourse 重建，保持 `licensed_import_dry_run=true`。
-2. 确认模型为 `gpt-5.6-terra`、北京时间发布小时为 `20`、间隔为 `24`、每日上限为
+2. 确认模型为 `deepseek-v4-flash`、北京时间发布小时为 `20`、间隔为 `24`、每日上限为
    `1`、月度预算为 `1500000`。
 3. 打开 `licensed_import_enabled`。任务每分钟做一次轻量检查，只会在配置的北京时间
    整点进入处理并生成一篇预览。
@@ -27,6 +35,10 @@ WHERE_IS_MY_FRIENDS_OPENAI_API_KEY
    回答作者、两个原文链接、两个许可链接、修改说明、段落完整性及讨论问题边界。
 5. 第三篇预览生成后任务会自动关闭总开关并通知管理员。三篇必须全部一次通过；
    任一篇需要返工都不得进入公开阶段。
+
+若 DeepSeek 的三篇预览无法全部一次通过，可在后台把 `licensed_import_model` 切换为
+`gpt-5.6-terra` 后重新开始干跑；切换不需要重新部署。无论使用哪个生成模型，OpenAI
+Moderation 都不会被替换。
 
 预览只保存中文成品和来源元数据。英文正文不会保存，因此人工抽查应通过返回的原文
 链接与中文预览逐项核对。

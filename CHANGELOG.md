@@ -3,8 +3,10 @@
 ## 1.7.0 — 2026-07-31
 
 - Add a fail-closed, licensed English Q&A translation pipeline using the Stack
-  Exchange and OpenAI APIs, with deterministic preprocessing, moderation,
-  strict structured translation, and an independent fidelity review.
+  Exchange API, DeepSeek V4 Flash for structured generation, and free OpenAI
+  moderation, with deterministic preprocessing and an independent fidelity
+  review. Administrators can switch generation back to GPT-5.6 Terra without
+  redeploying.
 - Add safe-by-default dry-run previews, daily scheduling, theme rotation,
   monthly token limits, source revision monitoring, attribution, duplicate and
   retry protection, and administrator notifications.

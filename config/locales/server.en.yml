@@ -32,7 +32,7 @@ en:
         answer_attribution: "- Answer: %{author} · [source](%{url}) · %{license}"
         modification_notice: "- Modifications: %{modification}. Unchanged portions are reused under the same license."
       reasons:
-        missing_api_key: "the OpenAI API key is missing"
+        missing_api_key: "the selected model API key or OpenAI moderation key is missing"
         monthly_token_budget_exhausted: "the monthly token budget is exhausted"
         dry_run_ready_for_review: "three dry-run previews are ready for human review"
         seven_without_human_reply: "seven mature translations received no human reply within seven days"
@@ -43,7 +43,7 @@ en:
         attribution_error: "an attribution error was confirmed"
         source_sync_failure: "source synchronization failed"
         source_error: "the English source API failed"
-        ai_error: "the OpenAI API failed"
+        ai_error: "an AI provider API failed"
         unexpected_failure: "the import job failed unexpectedly"
     interest_catalogue:
       groups:
@@ -163,6 +163,6 @@ en:
     licensed_import_dry_run: "Generate administrator previews without publishing public topics"
     licensed_import_interval_hours: "Minimum hours between licensed import runs"
     licensed_import_publish_hour: "Beijing-time hour for licensed import runs"
-    licensed_import_model: "Fixed OpenAI model used for translation and review"
+    licensed_import_model: "Model used for classification, translation, and review"
     licensed_import_monthly_token_budget: "Maximum monthly generation tokens for licensed imports"
     licensed_import_max_per_day: "Maximum licensed imports per day (fixed at 1)"
