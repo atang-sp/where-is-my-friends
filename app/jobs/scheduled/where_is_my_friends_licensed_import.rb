@@ -4,7 +4,11 @@ module Jobs
   class WhereIsMyFriendsLicensedImport < ::Jobs::Scheduled
     every 1.minute
 
-    HALTING_FAILURES = %w[missing_api_key monthly_token_budget_exhausted].freeze
+    HALTING_FAILURES = %w[
+      missing_api_key
+      monthly_token_budget_exhausted
+      ai_error
+    ].freeze
     DRY_RUN_PREVIEW_LIMIT = 3
     LOCK_VALIDITY = 2.hours
 

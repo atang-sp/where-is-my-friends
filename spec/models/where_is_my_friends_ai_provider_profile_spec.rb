@@ -86,4 +86,21 @@ RSpec.describe WhereIsMyFriendsAiProviderProfile do
     expect(first.reload).not_to be_active
     expect(second.reload).to be_active
   end
+
+  it "rechecks verification under lock before activating a stale instance" do
+    profile = build_profile
+    profile.save!
+    profile.update_columns(
+      verified_at: Time.zone.now,
+      verified_config_digest: profile.configuration_digest
+    )
+    stale_profile = described_class.find(profile.id)
+
+    profile.update!(model: "changed-after-test", updated_by_id: admin.id)
+
+    expect { stale_profile.activate! }.to raise_error(
+      WhereIsMyFriends::LicensedImport::AiGateway::InvalidResponse
+    )
+    expect(profile.reload).not_to be_active
+  end
 end

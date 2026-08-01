@@ -342,6 +342,9 @@ module WhereIsMyFriends
         output.any? do |item|
           raise AiGateway::InvalidResponse unless item.is_a?(Hash)
 
+          next false if item["type"] == "reasoning"
+          raise AiGateway::InvalidResponse unless item["type"] == "message"
+
           content = item["content"]
           raise AiGateway::InvalidResponse unless content.is_a?(Array)
 
@@ -360,6 +363,9 @@ module WhereIsMyFriends
         parts =
           output.flat_map do |item|
             raise AiGateway::InvalidResponse unless item.is_a?(Hash)
+
+            next [] if item["type"] == "reasoning"
+            raise AiGateway::InvalidResponse unless item["type"] == "message"
 
             content = item["content"]
             raise AiGateway::InvalidResponse unless content.is_a?(Array)

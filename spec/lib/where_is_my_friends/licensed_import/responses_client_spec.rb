@@ -80,6 +80,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ResponsesClient do
       body: {
         status: "completed",
         output: [
+          { type: "reasoning", summary: [] },
           {
             type: "message",
             content: [{ type: "output_text", text: translation.to_json }]

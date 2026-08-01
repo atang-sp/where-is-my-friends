@@ -66,7 +66,6 @@ module WhereIsMyFriends
 
       def mark_failed(error_code)
         now = Time.zone.now
-        was_active = @profile.active?
         @profile.update_columns(
           active: false,
           verified_at: nil,
@@ -76,7 +75,7 @@ module WhereIsMyFriends
           last_test_error_code: error_code,
           updated_at: now
         )
-        SiteSetting.licensed_import_enabled = false if was_active
+        SiteSetting.licensed_import_enabled = false
         Result.new(success: false, error_code: error_code)
       end
     end

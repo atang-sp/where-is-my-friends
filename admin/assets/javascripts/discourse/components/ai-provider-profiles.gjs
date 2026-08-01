@@ -234,14 +234,37 @@ export default class AiProviderProfiles extends Component {
       {{/if}}
 
       <div class="ai-provider-profiles__list">
-        {{#each this.profiles as |profile|}}
+        {{#if this.profiles.length}}
+          {{#each this.profiles as |profile|}}
           <article
             class="ai-provider-profiles__card"
             data-provider-id={{profile.id}}
           >
             <div>
               <h3>{{profile.name}}</h3>
-              <p>{{profile.purpose}} · {{profile.protocol}} · {{profile.model}}</p>
+              <p>
+                {{#if (eq profile.purpose "generation")}}
+                  {{i18n "where_is_my_friends.admin.ai_providers.generation"}}
+                {{else}}
+                  {{i18n "where_is_my_friends.admin.ai_providers.moderation"}}
+                {{/if}}
+                ·
+                {{#if (eq profile.protocol "responses")}}
+                  {{i18n
+                    "where_is_my_friends.admin.ai_providers.protocol_responses"
+                  }}
+                {{else if (eq profile.protocol "chat_completions")}}
+                  {{i18n
+                    "where_is_my_friends.admin.ai_providers.protocol_chat_completions"
+                  }}
+                {{else}}
+                  {{i18n
+                    "where_is_my_friends.admin.ai_providers.protocol_moderation"
+                  }}
+                {{/if}}
+                ·
+                {{profile.model}}
+              </p>
               <p>{{profile.base_url}}</p>
               <p>
                 {{#if profile.api_key_configured}}
@@ -287,7 +310,12 @@ export default class AiProviderProfiles extends Component {
               />
             </div>
           </article>
-        {{/each}}
+          {{/each}}
+        {{else}}
+          <p class="ai-provider-profiles__empty">
+            {{i18n "where_is_my_friends.admin.ai_providers.empty"}}
+          </p>
+        {{/if}}
       </div>
 
       <form class="ai-provider-profiles__form" {{on "submit" this.save}}>
@@ -323,8 +351,16 @@ export default class AiProviderProfiles extends Component {
           <label>
             {{i18n "where_is_my_friends.admin.ai_providers.protocol"}}
             <select value={{this.protocol}} {{on "change" this.updateProtocol}}>
-              <option value="responses">Responses API</option>
-              <option value="chat_completions">Chat Completions</option>
+              <option value="responses">
+                {{i18n
+                  "where_is_my_friends.admin.ai_providers.protocol_responses"
+                }}
+              </option>
+              <option value="chat_completions">
+                {{i18n
+                  "where_is_my_friends.admin.ai_providers.protocol_chat_completions"
+                }}
+              </option>
             </select>
           </label>
           {{#if this.isChatCompletions}}
@@ -336,8 +372,16 @@ export default class AiProviderProfiles extends Component {
                 value={{this.structuredOutputMode}}
                 {{on "change" this.updateStructuredOutputMode}}
               >
-                <option value="json_schema">Strict JSON Schema</option>
-                <option value="json_object">JSON object + local validation</option>
+                <option value="json_schema">
+                  {{i18n
+                    "where_is_my_friends.admin.ai_providers.mode_json_schema"
+                  }}
+                </option>
+                <option value="json_object">
+                  {{i18n
+                    "where_is_my_friends.admin.ai_providers.mode_json_object"
+                  }}
+                </option>
               </select>
             </label>
           {{/if}}
@@ -346,7 +390,9 @@ export default class AiProviderProfiles extends Component {
             <input
               type="url"
               value={{this.baseUrl}}
-              placeholder="https://gateway.example/v1"
+              placeholder={{i18n
+                "where_is_my_friends.admin.ai_providers.base_url_placeholder"
+              }}
               {{on "input" this.updateBaseUrl}}
               required
             />

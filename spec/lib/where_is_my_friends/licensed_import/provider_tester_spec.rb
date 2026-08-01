@@ -84,6 +84,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ProviderTester do
       status: 401,
       body: { error: { message: "secret should never be persisted" } }.to_json
     )
+    SiteSetting.licensed_import_enabled = true
 
     result =
       described_class.new(
@@ -96,6 +97,7 @@ RSpec.describe WhereIsMyFriends::LicensedImport::ProviderTester do
     expect(profile.reload.last_test_status).to eq("failed")
     expect(profile.last_test_error_code).to eq("connection_failed")
     expect(profile.verified_at).to be_nil
+    expect(SiteSetting.licensed_import_enabled).to eq(false)
   end
 
   it "refuses activation after any tested configuration changes" do

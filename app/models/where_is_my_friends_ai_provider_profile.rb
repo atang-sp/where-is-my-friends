@@ -67,18 +67,20 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
   end
 
   def activate!
-    unless verified_for_current_configuration?
-      raise WhereIsMyFriends::LicensedImport::AiGateway::InvalidResponse
-    end
-
-    api_key
     self.class.transaction do
-      self
-        .class
-        .where(purpose: purpose, active: true)
-        .where.not(id: id)
-        .update_all(active: false, updated_at: Time.zone.now)
-      update_columns(active: true, updated_at: Time.zone.now)
+      with_lock do
+        unless verified_for_current_configuration?
+          raise WhereIsMyFriends::LicensedImport::AiGateway::InvalidResponse
+        end
+
+        api_key
+        self
+          .class
+          .where(purpose: purpose, active: true)
+          .where.not(id: id)
+          .update_all(active: false, updated_at: Time.zone.now)
+        update_columns(active: true, updated_at: Time.zone.now)
+      end
     end
     SiteSetting.licensed_import_enabled = false
     reload
