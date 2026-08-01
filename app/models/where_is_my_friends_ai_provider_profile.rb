@@ -3,11 +3,8 @@
 require "digest"
 
 class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
-  PURPOSES = %w[generation moderation].freeze
+  PURPOSES = %w[generation].freeze
   GENERATION_PROTOCOLS = %w[responses chat_completions].freeze
-  MODERATION_PROTOCOL = "openai_moderation"
-  MODERATION_BASE_URL = "https://api.openai.com/v1"
-  MODERATION_MODEL = "omni-moderation-latest"
   STRUCTURED_OUTPUT_MODES = %w[json_schema json_object].freeze
   CONFIGURATION_COLUMNS = %w[
     purpose
@@ -27,12 +24,8 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
             presence: true
   validates :purpose, inclusion: { in: PURPOSES }
   validates :api_key, length: { maximum: 10_000 }
-  validates :protocol,
-            inclusion: {
-              in: GENERATION_PROTOCOLS + [MODERATION_PROTOCOL]
-            }
+  validates :protocol, inclusion: { in: GENERATION_PROTOCOLS }
   validates :structured_output_mode, inclusion: { in: STRUCTURED_OUTPUT_MODES }
-  validate :valid_protocol_for_purpose
   validate :safe_base_url_syntax
 
   before_validation :normalize_configuration
@@ -96,14 +89,7 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
     self.base_url = base_url.to_s.strip.sub(%r{/+\z}, "")
     self.model = model.to_s.strip
 
-    if purpose == "moderation"
-      self.protocol = MODERATION_PROTOCOL
-      self.base_url = MODERATION_BASE_URL
-      self.model = MODERATION_MODEL
-      self.structured_output_mode = "json_schema"
-    elsif protocol == "responses"
-      self.structured_output_mode = "json_schema"
-    end
+    self.structured_output_mode = "json_schema" if protocol == "responses"
   end
 
   def invalidate_changed_configuration
@@ -124,18 +110,6 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
     CONFIGURATION_COLUMNS.any? do |column|
       will_save_change_to_attribute?(column)
     end
-  end
-
-  def valid_protocol_for_purpose
-    allowed =
-      if purpose == "generation"
-        GENERATION_PROTOCOLS
-      elsif purpose == "moderation"
-        [MODERATION_PROTOCOL]
-      else
-        []
-      end
-    errors.add(:protocol, :inclusion) if allowed.exclude?(protocol)
   end
 
   def safe_base_url_syntax

@@ -11,13 +11,17 @@ module WhereIsMyFriends
                licensed_import_enabled: SiteSetting.licensed_import_enabled,
                profiles:
                  WhereIsMyFriendsAiProviderProfile
+                   .where(purpose: "generation")
                    .order(:purpose, :name, :id)
                    .map { |profile| serialize(profile) }
              }
     end
 
     def create
-      profile = WhereIsMyFriendsAiProviderProfile.new(profile_params)
+      profile =
+        WhereIsMyFriendsAiProviderProfile.new(
+          profile_params.merge(purpose: "generation")
+        )
       profile.created_by_id = current_user.id
       profile.updated_by_id = current_user.id
       if profile.save
@@ -86,7 +90,6 @@ module WhereIsMyFriends
     def profile_params
       params.require(:profile).permit(
         :name,
-        :purpose,
         :protocol,
         :structured_output_mode,
         :base_url,

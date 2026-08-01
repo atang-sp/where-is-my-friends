@@ -66,7 +66,7 @@ bundle exec rake db:migrate
 
 若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
 
-许可英文精选的生成供应商可在插件管理页配置 Responses API 或 OpenAI-compatible Chat Completions 的 Base URL、模型和 API 密钥；Chat Completions 可选择严格 JSON Schema，或供应商兼容性更广的 JSON object 加本地严格校验。前后安全审核保持为独立的 OpenAI `omni-moderation-latest` 凭据。供应商密钥可直接在后台轮换，无需环境变量或重建；旧的 DeepSeek/OpenAI 供应商密钥环境变量不会被读取。首次启用必须保持 `licensed_import_dry_run=true`；完整配置、三天预览、人工抽查、公开发布、自动暂停和事故处理步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
+许可英文精选的模型供应商可在插件管理页配置 Responses API 或 OpenAI-compatible Chat Completions 的 Base URL、模型和 API 密钥；Chat Completions 可选择严格 JSON Schema，或供应商兼容性更广的 JSON object 加本地严格校验。同一个模型网关负责范围与安全分类、翻译和独立复核，不需要单独的 OpenAI Moderation 凭据。供应商密钥可直接在后台轮换，无需环境变量或重建；旧的 DeepSeek/OpenAI 供应商密钥环境变量不会被读取。首次启用必须保持 `licensed_import_dry_run=true`；完整配置、三天预览、人工抽查、公开发布、自动暂停和事故处理步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
 
 本版本在 Discourse `2026.7.0-latest`（commit `7c06c152`）上开发和验证，插件元数据要求 Discourse `2026.7.0.beta1` 或更高版本。
 
