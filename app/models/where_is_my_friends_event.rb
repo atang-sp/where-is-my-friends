@@ -110,6 +110,12 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     viewers = users_for(events, "page_view")
     setup_starters = users_for(events, "setup_started")
     completed_setups = users_for(events, "location_saved")
+    setup_completers =
+      users_with_events_after_anchor(
+        events,
+        anchor_event_name: "setup_started",
+        event_names: %w[location_saved]
+      )
     results_with_people =
       events
         .select do |event|
@@ -175,7 +181,7 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     {
       unique_page_visitors: viewers.length,
       setup_completion_rate:
-        rate(completed_setups.length, setup_starters.length),
+        rate(setup_completers.length, setup_starters.length),
       results_with_people_rate:
         rate(results_with_people.length, completed_setups.length),
       profile_conversion_rate:

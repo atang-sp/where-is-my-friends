@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.12.1 — 2026-08-02
+
+- Anchor setup completions to a preceding setup start inside the report window,
+  so direct location updates cannot push the setup conversion rate above 100%.
+
 ## 1.12.0 — 2026-08-02
 
 - Add privacy-safe recommendation-group funnels for panel expansion, collapse,
