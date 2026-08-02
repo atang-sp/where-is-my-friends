@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.11.1 — 2026-08-02
+
+- Restore the homepage Local Friends entry alongside the collapsed community
+  recommendations panel for members who completed interest onboarding.
+- Keep the pending interest prompt as the only homepage discovery module until
+  the member completes or skips it.
+- Prevent the restored Local Friends banner from overflowing narrow mobile
+  viewports.
+
 ## 1.11.0 — 2026-08-02
 
 - Replace the always-expanded homepage recommendation cards with a compact,
