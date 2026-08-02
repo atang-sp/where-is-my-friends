@@ -133,6 +133,20 @@ RSpec.describe WhereIsMyFriendsEvent do
     )
   end
 
+  context "when measuring setup completion" do
+    fab!(:direct_saver, :user)
+
+    it "counts only saves after a setup start in the report window" do
+      described_class.create!(user: user, event_name: "setup_started")
+      described_class.create!(user: user, event_name: "location_saved")
+      described_class.create!(user: direct_saver, event_name: "location_saved")
+
+      stats = described_class.aggregate(since: 1.day.ago)
+
+      expect(stats[:setup_completion_rate]).to eq(1.0)
+    end
+  end
+
   it "counts only public interactions within seven days of onboarding" do
     freeze_time(Time.zone.parse("2026-07-01 12:00:00"))
     engaged = Fabricate(:user)
