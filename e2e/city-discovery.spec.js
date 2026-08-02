@@ -100,9 +100,9 @@ test.describe.serial("Local Friends against real Discourse", () => {
     const panel = page.locator("[data-test-community-discovery]");
     await expect(panel).toBeVisible();
     await expect(page.locator("[data-test-community-content]")).toHaveCount(0);
-    await expect(page.locator("[data-test-local-friends-callout]")).toHaveCount(
-      0
-    );
+    await expect(
+      page.locator("[data-test-local-friends-callout]")
+    ).toBeVisible();
     await expect(page.locator(".topic-list-item").first()).toBeVisible();
     expect(recommendationRequests).toBe(0);
     expect((await panel.boundingBox()).height).toBeLessThanOrEqual(64);
@@ -138,6 +138,17 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await recommendedPerson.locator("[data-test-community-dismiss]").click();
     await expect(recommendedPerson).toHaveCount(0);
     await expect(page.locator("[data-test-community-empty]")).toBeVisible();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(panel).toBeVisible();
+    await expect(
+      page.locator("[data-test-local-friends-callout]")
+    ).toBeVisible();
+    const sizes = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      content: document.documentElement.scrollWidth,
+    }));
+    expect(sizes.content).toBeLessThanOrEqual(sizes.viewport);
   });
 
   test("topic lists expose the privacy-safe local discovery entry", async ({
