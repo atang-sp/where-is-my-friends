@@ -66,11 +66,11 @@ export default class LocalFriendsCallout extends Component {
     return Boolean(
       this.currentUser &&
         this.isTopicListRoute &&
-        !this.homepageHasInterestModule
+        !this.homepageHasPendingInterestPrompt
     );
   }
 
-  get homepageHasInterestModule() {
+  get homepageHasPendingInterestPrompt() {
     if (
       !this.isHomeRoute ||
       !this.siteSettings.where_is_my_friends_interest_onboarding_enabled
@@ -82,7 +82,7 @@ export default class LocalFriendsCallout extends Component {
       this.currentUser,
       "where_is_my_friends_interest_onboarding_state"
     );
-    return state === "pending" || state === "complete";
+    return state === "pending";
   }
 
   get isHomeRoute() {

@@ -733,6 +733,7 @@
 }
 
 .local-friends-callout-banner {
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(12rem, 1fr) minmax(16rem, 1fr) auto auto;
   gap: 1rem;
