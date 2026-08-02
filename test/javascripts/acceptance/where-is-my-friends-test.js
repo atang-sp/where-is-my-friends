@@ -278,6 +278,18 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.dom("[data-test-community-discovery]").doesNotExist();
   });
 
+  test("the category index keeps city discovery after personalization is complete", async function (assert) {
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete",
+    );
+
+    await visit("/categories");
+
+    assert.dom("[data-test-local-friends-callout]").exists();
+    assert.dom("[data-test-community-discovery]").doesNotExist();
+  });
+
   test("setup uses social proof, city suggestions, and an optional region", async function (assert) {
     api.initial = {
       state: "setup",

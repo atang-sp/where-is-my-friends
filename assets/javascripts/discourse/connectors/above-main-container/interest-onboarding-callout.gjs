@@ -53,7 +53,8 @@ export default class InterestOnboardingCallout extends Component {
   get isCategoryRoute() {
     const routeName = this.router.currentRouteName ?? "";
     return Boolean(
-      routeName.startsWith("category.") ||
+      routeName === "discovery.categories" ||
+        routeName.startsWith("category.") ||
         this.router.currentRoute?.attributes?.category
     );
   }

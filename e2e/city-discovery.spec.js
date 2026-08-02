@@ -131,6 +131,13 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(
       page.locator("[data-test-community-person-primary-action]")
     ).toBeVisible();
+
+    const recommendedPerson = page.locator(
+      "[data-test-community-person='shanghai_one']"
+    );
+    await recommendedPerson.locator("[data-test-community-dismiss]").click();
+    await expect(recommendedPerson).toHaveCount(0);
+    await expect(page.locator("[data-test-community-empty]")).toBeVisible();
   });
 
   test("topic lists expose the privacy-safe local discovery entry", async ({
