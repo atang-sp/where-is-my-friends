@@ -1,5 +1,12 @@
 import { getOwner } from "@ember/owner";
-import { click, fillIn, find, settled, visit } from "@ember/test-helpers";
+import {
+  click,
+  fillIn,
+  find,
+  settled,
+  visit,
+  waitFor,
+} from "@ember/test-helpers";
 import { test } from "qunit";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 
@@ -179,8 +186,9 @@ async function triggerTrackedLink(selector) {
 
 function setupApi(needs, state) {
   needs.pretender((server, helper) => {
-    server.get("/where-is-my-friends.json", () =>
-      helper.response({
+    server.get("/where-is-my-friends.json", () => {
+      state.locationRequests += 1;
+      return helper.response({
         state: "setup",
         current_user: { id: 1, username: "current-user" },
         location: null,
@@ -188,12 +196,22 @@ function setupApi(needs, state) {
         city_suggestions: [],
         settings: {},
         filterable_fields: [],
-      })
-    );
+      });
+    });
 
-    server.get("/where-is-my-friends/recommendations.json", () =>
+    server.get("/where-is-my-friends/recommendations.json", (request) =>
       {
         state.recommendationRequests += 1;
+        state.lastRefresh = request.queryParams.refresh ?? null;
+        if (state.recommendationError) {
+          return helper.response(500, { errors: ["unavailable"] });
+        }
+        if (state.deferRecommendations) {
+          return new Promise((resolve) => {
+            state.resolveRecommendations = () =>
+              resolve(helper.response(state.model));
+          });
+        }
         return helper.response(state.model);
       }
     );
@@ -361,6 +379,11 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       events: [],
       eventPayloads: [],
       recommendationRequests: 0,
+      locationRequests: 0,
+      recommendationError: false,
+      deferRecommendations: false,
+      resolveRecommendations: null,
+      lastRefresh: null,
       incoming: [],
       outgoing: [],
       invitationParams: null,
@@ -381,15 +404,19 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert
       .dom("[data-test-open-interest-onboarding]")
       .hasAttribute("href", "/where-is-my-friends/interests");
+    assert.dom("[data-test-local-friends-callout]").doesNotExist();
+    assert.strictEqual(api.locationRequests, 0);
     assert.true(api.events.includes("interest_prompt_viewed"));
 
     await click("[data-test-skip-interest-callout]");
 
     assert.strictEqual(api.skipRequests, 1);
     assert.dom("[data-test-interest-onboarding-callout]").doesNotExist();
+    assert.dom("[data-test-local-friends-callout]").exists();
+    assert.strictEqual(api.locationRequests, 1);
   });
 
-  test("a completed member gets persistent 3-3-2 community discovery on the homepage", async function (assert) {
+  test("a completed member sees collapsed community discovery without loading recommendations", async function (assert) {
     api.model = homepageModel();
     getOwner(this).lookup("service:current-user").set(
       "where_is_my_friends_interest_onboarding_state",
@@ -399,36 +426,56 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     await visit("/");
 
     assert.dom("[data-test-community-discovery]").exists();
-    assert.dom("[data-test-community-error]").doesNotExist();
+    assert.dom("[data-test-local-friends-callout]").doesNotExist();
+    assert.strictEqual(api.locationRequests, 0);
+    assert
+      .dom("[data-test-community-toggle]")
+      .hasAttribute("aria-expanded", "false")
+      .hasText("Expand");
+    assert.dom("[data-test-community-content]").doesNotExist();
+    assert.dom("[data-test-community-topic]").doesNotExist();
+    assert.dom("[data-test-community-person]").doesNotExist();
+    assert.dom("[data-test-community-interest]").doesNotExist();
+    assert.strictEqual(api.recommendationRequests, 0);
+    assert.false(api.events.includes("recommendation_impression"));
+  });
+
+  test("first expansion loads and exposes only the discussion group", async function (assert) {
+    api.model = homepageModel();
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+
+    assert
+      .dom("[data-test-community-toggle]")
+      .hasAttribute("aria-expanded", "true")
+      .hasText("Collapse");
     assert.strictEqual(api.recommendationRequests, 1);
+    assert.dom("[data-test-community-content]").exists();
+    assert
+      .dom("[data-test-community-group='topics']")
+      .hasAttribute("aria-pressed", "true")
+      .hasText("Discussions 3");
+    assert
+      .dom("[data-test-community-group='people']")
+      .hasAttribute("aria-pressed", "false")
+      .hasText("Members 3");
+    assert
+      .dom("[data-test-community-group='interests']")
+      .hasAttribute("aria-pressed", "false")
+      .hasText("Interests 2");
     assert.dom("[data-test-community-topic]").exists({ count: 3 });
-    assert.dom("[data-test-community-person]").exists({ count: 3 });
-    assert.dom("[data-test-community-interest]").exists({ count: 2 });
-    assert.dom("[data-test-community-topic-reason]").exists({ count: 3 });
-    assert.dom("[data-test-community-topic-action]").exists({ count: 3 });
-    assert.dom("[data-test-community-person-reason]").exists({ count: 3 });
-    assert.dom("[data-test-community-person-action]").exists({ count: 3 });
-    assert
-      .dom("[data-test-community-person-topic-action]")
-      .exists({ count: 3 });
-    assert
-      .dom("[data-test-community-person-invite-action]")
-      .exists({ count: 3 });
-    assert.dom("[data-test-community-interest-reason]").exists({ count: 2 });
-    assert
-      .dom("[data-test-community-interest='1']")
-      .includesText("active member count stays private");
-    assert
-      .dom("[data-test-community-interest='2']")
-      .includesText("ruby")
-      .includesText("design");
-    assert.dom("[data-test-community-interest-action]").exists({ count: 2 });
-    assert.dom("[data-test-community-dismiss]").exists({ count: 8 });
+    assert.dom("[data-test-community-person]").doesNotExist();
+    assert.dom("[data-test-community-interest]").doesNotExist();
 
     const impressions = api.eventPayloads.filter(
       (payload) => payload.get("event_name") === "recommendation_impression"
     );
-    assert.strictEqual(impressions.length, 8);
+    assert.strictEqual(impressions.length, 3);
     assert.true(
       impressions.every(
         (payload) =>
@@ -438,25 +485,264 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
           payload.get("target_id") === null &&
           payload.get("topic_id") === null
       ),
-      "impressions contain only coarse context and no recommendation target"
+      "only visible cards produce coarse impressions"
+    );
+  });
+
+  test("group switches render and expose only the selected recommendations", async function (assert) {
+    api.model = homepageModel();
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
     );
 
-    await triggerTrackedLink("[data-test-community-person-action]");
-    await triggerTrackedLink("[data-test-community-person-topic-action]");
+    await visit("/");
+    await click("[data-test-community-toggle]");
+    await click("[data-test-community-group='people']");
+
+    assert
+      .dom("[data-test-community-group='people']")
+      .hasAttribute("aria-pressed", "true");
+    assert.dom("[data-test-community-topic]").doesNotExist();
+    assert.dom("[data-test-community-person]").exists({ count: 3 });
+    assert.dom("[data-test-community-interest]").doesNotExist();
+    assert.strictEqual(api.recommendationRequests, 1);
+    assert.strictEqual(
+      api.events.filter((event) => event === "recommendation_impression").length,
+      6
+    );
+
+    await click("[data-test-community-group='interests']");
+
+    assert
+      .dom("[data-test-community-group='interests']")
+      .hasAttribute("aria-pressed", "true");
+    assert.dom("[data-test-community-topic]").doesNotExist();
+    assert.dom("[data-test-community-person]").doesNotExist();
+    assert.dom("[data-test-community-interest]").exists({ count: 2 });
+    assert.strictEqual(api.recommendationRequests, 1);
+    assert.strictEqual(
+      api.events.filter((event) => event === "recommendation_impression").length,
+      8
+    );
+  });
+
+  test("collapse and reopen retain the selected loaded group", async function (assert) {
+    api.model = homepageModel();
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+    await click("[data-test-community-group='people']");
+    await click("[data-test-community-toggle]");
+
+    assert.dom("[data-test-community-content]").doesNotExist();
+    assert.strictEqual(api.recommendationRequests, 1);
+
+    await click("[data-test-community-toggle]");
+
+    assert.dom("[data-test-community-person]").exists({ count: 3 });
+    assert
+      .dom("[data-test-community-group='people']")
+      .hasAttribute("aria-pressed", "true");
+    assert.strictEqual(api.recommendationRequests, 1);
+    assert.strictEqual(
+      api.events.filter((event) => event === "recommendation_impression").length,
+      9,
+      "reopening records the three cards that became visible again"
+    );
+  });
+
+  test("re-entering the homepage starts collapsed again", async function (assert) {
+    api.model = homepageModel();
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+    assert.dom("[data-test-community-content]").exists();
+
+    await visit("/where-is-my-friends");
+    await visit("/");
+
+    assert
+      .dom("[data-test-community-toggle]")
+      .hasAttribute("aria-expanded", "false");
+    assert.dom("[data-test-community-content]").doesNotExist();
+    assert.strictEqual(
+      api.recommendationRequests,
+      1,
+      "the new homepage entry does not reuse or reload the previous component"
+    );
+  });
+
+  test("refresh reloads and re-exposes only the active group", async function (assert) {
+    api.model = homepageModel();
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+    await click("[data-test-community-refresh]");
+
+    assert.strictEqual(api.recommendationRequests, 2);
+    assert.strictEqual(api.lastRefresh, "1");
+    assert.dom("[data-test-community-topic]").exists({ count: 3 });
+    assert.dom("[data-test-community-person]").doesNotExist();
+    assert.strictEqual(
+      api.events.filter((event) => event === "recommendation_impression").length,
+      6
+    );
+  });
+
+  test("member cards prioritize a related discussion and keep secondary actions", async function (assert) {
+    api.model = homepageModel();
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+    await click("[data-test-community-group='people']");
+
+    assert
+      .dom("[data-test-community-person-primary-action]")
+      .exists({ count: 3 });
+    assert
+      .dom("[data-test-community-person='member1'] .btn-primary")
+      .exists({ count: 1 });
+    assert
+      .dom("[data-test-community-person-primary-action]")
+      .hasAttribute("href", "/t/practical-ruby/101");
+    assert
+      .dom("[data-test-community-person-profile-action]")
+      .hasClass("btn-flat");
+    assert
+      .dom("[data-test-community-person-invite-action]")
+      .hasClass("btn-flat");
+
+    await triggerTrackedLink(
+      "[data-test-community-person-primary-action]"
+    );
+    await triggerTrackedLink("[data-test-community-person-profile-action]");
     await triggerTrackedLink("[data-test-community-person-invite-action]");
-    assert.true(api.events.includes("recommended_user_profile_opened"));
+
     assert.true(
       api.events.includes("recommended_user_related_topic_opened")
     );
+    assert.true(api.events.includes("recommended_user_profile_opened"));
     assert.true(api.events.includes("recommended_user_invite_started"));
+  });
 
-    const requestsBeforeRefresh = api.recommendationRequests;
-    await click("[data-test-community-refresh]");
-    assert.strictEqual(
-      api.recommendationRequests,
-      requestsBeforeRefresh + 1,
-      "refreshes from the recommendation endpoint"
+  test("not interested updates only the visible group and shows its empty state", async function (assert) {
+    api.model = homepageModel();
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
     );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+    await click("[data-test-community-dismiss]");
+
+    assert.strictEqual(api.dismissedParams.get("target_type"), "topic");
+    assert.strictEqual(api.dismissedParams.get("target_id"), "101");
+    assert.strictEqual(api.dismissedParams.get("surface"), "homepage");
+    assert.dom("[data-test-community-topic]").doesNotExist();
+    assert.dom("[data-test-community-empty]").exists();
+    assert
+      .dom("[data-test-community-group='topics']")
+      .hasText("Discussions 0");
+    assert
+      .dom("[data-test-community-group='people']")
+      .hasText("Members 1");
+    assert.dom("[data-test-community-person]").doesNotExist();
+  });
+
+  test("recommendation errors stay inside the expanded panel and can be retried", async function (assert) {
+    api.model = homepageModel();
+    api.recommendationError = true;
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+
+    assert.dom("[data-test-community-content]").exists();
+    assert.dom("[data-test-community-error]").exists();
+    assert.dom("[data-test-community-topic]").doesNotExist();
+    assert.false(api.events.includes("recommendation_impression"));
+
+    api.recommendationError = false;
+    await click("[data-test-community-retry]");
+
+    assert.strictEqual(api.recommendationRequests, 2);
+    assert.dom("[data-test-community-error]").doesNotExist();
+    assert.dom("[data-test-community-topic]").exists({ count: 3 });
+  });
+
+  test("an empty recommendation response stays inside the expanded panel", async function (assert) {
+    api.model = {
+      ...homepageModel(),
+      recommended_topics: [],
+      recommended_users: [],
+      recommended_interests: [],
+    };
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+
+    assert.dom("[data-test-community-content]").exists();
+    assert.dom("[data-test-community-empty]").exists();
+    assert
+      .dom("[data-test-community-group='topics']")
+      .hasText("Discussions 0");
+    assert
+      .dom("[data-test-community-group='people']")
+      .hasText("Members 0");
+    assert
+      .dom("[data-test-community-group='interests']")
+      .hasText("Interests 0");
+    assert.false(api.events.includes("recommendation_impression"));
+  });
+
+  test("the expanded panel shows a compact skeleton while recommendations load", async function (assert) {
+    api.model = homepageModel();
+    api.deferRecommendations = true;
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    const expansion = click("[data-test-community-toggle]");
+    await waitFor("[data-test-community-skeleton]");
+
+    assert.dom("[data-test-community-content]").exists();
+    assert.dom("[data-test-community-skeleton]").exists({ count: 3 });
+    assert.dom("[data-test-community-topic]").doesNotExist();
+    assert.false(api.events.includes("recommendation_impression"));
+
+    api.deferRecommendations = false;
+    api.resolveRecommendations();
+    await expansion;
+
+    assert.dom("[data-test-community-skeleton]").doesNotExist();
+    assert.dom("[data-test-community-topic]").exists({ count: 3 });
   });
 
   test("private-by-default choices immediately produce explainable recommendations", async function (assert) {
@@ -704,3 +990,42 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-save-interests]").isEnabled();
   });
 });
+
+acceptance(
+  "Where Is My Friends | disabled homepage personalization",
+  function (needs) {
+    needs.settings({
+      where_is_my_friends_enabled: true,
+      where_is_my_friends_interest_onboarding_enabled: false,
+    });
+    needs.user({
+      username: "current-user",
+      where_is_my_friends_interest_onboarding_state: "complete",
+    });
+
+    let locationRequests = 0;
+    needs.pretender((server, helper) => {
+      server.get("/where-is-my-friends.json", () => {
+        locationRequests += 1;
+        return helper.response({
+          state: "setup",
+          current_user: { id: 1, username: "current-user" },
+          location: null,
+          active_participants: { suppressed: true },
+          city_suggestions: [],
+          settings: {},
+          filterable_fields: [],
+        });
+      });
+    });
+
+    test("the existing city entry remains when personalization is disabled", async function (assert) {
+      await visit("/");
+
+      assert.dom("[data-test-community-discovery]").doesNotExist();
+      assert.dom("[data-test-interest-onboarding-callout]").doesNotExist();
+      assert.dom("[data-test-local-friends-callout]").exists();
+      assert.strictEqual(locationRequests, 1);
+    });
+  }
+);

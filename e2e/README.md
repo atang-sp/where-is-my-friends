@@ -40,7 +40,7 @@ LOCAL_FRIENDS_E2E_CLIENT_IP=172.18.0.1 \
   d/rails runner plugins/where-is-my-friends/e2e/setup.rb
 ```
 
-The setup script refuses to run outside the Rails development environment. It resets only the four `admin`, `shanghai_one`, `shanghai_two`, and `empty_city` test accounts, their Local Friends interest/location records, one exact interest test topic, and the exact development login-rate-limit keys used by this suite. Playwright's global setup logs in each account once and stores ignored session state under `.auth/`; individual tests still use real Rails sessions and plugin endpoints. Re-run the Ruby setup before each full E2E run so the serial onboarding/removal scenarios start from a known state.
+The setup script refuses to run outside the Rails development environment. It resets only the five `admin`, `shanghai_one`, `shanghai_two`, `empty_city`, and `city_entry` test accounts, their Local Friends interest/location records, one exact interest test topic, and the exact development login-rate-limit keys used by this suite. Playwright's global setup logs in each account once and stores ignored session state under `.auth/`; individual tests still use real Rails sessions and plugin endpoints. Re-run the Ruby setup before each full E2E run so the serial onboarding/removal scenarios start from a known state.
 
 Override the server with `BASE_URL=http://...` when needed. Traces, screenshots, and video are retained only for failures under `test-results/`.
 

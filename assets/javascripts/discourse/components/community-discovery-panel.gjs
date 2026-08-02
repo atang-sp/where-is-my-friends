@@ -3,28 +3,30 @@ import { tracked } from "@glimmer/tracking";
 import { concat, fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import { scheduleOnce } from "@ember/runloop";
 import { ajax } from "discourse/lib/ajax";
+import { eq } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 
 export default class CommunityDiscoveryPanel extends Component {
   @tracked model = null;
-  @tracked loading = true;
+  @tracked loading = false;
   @tracked error = false;
+  @tracked expanded = false;
+  @tracked activeGroup = "topics";
 
   refreshSequence = 0;
-
-  constructor() {
-    super(...arguments);
-    void this.loadRecommendations();
-  }
 
   get topics() {
     return (this.model?.recommended_topics ?? []).slice(0, 3);
   }
 
   get people() {
-    return (this.model?.recommended_users ?? []).slice(0, 3);
+    return (this.model?.recommended_users ?? []).slice(0, 3).map((person) => ({
+      ...person,
+      primaryTopic: person.representative_topics?.[0] ?? null,
+    }));
   }
 
   get interests() {
@@ -35,14 +37,49 @@ export default class CommunityDiscoveryPanel extends Component {
     return this.topics.length + this.people.length + this.interests.length;
   }
 
-  get hasResults() {
-    return this.resultCount > 0;
+  get activeHasResults() {
+    return this.activeRecommendations.length > 0;
+  }
+
+  get skeletonItems() {
+    const count = this.activeGroup === "interests" ? 2 : 3;
+    return Array.from({ length: count }, (_, index) => index);
+  }
+
+  get activeRecommendations() {
+    return {
+      topics: this.topics,
+      people: this.people,
+      interests: this.interests,
+    }[this.activeGroup];
+  }
+
+  @action
+  async toggle() {
+    this.expanded = !this.expanded;
+    if (this.expanded) {
+      if (this.model) {
+        this.queueImpressions();
+      } else {
+        await this.loadRecommendations();
+      }
+    }
   }
 
   @action
   async refresh() {
     this.refreshSequence += 1;
     await this.loadRecommendations(this.refreshSequence);
+  }
+
+  @action
+  selectGroup(group) {
+    if (group === this.activeGroup) {
+      return;
+    }
+
+    this.activeGroup = group;
+    this.queueImpressions();
   }
 
   @action
@@ -53,6 +90,7 @@ export default class CommunityDiscoveryPanel extends Component {
 
     this.loading = true;
     this.error = false;
+    let succeeded = false;
     try {
       this.model = await ajax(
         "/where-is-my-friends/recommendations/dismiss.json",
@@ -68,11 +106,14 @@ export default class CommunityDiscoveryPanel extends Component {
           },
         }
       );
-      this.recordImpressions();
+      succeeded = true;
     } catch {
       this.error = true;
     } finally {
       this.loading = false;
+    }
+    if (succeeded) {
+      this.queueImpressions();
     }
   }
 
@@ -84,27 +125,34 @@ export default class CommunityDiscoveryPanel extends Component {
   async loadRecommendations(refresh = null) {
     this.loading = true;
     this.error = false;
+    let succeeded = false;
     try {
       const options = refresh === null ? {} : { data: { refresh } };
       this.model = await ajax(
         "/where-is-my-friends/recommendations.json",
         options
       );
-      this.recordImpressions();
+      succeeded = true;
     } catch {
       this.error = true;
     } finally {
       this.loading = false;
     }
+    if (succeeded) {
+      this.queueImpressions();
+    }
+  }
+
+  queueImpressions() {
+    scheduleOnce("afterRender", this, this.recordImpressions);
   }
 
   recordImpressions() {
-    const recommendations = [
-      ...this.topics,
-      ...this.people,
-      ...this.interests,
-    ];
-    for (const recommendation of recommendations) {
+    if (!this.expanded || this.loading || !this.model) {
+      return;
+    }
+
+    for (const recommendation of this.activeRecommendations) {
       void this.recordEvent("recommendation_impression", recommendation);
     }
   }
@@ -129,17 +177,44 @@ export default class CommunityDiscoveryPanel extends Component {
 
   <template>
     <section
-      class="community-discovery"
+      class={{if
+        this.expanded
+        "community-discovery community-discovery--expanded"
+        "community-discovery community-discovery--collapsed"
+      }}
       data-test-community-discovery
     >
       <header class="community-discovery__header">
         <div>
-          <p class="community-discovery__eyebrow">{{i18n
-              "where_is_my_friends.community_discovery.eyebrow"
+          <h2>{{i18n
+              "where_is_my_friends.community_discovery.compact_title"
+            }}</h2>
+          <p>{{i18n
+              "where_is_my_friends.community_discovery.compact_description"
             }}</p>
-          <h2>{{i18n "where_is_my_friends.community_discovery.title"}}</h2>
-          <p>{{i18n "where_is_my_friends.community_discovery.description"}}</p>
         </div>
+        <DButton
+          @action={{this.toggle}}
+          @label={{if
+            this.expanded
+            "where_is_my_friends.community_discovery.collapse"
+            "where_is_my_friends.community_discovery.expand"
+          }}
+          @icon={{if this.expanded "chevron-up" "chevron-down"}}
+          @ariaExpanded={{this.expanded}}
+          @ariaControls="community-discovery-content"
+          class="btn-flat community-discovery__toggle"
+          data-test-community-toggle
+        />
+      </header>
+
+      {{#if this.expanded}}
+        <div
+          id="community-discovery-content"
+          class="community-discovery__content"
+          data-test-community-content
+        >
+      <div class="community-discovery__controls">
         <DButton
           @action={{this.refresh}}
           @label="where_is_my_friends.community_discovery.refresh"
@@ -148,9 +223,28 @@ export default class CommunityDiscoveryPanel extends Component {
           class="btn-flat"
           data-test-community-refresh
         />
-      </header>
-
-      {{#if this.error}}
+      </div>
+      {{#if this.loading}}
+        <div
+          class="community-discovery__grid community-discovery__skeleton-grid"
+          role="status"
+          aria-label={{i18n
+            "where_is_my_friends.community_discovery.loading"
+          }}
+        >
+          {{#each this.skeletonItems}}
+            <article
+              class="community-discovery__skeleton"
+              aria-hidden="true"
+              data-test-community-skeleton
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </article>
+          {{/each}}
+        </div>
+      {{else if this.error}}
         <div
           class="community-discovery__error"
           role="status"
@@ -163,9 +257,61 @@ export default class CommunityDiscoveryPanel extends Component {
             @action={{this.refresh}}
             @label="where_is_my_friends.community_discovery.retry"
             class="btn-flat"
+            data-test-community-retry
           />
         </div>
-      {{else if this.hasResults}}
+      {{else if this.model}}
+        <nav
+          class="community-discovery__groups"
+          aria-label={{i18n
+            "where_is_my_friends.community_discovery.groups_label"
+          }}
+          data-test-community-groups
+        >
+          <DButton
+            @action={{fn this.selectGroup "topics"}}
+            @translatedLabel={{i18n
+              "where_is_my_friends.community_discovery.topics_group"
+              count=this.topics.length
+            }}
+            @ariaPressed={{eq this.activeGroup "topics"}}
+            class={{if
+              (eq this.activeGroup "topics")
+              "btn-primary community-discovery__group"
+              "btn-default community-discovery__group"
+            }}
+            data-test-community-group="topics"
+          />
+          <DButton
+            @action={{fn this.selectGroup "people"}}
+            @translatedLabel={{i18n
+              "where_is_my_friends.community_discovery.people_group"
+              count=this.people.length
+            }}
+            @ariaPressed={{eq this.activeGroup "people"}}
+            class={{if
+              (eq this.activeGroup "people")
+              "btn-primary community-discovery__group"
+              "btn-default community-discovery__group"
+            }}
+            data-test-community-group="people"
+          />
+          <DButton
+            @action={{fn this.selectGroup "interests"}}
+            @translatedLabel={{i18n
+              "where_is_my_friends.community_discovery.interests_group"
+              count=this.interests.length
+            }}
+            @ariaPressed={{eq this.activeGroup "interests"}}
+            class={{if
+              (eq this.activeGroup "interests")
+              "btn-primary community-discovery__group"
+              "btn-default community-discovery__group"
+            }}
+            data-test-community-group="interests"
+          />
+        </nav>
+        {{#if (eq this.activeGroup "topics")}}
         {{#if this.topics.length}}
           <section class="community-discovery__section">
             <h3>{{i18n
@@ -227,7 +373,9 @@ export default class CommunityDiscoveryPanel extends Component {
             </div>
           </section>
         {{/if}}
+        {{/if}}
 
+        {{#if (eq this.activeGroup "people")}}
         {{#if this.people.length}}
           <section class="community-discovery__section">
             <h3>{{i18n
@@ -236,21 +384,10 @@ export default class CommunityDiscoveryPanel extends Component {
             <div class="community-discovery__grid">
               {{#each this.people as |person|}}
                 <article data-test-community-person={{person.username}}>
-                  <a
-                    href={{person.profile_url}}
-                    data-test-community-person-action
-                    {{on
-                      "click"
-                      (fn
-                        this.trackOpen
-                        "recommended_user_profile_opened"
-                        person
-                      )
-                    }}
-                  >
+                  <div class="community-discovery__person-heading">
                     <h4>{{if person.name person.name person.username}}</h4>
                     <span>@{{person.username}}</span>
-                  </a>
+                  </div>
                   <p data-test-community-person-reason>
                     <strong>{{i18n
                         "where_is_my_friends.community_discovery.why"
@@ -262,29 +399,28 @@ export default class CommunityDiscoveryPanel extends Component {
                       <span>{{interest.name}}</span>
                     {{/each}}
                   </p>
-                  {{#if person.representative_topics.length}}
-                    <ul>
-                      {{#each person.representative_topics as |topic|}}
-                        <li>
-                          <a
-                            href={{topic.url}}
-                            data-test-community-person-topic-action
-                            {{on
-                              "click"
-                              (fn
-                                this.trackOpen
-                                "recommended_user_related_topic_opened"
-                                person
-                              )
-                            }}
-                          >{{topic.title}}</a>
-                        </li>
-                      {{/each}}
-                    </ul>
-                  {{/if}}
                   <div class="community-discovery__actions">
+                    {{#if person.primaryTopic}}
+                      <a
+                        class="btn btn-primary"
+                        href={{person.primaryTopic.url}}
+                        data-test-community-person-primary-action
+                        {{on
+                          "click"
+                          (fn
+                            this.trackOpen
+                            "recommended_user_related_topic_opened"
+                            person
+                          )
+                        }}
+                      >
+                        {{i18n
+                          "where_is_my_friends.community_discovery.join_person_discussion"
+                        }}
+                      </a>
+                    {{/if}}
                     <a
-                      class="btn btn-default"
+                      class="btn btn-flat"
                       href={{person.profile_url}}
                       data-test-community-person-profile-action
                       {{on
@@ -302,7 +438,7 @@ export default class CommunityDiscoveryPanel extends Component {
                     </a>
                     {{#if person.invite_url}}
                       <a
-                        class="btn btn-primary"
+                        class="btn btn-flat"
                         href={{person.invite_url}}
                         data-test-community-person-invite-action
                         {{on
@@ -332,7 +468,9 @@ export default class CommunityDiscoveryPanel extends Component {
             </div>
           </section>
         {{/if}}
+        {{/if}}
 
+        {{#if (eq this.activeGroup "interests")}}
         {{#if this.interests.length}}
           <section class="community-discovery__section">
             <h3>{{i18n
@@ -408,9 +546,12 @@ export default class CommunityDiscoveryPanel extends Component {
             </div>
           </section>
         {{/if}}
-      {{else}}
-        {{#unless this.loading}}
-          <div class="community-discovery__empty">
+        {{/if}}
+        {{#unless this.activeHasResults}}
+          <div
+            class="community-discovery__empty"
+            data-test-community-empty
+          >
             <p>{{i18n "where_is_my_friends.community_discovery.empty"}}</p>
             <a
               class="btn btn-primary"
@@ -418,6 +559,21 @@ export default class CommunityDiscoveryPanel extends Component {
             >{{i18n "where_is_my_friends.interests.edit"}}</a>
           </div>
         {{/unless}}
+      {{else}}
+        {{#unless this.loading}}
+          <div
+            class="community-discovery__empty"
+            data-test-community-empty
+          >
+            <p>{{i18n "where_is_my_friends.community_discovery.empty"}}</p>
+            <a
+              class="btn btn-primary"
+              href="/where-is-my-friends/interests"
+            >{{i18n "where_is_my_friends.interests.edit"}}</a>
+          </div>
+        {{/unless}}
+      {{/if}}
+        </div>
       {{/if}}
     </section>
   </template>

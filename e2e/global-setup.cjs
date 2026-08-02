@@ -3,7 +3,13 @@ const path = require("node:path");
 const { chromium, expect } = require("@playwright/test");
 
 const PASSWORD = "LocalFriendsTest123!";
-const USERS = ["admin", "shanghai_one", "shanghai_two", "empty_city"];
+const USERS = [
+  "admin",
+  "shanghai_one",
+  "shanghai_two",
+  "empty_city",
+  "city_entry",
+];
 
 module.exports = async function globalSetup(config) {
   const baseURL = config.projects[0].use.baseURL;

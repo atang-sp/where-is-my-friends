@@ -44,16 +44,23 @@ export default class InterestOnboardingCallout extends Component {
 
   get isHomeRoute() {
     const routeName = this.router.currentRouteName ?? "";
-    return routeName === "discovery" || routeName.startsWith("discovery.");
+    return (
+      !this.isCategoryRoute &&
+      (routeName === "discovery" || routeName.startsWith("discovery."))
+    );
+  }
+
+  get isCategoryRoute() {
+    const routeName = this.router.currentRouteName ?? "";
+    return Boolean(
+      routeName === "discovery.categories" ||
+        routeName.startsWith("category.") ||
+        this.router.currentRoute?.attributes?.category
+    );
   }
 
   get isTopicListRoute() {
-    const routeName = this.router.currentRouteName ?? "";
-    return (
-      routeName === "discovery" ||
-      routeName.startsWith("discovery.") ||
-      routeName.startsWith("category.")
-    );
+    return this.isHomeRoute || this.isCategoryRoute;
   }
 
   @action

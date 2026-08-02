@@ -1,7 +1,7 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { on } from "@ember/modifier";
-import { action } from "@ember/object";
+import { action, get } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
 import { LinkTo } from "@ember/routing";
 import { service } from "@ember/service";
@@ -63,16 +63,47 @@ export default class LocalFriendsCallout extends Component {
   }
 
   get shouldLoad() {
-    return Boolean(this.currentUser && this.isTopicListRoute);
+    return Boolean(
+      this.currentUser &&
+        this.isTopicListRoute &&
+        !this.homepageHasInterestModule
+    );
+  }
+
+  get homepageHasInterestModule() {
+    if (
+      !this.isHomeRoute ||
+      !this.siteSettings.where_is_my_friends_interest_onboarding_enabled
+    ) {
+      return false;
+    }
+
+    const state = get(
+      this.currentUser,
+      "where_is_my_friends_interest_onboarding_state"
+    );
+    return state === "pending" || state === "complete";
+  }
+
+  get isHomeRoute() {
+    const routeName = this.router.currentRouteName ?? "";
+    return (
+      !this.isCategoryRoute &&
+      (routeName === "discovery" || routeName.startsWith("discovery."))
+    );
+  }
+
+  get isCategoryRoute() {
+    const routeName = this.router.currentRouteName ?? "";
+    return Boolean(
+      routeName === "discovery.categories" ||
+        routeName.startsWith("category.") ||
+        this.router.currentRoute?.attributes?.category
+    );
   }
 
   get isTopicListRoute() {
-    const routeName = this.router.currentRouteName ?? "";
-    return (
-      routeName === "discovery" ||
-      routeName.startsWith("discovery.") ||
-      routeName.startsWith("category.")
-    );
+    return this.isHomeRoute || this.isCategoryRoute;
   }
 
   get isTargetCategory() {
@@ -81,8 +112,7 @@ export default class LocalFriendsCallout extends Component {
     if (!slug) {
       return false;
     }
-    const routeName = this.router.currentRouteName ?? "";
-    if (!routeName.startsWith("category.")) {
+    if (!this.isCategoryRoute) {
       return false;
     }
     const currentSlug =

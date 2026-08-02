@@ -80,16 +80,71 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(
       page.locator("[data-test-recommended-user='shanghai_one']")
     ).toContainText("Shanghai One");
+  });
 
-    await topic.locator("[data-test-dismiss-topic]").click();
-    await expect(topic).toHaveCount(0);
+  test("homepage recommendations stay compact and render one group at a time", async ({
+    context,
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await authenticate(context, "admin");
+    let recommendationRequests = 0;
+    page.on("request", (request) => {
+      if (request.url().includes("/recommendations.json")) {
+        recommendationRequests += 1;
+      }
+    });
+
+    await page.goto("/latest");
+
+    const panel = page.locator("[data-test-community-discovery]");
+    await expect(panel).toBeVisible();
+    await expect(page.locator("[data-test-community-content]")).toHaveCount(0);
+    await expect(page.locator("[data-test-local-friends-callout]")).toHaveCount(
+      0
+    );
+    await expect(page.locator(".topic-list-item").first()).toBeVisible();
+    expect(recommendationRequests).toBe(0);
+    expect((await panel.boundingBox()).height).toBeLessThanOrEqual(64);
+
+    const toggle = page.locator("[data-test-community-toggle]");
+    await expect(toggle).toHaveAttribute(
+      "aria-controls",
+      "community-discovery-content"
+    );
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await toggle.focus();
+    await expect(toggle).toBeFocused();
+    await page.keyboard.press("Enter");
+
+    await expect(page.locator("[data-test-community-content]")).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator("[data-test-community-topic]")).toBeVisible();
+    await expect(page.locator("[data-test-community-person]")).toHaveCount(0);
+    expect(recommendationRequests).toBe(1);
+
+    await page.locator("[data-test-community-group='people']").click();
+    await expect(page.locator("[data-test-community-topic]")).toHaveCount(0);
+    await expect(
+      page.locator("[data-test-community-person='shanghai_one']")
+    ).toBeVisible();
+    await expect(
+      page.locator("[data-test-community-person-primary-action]")
+    ).toBeVisible();
+
+    const recommendedPerson = page.locator(
+      "[data-test-community-person='shanghai_one']"
+    );
+    await recommendedPerson.locator("[data-test-community-dismiss]").click();
+    await expect(recommendedPerson).toHaveCount(0);
+    await expect(page.locator("[data-test-community-empty]")).toBeVisible();
   });
 
   test("topic lists expose the privacy-safe local discovery entry", async ({
     context,
     page,
   }) => {
-    await authenticate(context, "admin");
+    await authenticate(context, "city_entry");
     await page.goto("/latest");
 
     const callout = page.locator("[data-test-local-friends-callout]");
