@@ -89,6 +89,8 @@ bundle exec rake db:migrate
 | `where_is_my_friends_max_users_display` | `50` | 返回用户上限，服务端限制为 10–200 |
 | `where_is_my_friends_location_ttl_days` | `30` | 位置有效期，服务端限制为 1–365 天 |
 | `where_is_my_friends_aggregate_privacy_threshold` | `3` | 显示精确活跃人数的最低参与者数量 |
+| `where_is_my_friends_target_category_id` | 空 | “实践交友”目标分区；本地话题只复用该分区标签组中已有的父子地域标签，且不会创建标签 |
+| `where_is_my_friends_target_category_slug` | 空 | 兼容旧配置的分区 slug；仅在目标分区 ID 未配置时使用 |
 | `licensed_import_enabled` | `false` | 英文精选总开关；所有失败和暂停条件均以关闭此开关结束 |
 | `licensed_import_dry_run` | `true` | 只保存管理员可见中文预览，不创建主题 |
 | `licensed_import_category_id` | 空 | 公开英文精选主题的目标分区；公开运行前必须选择成员可读的非“未分类”分区 |

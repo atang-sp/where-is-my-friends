@@ -127,6 +127,14 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
+  where_is_my_friends_target_category_id:
+    default: ""
+    client: true
+    type: category
+    description: "实践交友话题所在分区。优先于旧的 slug 设置。"
+    category: "where_is_my_friends"
+    translated: true
+
   where_is_my_friends_filterable_user_fields:
     default: "性别|属性"
     type: list

@@ -101,7 +101,8 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     chat_enabled: true,
     where_is_my_friends_enabled: true,
     where_is_my_friends_interest_onboarding_enabled: true,
-    where_is_my_friends_target_category_slug: "bug",
+    where_is_my_friends_target_category_id: 1,
+    where_is_my_friends_target_category_slug: "legacy-only",
   });
   needs.user({ username: "current-user", has_chat_enabled: true });
   const api = {};
@@ -303,6 +304,16 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.strictEqual(view?.get("surface"), "category");
   });
 
+  test("the target category falls back to the legacy slug when no id is configured", async function (assert) {
+    const siteSettings = getOwner(this).lookup("service:site-settings");
+    siteSettings.where_is_my_friends_target_category_id = null;
+    siteSettings.where_is_my_friends_target_category_slug = "bug";
+
+    await visit("/c/bug/1");
+
+    assert.dom("[data-test-local-friends-category-callout]").exists();
+  });
+
   test("route reuse records an impression for each visible callout surface", async function (assert) {
     getOwner(this).lookup("service:current-user").set(
       "where_is_my_friends_interest_onboarding_state",
@@ -381,6 +392,55 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     await click("[data-test-save-city]");
 
     assert.strictEqual(api.savedLocations[0].region, "上海");
+  });
+
+  test("an unmapped canonical city keeps the category-only compose link", async function (assert) {
+    api.initial = {
+      state: "setup",
+      current_user: { id: 1, username: "current-user" },
+      location: null,
+      active_participants: { suppressed: true },
+      city_suggestions: [],
+      city_catalogue: [
+        { city: "singapore", city_key: "singapore", region: "Singapore" },
+      ],
+      city_directory: {
+        active: [
+          {
+            city: "singapore",
+            city_key: "singapore",
+            recent_active_count: 1,
+            joined_count: 1,
+          },
+        ],
+        growing: [],
+        cities: [],
+      },
+      settings: {},
+      filterable_fields: [],
+    };
+    api.preview = {
+      city: {
+        city: "Singapore",
+        city_key: "singapore",
+        canonical: true,
+        recent_active_count: 0,
+        joined_count: 0,
+      },
+      radius_options: [],
+      recommended_radius_km: null,
+      nearby_cities: [],
+      local_topics: [],
+      local_topic_compose_url: "/new-topic?category_id=7",
+    };
+
+    await visit("/where-is-my-friends");
+    await fillIn("[data-test-city-input]", "Singapore");
+    await click("[data-test-preview-city]");
+
+    assert
+      .dom("[data-test-city-network-preview] [data-test-compose-local-topic]")
+      .hasAttribute("href", "/new-topic?category_id=7");
   });
 
   test("setup previews the regional network before an explicit join", async function (assert) {
@@ -464,11 +524,11 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
           title: "上海周末野餐",
           url: "/t/shanghai-weekend-picnic/41",
           posts_count: 4,
-          activity_city: "上海",
-          city_tag: "local-city-上海",
+          activity_area: "上海",
         },
       ],
-      local_topic_compose_url: "/new-topic?tags=local-city-%E4%B8%8A%E6%B5%B7",
+      local_topic_compose_url:
+        "/new-topic?category_id=7&tags=%E4%B8%AD%E5%9B%BD,%E4%B8%8A%E6%B5%B7",
     };
 
     await visit("/where-is-my-friends");
@@ -503,7 +563,10 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .hasAttribute("href", "/t/shanghai-weekend-picnic/41");
     assert
       .dom("[data-test-city-network-preview] [data-test-compose-local-topic]")
-      .hasAttribute("href", "/new-topic?tags=local-city-%E4%B8%8A%E6%B5%B7");
+      .hasAttribute(
+        "href",
+        "/new-topic?category_id=7&tags=%E4%B8%AD%E5%9B%BD,%E4%B8%8A%E6%B5%B7",
+      );
     assert.dom("[data-test-join-notify-city]").isChecked();
     assert.dom("[data-test-join-notify-nearby]").isChecked();
     await click("[data-test-join-notify-nearby]");
@@ -984,11 +1047,11 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
           title: "苏州周六桌游",
           url: "/t/suzhou-board-games/42",
           posts_count: 7,
-          activity_city: "苏州",
-          city_tag: "local-city-苏州",
+          activity_area: "江苏",
         },
       ],
-      local_topic_compose_url: "/new-topic?tags=local-city-%E4%B8%8A%E6%B5%B7",
+      local_topic_compose_url:
+        "/new-topic?category_id=7&tags=%E4%B8%AD%E5%9B%BD,%E4%B8%8A%E6%B5%B7",
     };
 
     await visit("/where-is-my-friends");
@@ -996,11 +1059,14 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert
       .dom("[data-test-local-topic='42']")
       .includesText("苏州周六桌游")
-      .includesText("苏州")
+      .includesText("江苏")
       .hasAttribute("href", "/t/suzhou-board-games/42");
     assert
       .dom("[data-test-compose-local-topic]")
-      .hasAttribute("href", "/new-topic?tags=local-city-%E4%B8%8A%E6%B5%B7");
+      .hasAttribute(
+        "href",
+        "/new-topic?category_id=7&tags=%E4%B8%AD%E5%9B%BD,%E4%B8%8A%E6%B5%B7",
+      );
     assert
       .dom("[data-test-message-link='alice']")
       .doesNotHaveClass("btn-primary");

@@ -154,24 +154,43 @@ PostCreator.create!(
 
 local_topic_title = "Shanghai weekend picnic"
 local_topic_category =
-  Category.find_by(name: "Local Friends E2E") ||
+  Category.find_by(name: "Practice Friends E2E") ||
     Category.create!(
-      name: "Local Friends E2E",
-      slug: "local-friends-e2e",
-      user: Discourse.system_user
+      name: "Practice Friends E2E",
+      slug: "practice-friends-e2e",
+      user: Discourse.system_user,
+      minimum_required_tags: 2
     )
-local_topic =
-  Topic.find_by(title: local_topic_title) ||
-    PostCreator.create!(
-      Discourse.system_user,
-      title: local_topic_title,
-      raw: "A public thread for planning a weekend picnic in Shanghai.",
-      category: local_topic_category.id,
-      tags: [WhereIsMyFriends::LocalTopics.tag_name_for("上海")]
-    ).topic
-DiscourseTagging.add_or_create_tags_by_name(
-  local_topic,
-  [WhereIsMyFriends::LocalTopics.tag_name_for("上海")]
+local_topic_category.update!(minimum_required_tags: 2)
+SiteSetting.where_is_my_friends_target_category_id = local_topic_category.id
+
+area_tags =
+  %w[中国 上海 江苏 浙江].to_h { |name| [name, Tag.find_or_create_by!(name: name)] }
+top_level_group =
+  TagGroup.find_or_initialize_by(name: "Practice Friends E2E top-level areas")
+top_level_group.one_per_topic = true
+top_level_group.save!
+top_level_group.tag_ids = [area_tags.fetch("中国").id]
+province_group =
+  TagGroup.find_or_initialize_by(name: "Practice Friends E2E provinces")
+province_group.one_per_topic = true
+province_group.parent_tag = area_tags.fetch("中国")
+province_group.save!
+province_group.tag_ids = area_tags.values_at("上海", "江苏", "浙江").map(&:id)
+[top_level_group, province_group].each do |tag_group|
+  CategoryTagGroup.find_or_create_by!(
+    category: local_topic_category,
+    tag_group: tag_group
+  )
+end
+
+Topic.where(title: local_topic_title).find_each(&:destroy!)
+PostCreator.create!(
+  Discourse.system_user,
+  title: local_topic_title,
+  raw: "A public thread for planning a weekend picnic in Shanghai.",
+  category: local_topic_category.id,
+  tags: %w[中国 上海]
 )
 
 puts "Seeded Local Friends E2E users (password: #{password})"
