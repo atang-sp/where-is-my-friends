@@ -84,6 +84,33 @@ RSpec.describe WhereIsMyFriends::LocalTopics do
     expect(topics.flat_map(&:keys)).not_to include(:activity_city, :city_tag)
   end
 
+  it "continues past a full page of newer invalid topics" do
+    add_area_group("中国", "上海")
+    china, shanghai =
+      Tag.where(name: %w[中国 上海]).index_by(&:name).values_at("中国", "上海")
+    valid_topic =
+      Fabricate(
+        :topic,
+        category: category,
+        title: "Older valid Shanghai activity",
+        tags: [china, shanghai],
+        bumped_at: 2.days.ago
+      )
+    101.times do |index|
+      Fabricate(
+        :topic,
+        category: category,
+        title: "Newer incomplete Shanghai activity #{index}",
+        tags: [shanghai],
+        bumped_at: 1.day.ago + index.minutes
+      )
+    end
+
+    topics = described_class.new(user: user, city_keys: ["上海"]).call
+
+    expect(topics.pluck(:id)).to eq([valid_topic.id])
+  end
+
   it "maps Chinese provinces and explicit international aliases to existing tag pairs" do
     add_area_group("中国", "江苏")
     add_area_group("日本", "东京都", "大阪府")

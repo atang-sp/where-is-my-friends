@@ -5,7 +5,7 @@ require "uri"
 module WhereIsMyFriends
   class LocalTopics
     DEFAULT_LIMIT = 6
-    QUERY_LIMIT = 100
+    QUERY_PAGE_SIZE = 100
 
     CITY_TAG_ALIASES = {
       "tokyo" => "东京都",
@@ -116,24 +116,30 @@ module WhereIsMyFriends
 
       requested_children = requested_areas.pluck(:child)
 
-      topics =
-        TopicQuery
-          .new(
-            @user,
-            category: category.id.to_s,
-            tags: requested_children,
-            per_page: QUERY_LIMIT
-          )
-          .list_latest
-          .topics
+      results = []
+      seen_topic_ids = Set.new
+      page = 0
 
-      topics
-        .uniq(&:id)
-        .filter_map do |topic|
+      loop do
+        topics =
+          TopicQuery
+            .new(
+              @user,
+              category: category.id.to_s,
+              tags: requested_children,
+              page: page,
+              per_page: QUERY_PAGE_SIZE
+            )
+            .list_latest
+            .topics
+
+        topics.each do |topic|
+          next unless seen_topic_ids.add?(topic.id)
+
           area = self.class.send(:topic_area, topic, pairs)
           next if area.blank? || !requested_children.include?(area[:child])
 
-          {
+          results << {
             id: topic.id,
             title: topic.title,
             url: topic.relative_url,
@@ -142,7 +148,13 @@ module WhereIsMyFriends
             activity_area: area[:child]
           }
         end
-        .first(@limit)
+
+        break if results.length >= @limit || topics.length < QUERY_PAGE_SIZE
+
+        page += 1
+      end
+
+      results.first(@limit)
     end
 
     def self.resolve_area(city_key, pairs)
