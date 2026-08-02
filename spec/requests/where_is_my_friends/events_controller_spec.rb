@@ -45,6 +45,7 @@ RSpec.describe WhereIsMyFriends::EventsController do
            params: {
              event_name: "recommendation_impression",
              surface: "homepage",
+             recommendation_group: "topics",
              candidate_source: "interest",
              rank: 2,
              algorithm_version: "participation_v1",
@@ -58,6 +59,7 @@ RSpec.describe WhereIsMyFriends::EventsController do
         user_id: user.id,
         event_name: "recommendation_impression",
         surface: "homepage",
+        recommendation_group: "topics",
         candidate_source: "interest",
         rank_bucket: "one_to_two",
         algorithm_version: "participation_v1",
@@ -97,9 +99,15 @@ RSpec.describe WhereIsMyFriends::EventsController do
       get "/where-is-my-friends/debug-stats.json"
 
       expect(response.status).to eq(200)
+      expect(response.parsed_body).to include(
+        "period",
+        "content_supply",
+        "daily"
+      )
       expect(response.parsed_body.fetch("funnel")).to include(
         "unique_page_visitors" => 1
       )
+      expect(response.parsed_body.fetch("funnel")).to include("mature_cohorts")
     end
 
     it "supports approved report windows and breaks location totals down by mode" do

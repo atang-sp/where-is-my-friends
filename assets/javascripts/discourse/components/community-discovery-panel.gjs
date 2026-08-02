@@ -57,6 +57,13 @@ export default class CommunityDiscoveryPanel extends Component {
   @action
   async toggle() {
     this.expanded = !this.expanded;
+    void this.recordEvent(
+      this.expanded
+        ? "recommendation_panel_expanded"
+        : "recommendation_panel_collapsed",
+      null,
+      this.activeGroup
+    );
     if (this.expanded) {
       if (this.model) {
         this.queueImpressions();
@@ -68,6 +75,11 @@ export default class CommunityDiscoveryPanel extends Component {
 
   @action
   async refresh() {
+    void this.recordEvent(
+      "recommendation_refreshed",
+      null,
+      this.activeGroup
+    );
     this.refreshSequence += 1;
     await this.loadRecommendations(this.refreshSequence);
   }
@@ -79,6 +91,11 @@ export default class CommunityDiscoveryPanel extends Component {
     }
 
     this.activeGroup = group;
+    void this.recordEvent(
+      "recommendation_group_selected",
+      null,
+      group
+    );
     this.queueImpressions();
   }
 
@@ -157,18 +174,29 @@ export default class CommunityDiscoveryPanel extends Component {
     }
   }
 
-  async recordEvent(eventName, recommendation) {
+  async recordEvent(
+    eventName,
+    recommendation = null,
+    recommendationGroup = this.activeGroup
+  ) {
+    const data = {
+      event_name: eventName,
+      surface: "homepage",
+      recommendation_group: recommendationGroup,
+    };
+    if (recommendation) {
+      Object.assign(data, {
+        candidate_source: recommendation.candidate_source,
+        rank: recommendation.rank,
+        algorithm_version: this.model?.algorithm_version,
+        result_count: this.resultCount,
+      });
+    }
+
     try {
       await ajax("/where-is-my-friends/events.json", {
         type: "POST",
-        data: {
-          event_name: eventName,
-          surface: "homepage",
-          candidate_source: recommendation.candidate_source,
-          rank: recommendation.rank,
-          algorithm_version: this.model?.algorithm_version,
-          result_count: this.resultCount,
-        },
+        data,
       });
     } catch {
       // Measurement must never block community discovery.

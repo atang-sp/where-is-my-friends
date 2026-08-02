@@ -119,7 +119,9 @@ test.describe.serial("Local Friends against real Discourse", () => {
 
     await expect(page.locator("[data-test-community-content]")).toBeVisible();
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
-    await expect(page.locator("[data-test-community-topic]")).toBeVisible();
+    await expect(
+      page.locator("[data-test-community-topic]").first()
+    ).toBeVisible();
     await expect(page.locator("[data-test-community-person]")).toHaveCount(0);
     expect(recommendationRequests).toBe(1);
 
@@ -348,6 +350,16 @@ test.describe.serial("Local Friends against real Discourse", () => {
     expect(response.ok()).toBeTruthy();
     const report = await response.json();
     expect(report.funnel.unique_page_visitors).toBeGreaterThan(0);
+    expect(report.funnel.recommendation_groups.topics.exposed_users).toBeGreaterThan(
+      0
+    );
+    expect(report.funnel.local_callout.viewed_users).toBeGreaterThan(0);
+    expect(report.funnel.mature_cohorts).toHaveProperty(
+      "recommendation_exposure"
+    );
+    expect(report.content_supply).toHaveProperty("public_topics_created");
+    expect(report.daily.length).toBeGreaterThan(0);
+    expect(report.period).toHaveProperty("starts_at");
     expect(report).not.toHaveProperty("latitude");
     expect(report).not.toHaveProperty("longitude");
   });

@@ -358,12 +358,12 @@ export default class InterestOnboardingPage extends Component {
 
   @action
   trackTopicOpen(topic) {
-    void this.recordEvent("recommended_topic_opened", topic);
+    void this.recordEvent("recommended_topic_opened", topic, "topics");
   }
 
   @action
   trackUserOpen(user) {
-    void this.recordEvent("recommended_user_opened", user);
+    void this.recordEvent("recommended_user_opened", user, "people");
   }
 
   @action
@@ -560,19 +560,32 @@ export default class InterestOnboardingPage extends Component {
   }
 
   recordRecommendationImpressions() {
-    for (const recommendation of [
-      ...this.recommendedTopics,
-      ...this.recommendedUsers,
-    ]) {
-      void this.recordEvent("recommendation_impression", recommendation);
+    for (const recommendation of this.recommendedTopics) {
+      void this.recordEvent(
+        "recommendation_impression",
+        recommendation,
+        "topics"
+      );
+    }
+    for (const recommendation of this.recommendedUsers) {
+      void this.recordEvent(
+        "recommendation_impression",
+        recommendation,
+        "people"
+      );
     }
   }
 
-  async recordEvent(eventName, recommendation = null) {
+  async recordEvent(
+    eventName,
+    recommendation = null,
+    recommendationGroup = null
+  ) {
     const data = { event_name: eventName };
     if (recommendation) {
       Object.assign(data, {
         surface: "interest_page",
+        recommendation_group: recommendationGroup,
         candidate_source: recommendation.candidate_source,
         rank: recommendation.rank,
         algorithm_version: this.algorithmVersion,

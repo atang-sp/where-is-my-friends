@@ -88,9 +88,9 @@ function setupApi(needs, state) {
     });
 
     server.post("/where-is-my-friends/events.json", (request) => {
-      state.events.push(
-        new URLSearchParams(request.requestBody).get("event_name"),
-      );
+      const payload = new URLSearchParams(request.requestBody);
+      state.events.push(payload.get("event_name"));
+      state.eventPayloads.push(payload);
       return helper.response({ success: "OK" });
     });
   });
@@ -120,6 +120,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       nearby: null,
       saveError: null,
       events: [],
+      eventPayloads: [],
       nearbyRequests: 0,
       nearbyDelay: 0,
       nearbyError: false,
@@ -195,6 +196,10 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .includesText("5 joined");
     assert.dom("[data-test-callout-city-card='苏州']").exists();
     assert.dom("[data-test-local-friends-callout-setup]").doesNotExist();
+    const calloutView = api.eventPayloads.find(
+      (payload) => payload.get("event_name") === "local_callout_viewed",
+    );
+    assert.strictEqual(calloutView?.get("surface"), "homepage");
   });
 
   test("topic-list callout uses generic proof below the privacy threshold", async function (assert) {
@@ -238,7 +243,22 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     await click("[data-test-callout-city-card='上海']");
 
     assert.strictEqual(api.savedLocations.length, 0);
+    assert.true(api.events.includes("local_callout_opened"));
     assert.dom("[data-test-city-input]").hasValue("上海");
+  });
+
+  test("the homepage callout records an attributed location save", async function (assert) {
+    await visit("/");
+
+    await fillIn("[data-test-callout-city-input]", "上海");
+    await click("[data-test-callout-save-city]");
+
+    const saveEvent = api.eventPayloads.find(
+      (payload) =>
+        payload.get("event_name") === "local_callout_location_saved",
+    );
+    assert.strictEqual(api.savedLocations.length, 1);
+    assert.strictEqual(saveEvent?.get("surface"), "homepage");
   });
 
   test("returning users can dismiss the topic-list callout with local persistence", async function (assert) {
@@ -249,6 +269,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.dom("[data-test-local-friends-callout-cta]").hasText("View all");
     await click("[data-test-dismiss-local-friends]");
     assert.dom("[data-test-local-friends-callout]").doesNotExist();
+    assert.true(api.events.includes("local_callout_dismissed"));
 
     await visit("/latest");
     assert.dom("[data-test-local-friends-callout]").doesNotExist();
@@ -276,6 +297,43 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     assert.dom("[data-test-local-friends-category-callout]").exists();
     assert.dom("[data-test-community-discovery]").doesNotExist();
+    const view = api.eventPayloads.find(
+      (payload) => payload.get("event_name") === "local_callout_viewed",
+    );
+    assert.strictEqual(view?.get("surface"), "category");
+  });
+
+  test("route reuse records an impression for each visible callout surface", async function (assert) {
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete",
+    );
+
+    await visit("/c/bug/1");
+    await visit("/");
+
+    const surfaces = api.eventPayloads
+      .filter(
+        (payload) => payload.get("event_name") === "local_callout_viewed",
+      )
+      .map((payload) => payload.get("surface"));
+    assert.deepEqual(surfaces, ["category", "homepage"]);
+  });
+
+  test("route reuse does not record a dismissed callout on a new surface", async function (assert) {
+    api.initial = readyState();
+
+    await visit("/");
+    await click("[data-test-dismiss-local-friends]");
+    await visit("/c/bug/1");
+
+    assert.dom("[data-test-local-friends-callout]").doesNotExist();
+    const surfaces = api.eventPayloads
+      .filter(
+        (payload) => payload.get("event_name") === "local_callout_viewed",
+      )
+      .map((payload) => payload.get("surface"));
+    assert.deepEqual(surfaces, ["homepage"]);
   });
 
   test("the category index keeps city discovery after personalization is complete", async function (assert) {

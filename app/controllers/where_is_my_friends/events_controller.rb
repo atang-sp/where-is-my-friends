@@ -15,6 +15,7 @@ module WhereIsMyFriends
           location_mode: params[:location_mode].presence,
           result_bucket: result_bucket,
           surface: params[:surface].presence,
+          recommendation_group: params[:recommendation_group].presence,
           candidate_source: params[:candidate_source].presence,
           rank_bucket: rank_bucket,
           algorithm_version: params[:algorithm_version].presence

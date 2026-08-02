@@ -475,11 +475,18 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     const impressions = api.eventPayloads.filter(
       (payload) => payload.get("event_name") === "recommendation_impression"
     );
+    const expansion = api.eventPayloads.find(
+      (payload) =>
+        payload.get("event_name") === "recommendation_panel_expanded"
+    );
+    assert.strictEqual(expansion?.get("surface"), "homepage");
+    assert.strictEqual(expansion?.get("recommendation_group"), "topics");
     assert.strictEqual(impressions.length, 3);
     assert.true(
       impressions.every(
         (payload) =>
           payload.get("surface") === "homepage" &&
+          payload.get("recommendation_group") === "topics" &&
           payload.get("algorithm_version") === "participation_v1" &&
           payload.get("result_count") === "8" &&
           payload.get("target_id") === null &&
@@ -525,6 +532,27 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       api.events.filter((event) => event === "recommendation_impression").length,
       8
     );
+    assert.deepEqual(
+      api.eventPayloads
+        .filter(
+          (payload) =>
+            payload.get("event_name") === "recommendation_group_selected"
+        )
+        .map((payload) => payload.get("recommendation_group")),
+      ["people", "interests"]
+    );
+    assert.deepEqual(
+      api.eventPayloads
+        .filter(
+          (payload) => payload.get("event_name") === "recommendation_impression"
+        )
+        .reduce((counts, payload) => {
+          const group = payload.get("recommendation_group");
+          counts[group] = (counts[group] ?? 0) + 1;
+          return counts;
+        }, {}),
+      { topics: 3, people: 3, interests: 2 }
+    );
   });
 
   test("collapse and reopen retain the selected loaded group", async function (assert) {
@@ -554,6 +582,23 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       9,
       "reopening records the three cards that became visible again"
     );
+    assert.strictEqual(
+      api.events.filter(
+        (event) => event === "recommendation_panel_expanded"
+      ).length,
+      2
+    );
+    assert.strictEqual(
+      api.events.filter(
+        (event) => event === "recommendation_panel_collapsed"
+      ).length,
+      1
+    );
+    const collapsed = api.eventPayloads.find(
+      (payload) =>
+        payload.get("event_name") === "recommendation_panel_collapsed"
+    );
+    assert.strictEqual(collapsed?.get("recommendation_group"), "people");
   });
 
   test("re-entering the homepage starts collapsed again", async function (assert) {
@@ -600,6 +645,11 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       api.events.filter((event) => event === "recommendation_impression").length,
       6
     );
+    const refresh = api.eventPayloads.find(
+      (payload) => payload.get("event_name") === "recommendation_refreshed"
+    );
+    assert.strictEqual(refresh?.get("surface"), "homepage");
+    assert.strictEqual(refresh?.get("recommendation_group"), "topics");
   });
 
   test("member cards prioritize a related discussion and keep secondary actions", async function (assert) {
@@ -806,6 +856,10 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       (payload) => payload.get("event_name") === "recommendation_impression"
     );
     assert.strictEqual(impressions.length, 2);
+    assert.deepEqual(
+      impressions.map((payload) => payload.get("recommendation_group")),
+      ["topics", "people"]
+    );
     assert.true(
       impressions.every(
         (payload) =>
@@ -1017,6 +1071,9 @@ acceptance(
           filterable_fields: [],
         });
       });
+      server.post("/where-is-my-friends/events.json", () =>
+        helper.response({ success: "OK" })
+      );
     });
 
     test("the existing city entry remains when personalization is disabled", async function (assert) {
