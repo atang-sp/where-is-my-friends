@@ -1,9 +1,23 @@
 # Changelog
 
+## 1.11.0 — 2026-08-02
+
+- Replace the always-expanded homepage recommendation cards with a compact,
+  accessible entry that loads recommendations only after the member expands it.
+- Show discussions, members, and interests as separate 3-3-2 groups, preserving
+  loaded data across collapse and recording impressions only for the visible
+  group.
+- Reduce competing primary actions, prioritize a member's related discussion,
+  and add two-column tablet and single-column mobile layouts without horizontal
+  overflow.
+- Keep homepage interest onboarding, personalized recommendations, and local
+  discovery mutually exclusive while preserving local discovery on category
+  routes and for members who skip or disable personalization.
+
 ## 1.10.0 — 2026-08-01
 
 - Add five fixed Spanking Art Wiki excerpts about safewords, spanko community,
-  the history of *Janus*, BDSM terminology, and adult spanking clubs.
+  the history of _Janus_, BDSM terminology, and adult spanking clubs.
 - Fetch immutable Internet Archive snapshots because the original site blocks
   automated access, and fail closed if the page ID, revision ID, or page-level
   GFDL notice differs from the reviewed source.
