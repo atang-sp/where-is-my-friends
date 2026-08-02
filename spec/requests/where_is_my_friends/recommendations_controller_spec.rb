@@ -935,6 +935,7 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
       )
     ).to have_attributes(
       surface: "homepage",
+      recommendation_group: "topics",
       candidate_source: "interest",
       rank_bucket: "one_to_two",
       algorithm_version: "participation_v1"

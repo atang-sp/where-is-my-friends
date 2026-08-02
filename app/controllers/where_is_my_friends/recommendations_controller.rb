@@ -122,7 +122,10 @@ module WhereIsMyFriends
         target_type: target_type,
         target_id: target_id
       )
-      record_event("recommendation_dismissed", recommendation_event_metadata)
+      record_event(
+        "recommendation_dismissed",
+        recommendation_event_metadata(target_type: target_type)
+      )
 
       render json: RecommendationEngine.new(current_user).call(profile: profile)
     end
@@ -186,12 +189,19 @@ module WhereIsMyFriends
       )
     end
 
-    def recommendation_event_metadata
+    def recommendation_event_metadata(target_type: nil)
       metadata = {}
+      recommendation_group =
+        { "topic" => "topics", "user" => "people", "interest" => "interests" }[
+          target_type
+        ]
+      metadata[
+        :recommendation_group
+      ] = recommendation_group if recommendation_group
       surface = params[:surface].presence
-      if WhereIsMyFriendsEvent::SURFACES.include?(surface)
-        metadata[:surface] = surface
-      end
+      metadata[:surface] = surface if WhereIsMyFriendsEvent::SURFACES.include?(
+        surface
+      )
       candidate_source = params[:candidate_source].presence
       if WhereIsMyFriendsEvent::CANDIDATE_SOURCES.include?(candidate_source)
         metadata[:candidate_source] = candidate_source

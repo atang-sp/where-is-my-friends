@@ -144,19 +144,22 @@ module WhereIsMyFriends
       raise Discourse::InvalidAccess unless current_user.admin?
 
       active_locations = UserLocation.active_for_discovery
+      window_days = report_window_days
+      as_of = Time.current
+      report =
+        WhereIsMyFriends::GrowthReport.new(
+          since: as_of - window_days.days,
+          as_of: as_of
+        ).call
 
       render json: {
-               window_days: report_window_days,
+               window_days: window_days,
                active: active_locations.count,
                by_mode: active_locations.group(:discovery_mode).count,
                locations: {
                  active: location_totals(active_locations)
-               },
-               funnel:
-                 WhereIsMyFriendsEvent.aggregate(
-                   since: report_window_days.days.ago
-                 )
-             }
+               }
+             }.merge(report)
     end
 
     private

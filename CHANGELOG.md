@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.12.0 — 2026-08-02
+
+- Add privacy-safe recommendation-group funnels for panel expansion, collapse,
+  group selection, refresh, visible impressions, opens, and dismissals without
+  storing recommendation target IDs or content.
+- Measure the homepage Local Friends entry from view through open, city save,
+  and dismissal while keeping category attribution separate.
+- Add mature 24-hour and seven-day cohorts, public content-supply metrics, and
+  site-time-zone daily trends to the administrator-only growth report so
+  incomplete observation windows no longer dilute conversion rates.
+- Document the measurement contract, legacy-exposure boundary, plugin-only
+  return definition, and the day-7/day-14 observation schedule.
+
 ## 1.11.1 — 2026-08-02
 
 - Restore the homepage Local Friends entry alongside the collapsed community

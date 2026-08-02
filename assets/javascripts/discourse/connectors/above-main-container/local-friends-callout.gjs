@@ -3,6 +3,7 @@ import { tracked } from "@glimmer/tracking";
 import { on } from "@ember/modifier";
 import { action, get } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
+import didUpdate from "@ember/render-modifiers/modifiers/did-update";
 import { LinkTo } from "@ember/routing";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
@@ -56,6 +57,7 @@ export default class LocalFriendsCallout extends Component {
   @tracked dismissed = false;
   @tracked compact = false;
   calloutState = readCalloutState();
+  recordedImpressionSurfaces = new Set();
 
   constructor() {
     super(...arguments);
@@ -118,6 +120,18 @@ export default class LocalFriendsCallout extends Component {
     const currentSlug =
       this.router.currentRoute?.attributes?.category?.slug ?? "";
     return currentSlug === slug;
+  }
+
+  get calloutSurface() {
+    if (this.isHomeRoute) {
+      return "homepage";
+    }
+
+    if (this.isCategoryRoute) {
+      return "category";
+    }
+
+    return null;
   }
 
   get isCategoryMode() {
@@ -198,10 +212,21 @@ export default class LocalFriendsCallout extends Component {
         this.city = this.data.profile_location;
         this.hasSuggestion = true;
       }
-      this.recordView();
     } catch {
       // The optional entry must never block topic-list rendering.
     }
+  }
+
+  @action
+  recordCalloutImpression() {
+    const surface = this.calloutSurface;
+    if (!surface || this.recordedImpressionSurfaces.has(surface)) {
+      return;
+    }
+
+    this.recordedImpressionSurfaces.add(surface);
+    void this.recordEvent("local_callout_viewed");
+    this.recordView();
   }
 
   recordView() {
@@ -247,6 +272,7 @@ export default class LocalFriendsCallout extends Component {
         state: response.state,
       };
       this.justJoined = true;
+      void this.recordEvent("local_callout_location_saved");
     } catch {
       this.error = i18n("where_is_my_friends.callout_save_error");
     } finally {
@@ -256,6 +282,7 @@ export default class LocalFriendsCallout extends Component {
 
   @action
   dismiss() {
+    void this.recordEvent("local_callout_dismissed");
     const views = Math.max(this.calloutState.views, MAX_VIEWS);
     this.calloutState = {
       views,
@@ -275,6 +302,25 @@ export default class LocalFriendsCallout extends Component {
     }
   }
 
+  @action
+  trackOpen() {
+    void this.recordEvent("local_callout_opened");
+  }
+
+  async recordEvent(eventName) {
+    try {
+      await ajax("/where-is-my-friends/events.json", {
+        type: "POST",
+        data: {
+          event_name: eventName,
+          surface: this.calloutSurface,
+        },
+      });
+    } catch {
+      // Measurement must never block local discovery.
+    }
+  }
+
   <template>
     {{#if this.shouldLoad}}
       <span hidden {{didInsert this.load}}></span>
@@ -283,6 +329,8 @@ export default class LocalFriendsCallout extends Component {
           <section
             class="local-friends-callout-banner local-friends-callout-banner--category"
             data-test-local-friends-category-callout
+            {{didInsert this.recordCalloutImpression}}
+            {{didUpdate this.recordCalloutImpression this.calloutSurface}}
           >
             <div class="local-friends-callout-banner__content">
               <strong>{{i18n
@@ -330,6 +378,8 @@ export default class LocalFriendsCallout extends Component {
               class="local-friends-callout-banner local-friends-callout-banner--returning"
               data-test-local-friends-callout
               data-test-local-friends-returning
+              {{didInsert this.recordCalloutImpression}}
+              {{didUpdate this.recordCalloutImpression this.calloutSurface}}
             >
               <div class="local-friends-callout-banner__content">
                 <strong>{{this.returningWidgetText}}</strong>
@@ -338,6 +388,7 @@ export default class LocalFriendsCallout extends Component {
                 @route="where-is-my-friends"
                 class="btn btn-primary btn-small"
                 data-test-local-friends-callout-cta
+                {{on "click" this.trackOpen}}
               >
                 {{i18n "where_is_my_friends.sidebar_widget_view"}}
               </LinkTo>
@@ -357,6 +408,8 @@ export default class LocalFriendsCallout extends Component {
             <section
               class="local-friends-callout-banner local-friends-callout-banner--compact"
               data-test-local-friends-callout
+              {{didInsert this.recordCalloutImpression}}
+              {{didUpdate this.recordCalloutImpression this.calloutSurface}}
             >
               <div class="local-friends-callout-banner__content">
                 <strong>{{i18n "where_is_my_friends.callout_title"}}</strong>
@@ -365,6 +418,7 @@ export default class LocalFriendsCallout extends Component {
                 @route="where-is-my-friends"
                 class="btn btn-primary btn-small"
                 data-test-local-friends-callout-cta
+                {{on "click" this.trackOpen}}
               >
                 {{i18n "where_is_my_friends.callout_set_city"}}
               </LinkTo>
@@ -373,6 +427,8 @@ export default class LocalFriendsCallout extends Component {
               <section
               class="local-friends-callout-banner"
               data-test-local-friends-callout
+              {{didInsert this.recordCalloutImpression}}
+              {{didUpdate this.recordCalloutImpression this.calloutSurface}}
             >
               <div class="local-friends-callout-banner__content">
                 {{#if this.justJoined}}
@@ -405,6 +461,7 @@ export default class LocalFriendsCallout extends Component {
                           class="where-is-my-friends__city-card"
                           href={{entry.url}}
                           data-test-callout-city-card={{entry.city_key}}
+                          {{on "click" this.trackOpen}}
                         >
                           <strong>{{entry.city}}</strong>
                           <span>{{i18n
