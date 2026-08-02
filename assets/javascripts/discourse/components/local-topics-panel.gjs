@@ -41,7 +41,7 @@ export default class LocalTopicsPanel extends Component {
               <strong>{{topic.title}}</strong>
               <span>{{i18n
                   "where_is_my_friends.local_topic_meta"
-                  city=topic.activity_city
+                  city=topic.activity_area
                   posts=topic.posts_count
                 }}</span>
             </a>

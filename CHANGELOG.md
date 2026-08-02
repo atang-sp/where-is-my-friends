@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.13.0 — 2026-08-03
+
+- Reuse the target practice category's existing parent and regional tags for
+  local-topic discovery and composer links without creating `local-city-*`
+  tags.
+- Map Chinese cities to province-level activity areas and supported
+  international cities to the category's existing Japanese, European, North
+  American, and Oceanian tags, with category-only fallback when no legal tag
+  pair exists.
+- Restrict nearby topic results and interaction events to visible,
+  unambiguous topics in the configured category, and prefer a client-visible
+  category ID while retaining the legacy slug fallback.
+
 ## 1.12.1 — 2026-08-02
 
 - Anchor setup completions to a preceding setup start inside the report window,

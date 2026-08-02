@@ -5,6 +5,25 @@ RSpec.describe WhereIsMyFriends::LocationsController do
 
   before { SiteSetting.where_is_my_friends_enabled = true }
 
+  def configure_practice_category(*area_names)
+    category = Fabricate(:category, minimum_required_tags: 2)
+    SiteSetting.where_is_my_friends_target_category_id = category.id
+    china = Tag.find_or_create_by!(name: "中国")
+    areas =
+      area_names.to_h { |name| [name, Tag.find_or_create_by!(name: name)] }
+    top_level_group = Fabricate(:tag_group, tags: [china], one_per_topic: true)
+    province_group =
+      Fabricate(
+        :tag_group,
+        parent_tag: china,
+        tags: areas.values,
+        one_per_topic: true
+      )
+    CategoryTagGroup.create!(category: category, tag_group: top_level_group)
+    CategoryTagGroup.create!(category: category, tag_group: province_group)
+    [category, { "中国" => china }.merge(areas)]
+  end
+
   it "requires login for every data endpoint" do
     get "/where-is-my-friends/locations/nearby.json"
     expect(response.status).to eq(403)
@@ -214,12 +233,17 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       )
     end
 
-    it "returns readable native topics for the previewed activity-city tag" do
+    it "returns existing target-category topics for the previewed activity area" do
       SiteSetting.tagging_enabled = true
       sign_in(user)
-      city_tag = Fabricate(:tag, name: "local-city-上海")
+      category, tags = configure_practice_category("上海")
       local_topic =
-        Fabricate(:topic, title: "Shanghai weekend picnic", tags: [city_tag])
+        Fabricate(
+          :topic,
+          category: category,
+          title: "Shanghai weekend picnic",
+          tags: tags.values_at("中国", "上海")
+        )
 
       get "/where-is-my-friends/cities/preview.json", params: { city: "上海" }
 
@@ -227,11 +251,26 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "id" => local_topic.id,
         "title" => "Shanghai weekend picnic",
         "url" => local_topic.relative_url,
-        "activity_city" => "上海",
-        "city_tag" => "local-city-上海"
+        "activity_area" => "上海"
       )
-      expect(response.parsed_body.fetch("local_topic_compose_url")).to include(
-        "tags=local-city-%E4%B8%8A%E6%B5%B7"
+      expect(response.parsed_body.fetch("local_topic_compose_url")).to eq(
+        "/new-topic?category_id=#{category.id}&tags=%E4%B8%AD%E5%9B%BD,%E4%B8%8A%E6%B5%B7"
+      )
+    end
+
+    it "falls back to the target category when a canonical city has no area tag" do
+      SiteSetting.tagging_enabled = true
+      sign_in(user)
+      category, = configure_practice_category("上海")
+
+      get "/where-is-my-friends/cities/preview.json",
+          params: {
+            city: "Singapore"
+          }
+
+      expect(response.parsed_body).to include(
+        "local_topics" => [],
+        "local_topic_compose_url" => "/new-topic?category_id=#{category.id}"
       )
     end
 
@@ -528,31 +567,53 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         city: "上海",
         discovery_radius_km: 100
       )
-      shanghai_tag = Fabricate(:tag, name: "local-city-上海")
-      suzhou_tag = Fabricate(:tag, name: "local-city-苏州")
-      beijing_tag = Fabricate(:tag, name: "local-city-北京")
+      category, tags = configure_practice_category("上海", "江苏", "浙江")
       ambiguous_topic =
         Fabricate(
           :topic,
+          category: category,
           title: "Ambiguous activity",
-          tags: [shanghai_tag, suzhou_tag]
+          tags: tags.values_at("中国", "上海", "江苏")
         )
       shanghai_topic =
-        Fabricate(:topic, title: "Shanghai activity", tags: [shanghai_tag])
-      suzhou_topic =
-        Fabricate(:topic, title: "Suzhou activity", tags: [suzhou_tag])
-      Fabricate(:topic, title: "Beijing activity", tags: [beijing_tag])
+        Fabricate(
+          :topic,
+          category: category,
+          title: "Shanghai activity",
+          tags: tags.values_at("中国", "上海")
+        )
+      jiangsu_topic =
+        Fabricate(
+          :topic,
+          category: category,
+          title: "Jiangsu activity",
+          tags: tags.values_at("中国", "江苏")
+        )
+      zhejiang_topic =
+        Fabricate(
+          :topic,
+          category: category,
+          title: "Zhejiang activity",
+          tags: tags.values_at("中国", "浙江")
+        )
+      Fabricate(
+        :topic,
+        category: Fabricate(:category),
+        title: "Outside Zhejiang activity",
+        tags: tags.values_at("中国", "浙江")
+      )
 
       get "/where-is-my-friends/locations/nearby.json"
 
       topics = response.parsed_body.fetch("local_topics")
       expect(topics.pluck("id")).to contain_exactly(
         shanghai_topic.id,
-        suzhou_topic.id
+        jiangsu_topic.id,
+        zhejiang_topic.id
       )
       expect(topics.pluck("id")).not_to include(ambiguous_topic.id)
-      expect(topics.pluck("activity_city")).to contain_exactly("上海", "苏州")
-      expect(response.body).not_to include("Beijing activity")
+      expect(topics.pluck("activity_area")).to contain_exactly("上海", "江苏", "浙江")
+      expect(response.body).not_to include("Outside Zhejiang activity")
     end
 
     it "expands a tighter discovery radius when it would otherwise be empty" do

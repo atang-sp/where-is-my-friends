@@ -7,6 +7,7 @@ import { LinkTo } from "@ember/routing";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { i18n } from "discourse-i18n";
+import { isWhereIsMyFriendsTargetCategory } from "discourse/plugins/where-is-my-friends/discourse/lib/target-category";
 
 const DISMISSED_KEY = "local-friends-composer-hint-dismissed";
 
@@ -17,16 +18,9 @@ export default class LocalFriendsComposerHint extends Component {
   @tracked visible = false;
   @tracked userCity = null;
 
-  get targetCategorySlug() {
-    return this.siteSettings.where_is_my_friends_target_category_slug?.trim();
-  }
-
   get isTargetCategory() {
-    if (!this.targetCategorySlug) {
-      return false;
-    }
     const category = this.args.outletArgs?.model?.category;
-    return category?.slug === this.targetCategorySlug;
+    return isWhereIsMyFriendsTargetCategory(category, this.siteSettings);
   }
 
   get shouldCheck() {

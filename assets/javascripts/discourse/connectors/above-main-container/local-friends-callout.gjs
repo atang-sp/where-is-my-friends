@@ -9,6 +9,7 @@ import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
+import { isWhereIsMyFriendsTargetCategory } from "discourse/plugins/where-is-my-friends/discourse/lib/target-category";
 
 const STORAGE_KEY = "local-friends-callout-state";
 const MAX_VIEWS = 2;
@@ -109,17 +110,13 @@ export default class LocalFriendsCallout extends Component {
   }
 
   get isTargetCategory() {
-    const slug =
-      this.siteSettings.where_is_my_friends_target_category_slug?.trim();
-    if (!slug) {
-      return false;
-    }
     if (!this.isCategoryRoute) {
       return false;
     }
-    const currentSlug =
-      this.router.currentRoute?.attributes?.category?.slug ?? "";
-    return currentSlug === slug;
+    return isWhereIsMyFriendsTargetCategory(
+      this.router.currentRoute?.attributes?.category,
+      this.siteSettings,
+    );
   }
 
   get calloutSurface() {

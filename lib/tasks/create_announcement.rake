@@ -38,42 +38,31 @@ task "where_is_my_friends:create_announcement" => :environment do
   topic.update!(pinned_globally: true, pinned_at: Time.current)
   puts "Created global announcement: #{base_url}/t/#{topic.slug}/#{topic.id}"
 
-  target_slug = SiteSetting.where_is_my_friends_target_category_slug.presence
-  if target_slug
-    category = Category.find_by(slug: target_slug)
-    if category
-      cat_title =
-        I18n.t(
-          "where_is_my_friends.announcement.category_title",
-          locale: locale
-        )
-      cat_body =
-        I18n.t(
-          "where_is_my_friends.announcement.category_body",
-          count: total_members,
-          city_count: city_count,
-          link: link,
-          locale: locale
-        )
-
-      cat_post =
-        PostCreator.create!(
-          Discourse.system_user,
-          title: cat_title,
-          raw: cat_body,
-          archetype: Archetype.default,
-          category: category.id
-        )
-      cat_topic = cat_post.topic
-      cat_topic.update!(
-        pinned_at: Time.current,
-        pinned_until: 10.years.from_now
+  target_category = WhereIsMyFriends::LocalTopics.target_category
+  if target_category
+    cat_title =
+      I18n.t("where_is_my_friends.announcement.category_title", locale: locale)
+    cat_body =
+      I18n.t(
+        "where_is_my_friends.announcement.category_body",
+        count: total_members,
+        city_count: city_count,
+        link: link,
+        locale: locale
       )
-      puts "Created category pinned post: #{base_url}/t/#{cat_topic.slug}/#{cat_topic.id}"
-    else
-      puts "Warning: category '#{target_slug}' not found, skipping category pin."
-    end
+
+    cat_post =
+      PostCreator.create!(
+        Discourse.system_user,
+        title: cat_title,
+        raw: cat_body,
+        archetype: Archetype.default,
+        category: target_category.id
+      )
+    cat_topic = cat_post.topic
+    cat_topic.update!(pinned_at: Time.current, pinned_until: 10.years.from_now)
+    puts "Created category pinned post: #{base_url}/t/#{cat_topic.slug}/#{cat_topic.id}"
   else
-    puts "No target category configured (where_is_my_friends_target_category_slug), skipping category pin."
+    puts "No target category configured (where_is_my_friends_target_category_id or legacy slug), skipping category pin."
   end
 end
