@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.13.0
+# version: 1.14.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0.beta1
@@ -17,13 +17,13 @@ add_admin_route(
 register_asset "stylesheets/where-is-my-friends.scss"
 register_svg_icon "plug"
 register_svg_icon "floppy-disk"
-register_seedfu_fixtures(
-  Rails.root.join("plugins/where-is-my-friends/db/fixtures")
-)
 
 require_relative "lib/where_is_my_friends/engine"
 
 after_initialize do
+  SeedFu.fixture_paths <<
+    Rails.root.join("plugins/where-is-my-friends/db/fixtures").to_s
+
   Rails.application.config.filter_parameters |= %i[api_key]
 
   require_relative "lib/where_is_my_friends/interest_visibility"

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.14.0 — 2026-08-03
+
+- Keep homepage discovery low-distraction with one state-aware entry, lazy
+  recommendation loading, and a persisted local-callout dismissal cooldown.
+- Split funnel metrics from the event persistence model and split location
+  overview, saving, preview, and nearby discovery into focused service modules.
+- Split the large discovery and interest-onboarding templates into behavior
+  seams without changing their public actions, analytics, or JSON contracts.
+- Verify LocalTopics tag loading at runtime and guard against per-topic
+  `topic_tags` queries; keep category-only fallback and existing-tag reuse.
+- Make SeedFu fixture loading work from the plugin runtime and correct the
+  location-retention documentation to match the disabled TTL behavior.
+
 ## 1.13.0 — 2026-08-03
 
 - Reuse the target practice category's existing parent and regional tags for

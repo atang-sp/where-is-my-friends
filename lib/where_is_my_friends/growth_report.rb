@@ -15,7 +15,8 @@ module WhereIsMyFriends
           starts_at: @since.iso8601,
           ends_at: @as_of.iso8601
         },
-        funnel: WhereIsMyFriendsEvent.aggregate(since: @since, as_of: @as_of),
+        funnel:
+          FunnelMetrics.new(since: @since, as_of: @as_of).call,
         content_supply: content_supply,
         daily: daily_trend
       }

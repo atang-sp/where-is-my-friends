@@ -416,7 +416,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.strictEqual(api.locationRequests, 1);
   });
 
-  test("a completed member sees local friends and collapsed community discovery without loading recommendations", async function (assert) {
+  test("a completed member sees collapsed community discovery without loading recommendations", async function (assert) {
     api.model = homepageModel();
     getOwner(this).lookup("service:current-user").set(
       "where_is_my_friends_interest_onboarding_state",
@@ -426,8 +426,8 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     await visit("/");
 
     assert.dom("[data-test-community-discovery]").exists();
-    assert.dom("[data-test-local-friends-callout]").exists();
-    assert.strictEqual(api.locationRequests, 1);
+    assert.dom("[data-test-local-friends-callout]").doesNotExist();
+    assert.strictEqual(api.locationRequests, 0);
     assert
       .dom("[data-test-community-toggle]")
       .hasAttribute("aria-expanded", "false")

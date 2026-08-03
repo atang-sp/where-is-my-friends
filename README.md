@@ -17,8 +17,8 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 城市优先：本地发现只需填写城市，保存后自动加载同城成员。
 - 可选精确模式：GPS 或地图只用于生成“约 5 公里内 / 5–20 公里 / 20 公里以上”等距离范围。
 - 连接闭环：成员卡片可进入主页、发私信；空状态可搜索本地话题。
-- 明确状态：覆盖首次设置、加载、结果、空结果、过期和错误状态。
-- 控制权：用户可更新城市或立即删除位置；位置默认 30 天后由定时任务删除。
+- 明确状态：覆盖首次设置、加载、结果、空结果和错误状态。
+- 控制权：用户可更新城市或立即删除位置；位置不会由插件自动过期，分析事件仍在 90 天后删除。
 - 隐私统计：只记录白名单事件、位置模式和粗粒度结果桶；事件 90 天后删除。
 - 许可英文精选：安全地将 Interpersonal Skills Stack Exchange 的一篇完整问答翻译为中文；默认只生成管理员预览，校验未全部通过时绝不发帖。
 
@@ -87,7 +87,6 @@ bundle exec rake db:migrate
 | `where_is_my_friends_amap_api_key` | 空 | 仅在选择高德时发送到浏览器 |
 | `where_is_my_friends_baidu_api_key` | 空 | 仅在选择百度时发送到浏览器 |
 | `where_is_my_friends_max_users_display` | `50` | 返回用户上限，服务端限制为 10–200 |
-| `where_is_my_friends_location_ttl_days` | `30` | 位置有效期，服务端限制为 1–365 天 |
 | `where_is_my_friends_aggregate_privacy_threshold` | `3` | 显示精确活跃人数的最低参与者数量 |
 | `where_is_my_friends_target_category_id` | 空 | “实践交友”目标分区；本地话题只复用该分区标签组中已有的父子地域标签，且不会创建标签 |
 | `where_is_my_friends_target_category_slug` | 空 | 兼容旧配置的分区 slug；仅在目标分区 ID 未配置时使用 |

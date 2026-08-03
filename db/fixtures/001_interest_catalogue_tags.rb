@@ -3,7 +3,7 @@
 require "yaml"
 
 catalogue_path =
-  File.expand_path("../../config/interest_catalogue.yml", __dir__)
+  Rails.root.join("plugins/where-is-my-friends/config/interest_catalogue.yml")
 interest_names =
   YAML
     .safe_load_file(catalogue_path)

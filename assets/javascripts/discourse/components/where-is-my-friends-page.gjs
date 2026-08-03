@@ -1,23 +1,19 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { fn } from "@ember/helper";
-import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
-import { LinkTo } from "@ember/routing";
 import { next } from "@ember/runloop";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { relativeAge } from "discourse/lib/formatter";
 import { clipboardCopy } from "discourse/lib/utilities";
-import DButton from "discourse/ui-kit/d-button";
-import dAvatar from "discourse/ui-kit/helpers/d-avatar";
 import { i18n } from "discourse-i18n";
 import { normalizeCityClient } from "../lib/where-is-my-friends-city";
 import { getCurrentPositionAsync } from "../lib/where-is-my-friends-geolocation";
-import LocalTopicsPanel from "./local-topics-panel";
 import LocationModeDialog from "./location-mode-dialog";
 import VirtualLocationPicker from "./virtual-location-picker";
+import WhereIsMyFriendsResultsPanel from "./where-is-my-friends-results-panel";
+import WhereIsMyFriendsSetupPanel from "./where-is-my-friends-setup-panel";
 
 export default class WhereIsMyFriendsPage extends Component {
   @service currentUser;
@@ -775,709 +771,78 @@ export default class WhereIsMyFriendsPage extends Component {
       {{/if}}
 
       {{#if this.isSetup}}
-        <section class="where-is-my-friends__setup">
-          <h2>{{i18n "where_is_my_friends.setup_title"}}</h2>
-          <p>{{i18n "where_is_my_friends.setup_description"}}</p>
-          <p
-            class="where-is-my-friends__participant-proof"
-            data-test-participant-proof
-          >{{this.participantProof}}</p>
-          {{#if this.hasCityDirectory}}
-            <div class="where-is-my-friends__directory">
-              {{#if this.cityDirectory.active.length}}
-                <section data-test-city-directory-active>
-                  <h3>{{i18n "where_is_my_friends.active_cities"}}</h3>
-                  <div class="where-is-my-friends__city-grid">
-                    {{#each this.cityDirectory.active as |entry|}}
-                      <button
-                        type="button"
-                        class="where-is-my-friends__city-card"
-                        data-test-city-card={{entry.city_key}}
-                        {{on "click" (fn this.previewSuggestedCity entry.city)}}
-                      >
-                        <strong>{{entry.city}}</strong>
-                        <span>{{i18n
-                            "where_is_my_friends.city_directory_counts"
-                            active=entry.recent_active_count
-                            joined=entry.joined_count
-                          }}</span>
-                      </button>
-                    {{/each}}
-                  </div>
-                </section>
-              {{/if}}
-              {{#if this.cityDirectory.growing.length}}
-                <section data-test-city-directory-growing>
-                  <h3>{{i18n "where_is_my_friends.growing_cities"}}</h3>
-                  <div class="where-is-my-friends__city-grid">
-                    {{#each this.cityDirectory.growing as |entry|}}
-                      <button
-                        type="button"
-                        class="where-is-my-friends__city-card"
-                        data-test-city-card={{entry.city_key}}
-                        {{on "click" (fn this.previewSuggestedCity entry.city)}}
-                      >
-                        <strong>{{entry.city}}</strong>
-                        <span>{{i18n
-                            "where_is_my_friends.city_directory_counts"
-                            active=entry.recent_active_count
-                            joined=entry.joined_count
-                          }}</span>
-                      </button>
-                    {{/each}}
-                  </div>
-                </section>
-              {{/if}}
-            </div>
-          {{/if}}
-          <label for="where-is-my-friends-city">{{i18n
-              "where_is_my_friends.city"
-            }}</label>
-          <input
-            id="where-is-my-friends-city"
-            type="text"
-            value={{this.city}}
-            list="where-is-my-friends-city-suggestions"
-            autocomplete="address-level2"
-            placeholder={{i18n "where_is_my_friends.city_placeholder"}}
-            data-test-city-input
-            {{on "input" this.updateCity}}
-          />
-          <datalist id="where-is-my-friends-city-suggestions">
-            {{#each this.cityOptions as |suggestion|}}
-              <option value={{suggestion.city}}></option>
-            {{/each}}
-          </datalist>
-          {{#if this.autoCity}}
-            <p
-              class="where-is-my-friends__auto-city-hint"
-              data-test-auto-city-hint
-            >{{i18n
-                "where_is_my_friends.auto_city_hint"
-                city=this.autoCity
-              }}</p>
-          {{/if}}
-          {{#if this.cityPreview}}
-            <p
-              class="where-is-my-friends__city-preview"
-              data-test-city-preview
-            >{{this.cityPreview}}</p>
-          {{/if}}
-          {{#if this.cityNormalizationHint}}
-            <p
-              class="where-is-my-friends__city-hint"
-              data-test-city-hint
-            >{{this.cityNormalizationHint}}</p>
-          {{/if}}
-          {{#if this.showRegion}}
-            <label for="where-is-my-friends-region">{{i18n
-                "where_is_my_friends.region_optional"
-              }}</label>
-            <input
-              id="where-is-my-friends-region"
-              type="text"
-              value={{this.region}}
-              autocomplete="address-level1"
-              data-test-region-field
-              {{on "input" this.updateRegion}}
-            />
-          {{else}}
-            <DButton
-              @action={{this.revealRegion}}
-              @label="where_is_my_friends.add_region"
-              @icon="plus"
-              class="btn-flat where-is-my-friends__add-region"
-              data-test-toggle-region
-            />
-          {{/if}}
-          {{#if this.hasCityDirectory}}
-            <DButton
-              @action={{this.previewCurrentCity}}
-              @label="where_is_my_friends.preview_city"
-              @icon="magnifying-glass-location"
-              @disabled={{this.previewLoading}}
-              class="btn-primary"
-              data-test-preview-city
-            />
-            {{#if this.networkPreview}}
-              <section
-                class="where-is-my-friends__network-preview"
-                data-test-city-network-preview
-              >
-                <h3>{{this.networkPreview.city.city}}</h3>
-                <p>{{i18n
-                    "where_is_my_friends.preview_city_counts"
-                    active=this.networkPreview.city.recent_active_count
-                    joined=this.networkPreview.city.joined_count
-                  }}</p>
-                {{#unless this.networkPreview.city.canonical}}
-                  <p class="alert alert-info">{{i18n
-                      "where_is_my_friends.unverified_city_notice"
-                    }}</p>
-                {{/unless}}
-                {{#if this.previewRadiusButtons.length}}
-                  <div
-                    class="where-is-my-friends__preview-radii"
-                    role="group"
-                    aria-label={{i18n
-                      "where_is_my_friends.recommended_activity_range"
-                    }}
-                  >
-                    {{#each this.previewRadiusButtons as |option|}}
-                      <DButton
-                        @action={{fn this.selectPreviewRadius option.radius_km}}
-                        @translatedLabel={{option.label}}
-                        class={{if option.selected "btn-primary" "btn-flat"}}
-                        data-test-preview-radius={{option.radius_km}}
-                      />
-                    {{/each}}
-                  </div>
-                {{/if}}
-                {{#if this.networkPreview.nearby_cities.length}}
-                  <div class="where-is-my-friends__preview-nearby">
-                    <h4>{{i18n "where_is_my_friends.nearby_city_network"}}</h4>
-                    {{#each this.networkPreview.nearby_cities as |nearby|}}
-                      <p data-test-preview-nearby-city={{nearby.city_key}}>
-                        <strong>{{nearby.city}}</strong>
-                        <span>{{i18n
-                            "where_is_my_friends.nearby_city_counts"
-                            distance=nearby.approximate_distance_km
-                            active=nearby.recent_active_count
-                            joined=nearby.joined_count
-                          }}</span>
-                      </p>
-                    {{/each}}
-                  </div>
-                {{/if}}
-                {{#if this.networkPreview.local_topic_compose_url}}
-                  <LocalTopicsPanel
-                    @topics={{this.networkPreview.local_topics}}
-                    @actionUrl={{this.networkPreview.local_topic_compose_url}}
-                    @city={{this.networkPreview.city.city}}
-                    @compose={{true}}
-                    @onOpen={{this.trackLocalTopicOpen}}
-                    @onCompose={{this.trackLocalTopicCompose}}
-                  />
-                {{/if}}
-                <fieldset class="where-is-my-friends__join-notifications">
-                  <legend>{{i18n
-                      "where_is_my_friends.join_notifications"
-                    }}</legend>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={{this.notifyCity}}
-                      data-test-join-notify-city
-                      {{on "change" this.toggleJoinNotifyCity}}
-                    />
-                    {{i18n "where_is_my_friends.notify_city_members"}}
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={{this.notifyNearby}}
-                      data-test-join-notify-nearby
-                      {{on "change" this.toggleJoinNotifyNearby}}
-                    />
-                    {{i18n "where_is_my_friends.notify_nearby_members"}}
-                  </label>
-                </fieldset>
-                <DButton
-                  @action={{this.saveCity}}
-                  @translatedLabel={{this.previewJoinLabel}}
-                  @icon="location-dot"
-                  @disabled={{this.loading}}
-                  class="btn-primary"
-                  data-test-join-city
-                  data-test-save-city
-                />
-              </section>
-            {{/if}}
-          {{else}}
-            <fieldset class="where-is-my-friends__join-notifications">
-              <legend>{{i18n "where_is_my_friends.join_notifications"}}</legend>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={{this.notifyCity}}
-                  data-test-join-notify-city
-                  {{on "change" this.toggleJoinNotifyCity}}
-                />
-                {{i18n "where_is_my_friends.notify_city_members"}}
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={{this.notifyNearby}}
-                  data-test-join-notify-nearby
-                  {{on "change" this.toggleJoinNotifyNearby}}
-                />
-                {{i18n "where_is_my_friends.notify_nearby_members"}}
-              </label>
-            </fieldset>
-            <DButton
-              @action={{this.saveCity}}
-              @label="where_is_my_friends.save_city"
-              @icon="location-dot"
-              @disabled={{this.loading}}
-              class="btn-primary"
-              data-test-save-city
-            />
-          {{/if}}
-          <p class="where-is-my-friends__privacy">{{i18n
-              "where_is_my_friends.city_privacy"
-            }}</p>
-        </section>
-      {{else}}
-        <section
-          class="where-is-my-friends__location-summary"
-          data-test-location-mode={{this.location.discovery_mode}}
-        >
-          <div>
-            <span>{{i18n "where_is_my_friends.your_city"}}</span>
-            <strong>{{this.location.city}}</strong>
-          </div>
-          <div
-            class="where-is-my-friends__radius"
-            role="group"
-            aria-label={{i18n "where_is_my_friends.discovery_radius"}}
-            data-test-discovery-radius
-          >
-            <span>{{i18n "where_is_my_friends.discovery_radius"}}</span>
-            {{#each this.discoveryRadiusButtons as |option|}}
-              <DButton
-                @action={{fn this.selectDiscoveryRadius option.radius}}
-                @translatedLabel={{option.label}}
-                @disabled={{this.loading}}
-                class={{if option.selected "btn-primary" "btn-flat"}}
-                data-test-discovery-radius-option={{option.radius}}
-              />
-            {{/each}}
-          </div>
-          <details
-            class="where-is-my-friends__location-settings"
-            data-test-location-settings
-          >
-            <summary
-              class="btn btn-flat"
-              data-test-location-settings-toggle
-            >{{i18n "where_is_my_friends.location_settings"}}</summary>
-            <div class="where-is-my-friends__location-actions">
-              {{#if @model.settings.virtual_location_enabled}}
-                <DButton
-                  @action={{this.openAdvancedLocation}}
-                  @label="where_is_my_friends.advanced_location"
-                  @icon="map-location-dot"
-                  class="btn-flat"
-                  data-test-advanced-location
-                />
-              {{/if}}
-              <DButton
-                @action={{this.editLocation}}
-                @label="where_is_my_friends.update_city"
-                @icon="pencil"
-                class="btn-flat"
-                data-test-update-location
-              />
-              <DButton
-                @action={{this.removeLocation}}
-                @label="where_is_my_friends.remove_location"
-                @icon="trash-can"
-                class="btn-danger"
-                data-test-remove-location
-              />
-            </div>
-          </details>
-        </section>
-
-        {{#if this.gpsFallback}}
-          <p class="alert alert-info" data-test-gps-fallback>{{i18n
-              "where_is_my_friends.gps_city_fallback"
-            }}</p>
-        {{/if}}
-
-        <LocalTopicsPanel
-          @topics={{this.localTopics}}
-          @actionUrl={{this.localTopicActionUrl}}
-          @city={{this.location.city}}
-          @compose={{this.localTopicComposeUrl}}
-          @onOpen={{this.trackLocalTopicOpen}}
-          @onCompose={{this.trackLocalTopicCompose}}
+        <WhereIsMyFriendsSetupPanel
+          @autoCity={{this.autoCity}}
+          @city={{this.city}}
+          @cityDirectory={{this.cityDirectory}}
+          @cityNormalizationHint={{this.cityNormalizationHint}}
+          @cityOptions={{this.cityOptions}}
+          @cityPreview={{this.cityPreview}}
+          @hasCityDirectory={{this.hasCityDirectory}}
+          @loading={{this.loading}}
+          @networkPreview={{this.networkPreview}}
+          @notifyCity={{this.notifyCity}}
+          @notifyNearby={{this.notifyNearby}}
+          @participantProof={{this.participantProof}}
+          @previewCurrentCity={{this.previewCurrentCity}}
+          @previewJoinLabel={{this.previewJoinLabel}}
+          @previewLoading={{this.previewLoading}}
+          @previewRadiusButtons={{this.previewRadiusButtons}}
+          @previewSuggestedCity={{this.previewSuggestedCity}}
+          @region={{this.region}}
+          @revealRegion={{this.revealRegion}}
+          @saveCity={{this.saveCity}}
+          @selectPreviewRadius={{this.selectPreviewRadius}}
+          @showRegion={{this.showRegion}}
+          @toggleJoinNotifyCity={{this.toggleJoinNotifyCity}}
+          @toggleJoinNotifyNearby={{this.toggleJoinNotifyNearby}}
+          @trackLocalTopicCompose={{this.trackLocalTopicCompose}}
+          @trackLocalTopicOpen={{this.trackLocalTopicOpen}}
+          @updateCity={{this.updateCity}}
+          @updateRegion={{this.updateRegion}}
         />
-        <aside class="where-is-my-friends__safety" data-test-safety-tip>
-          <strong>{{i18n "where_is_my_friends.safety_title"}}</strong>
-          <span>{{i18n "where_is_my_friends.safety_copy"}}</span>
-        </aside>
-
-        {{#if this.loading}}
-          <div class="where-is-my-friends__loading" role="status">
-            {{i18n "where_is_my_friends.loading_results"}}
-          </div>
-          <div class="where-is-my-friends__skeleton-grid" aria-hidden="true">
-            <article data-test-result-skeleton></article>
-            <article data-test-result-skeleton></article>
-            <article data-test-result-skeleton></article>
-          </div>
-        {{else if this.hasUsers}}
-          <section class="where-is-my-friends__results">
-            {{#if this.expandedRadius}}
-              <p class="alert alert-info" data-test-expanded-radius>
-                {{i18n
-                  "where_is_my_friends.expanded_radius_notice"
-                  original_radius=this.originalRadiusKm
-                  expanded_radius=this.expandedRadiusKm
-                }}
-              </p>
-            {{/if}}
-            <div class="where-is-my-friends__results-heading">
-              <h2 data-test-results-summary>{{this.resultsSummary}}</h2>
-            </div>
-            {{#if this.hasFilterableFields}}
-              <div
-                class="where-is-my-friends__attribute-filters"
-                data-test-attribute-filters
-              >
-                {{#each this.filterGroups as |group|}}
-                  <div
-                    class="where-is-my-friends__filter-group"
-                    data-test-filter-group={{group.key}}
-                  >
-                    <span
-                      class="where-is-my-friends__filter-label"
-                    >{{group.name}}</span>
-                    <div
-                      class="where-is-my-friends__filter-options"
-                      role="group"
-                      aria-label={{group.name}}
-                    >
-                      {{#each group.buttons as |btn|}}
-                        <DButton
-                          @action={{fn this.selectFilter group.key btn.value}}
-                          @translatedLabel={{btn.label}}
-                          @disabled={{this.loading}}
-                          class={{if btn.selected "btn-primary" "btn-flat"}}
-                          data-test-filter-option={{if
-                            btn.value
-                            btn.value
-                            "all"
-                          }}
-                        />
-                      {{/each}}
-                    </div>
-                  </div>
-                {{/each}}
-              </div>
-            {{/if}}
-            {{#if this.showMemberFilter}}
-              <label class="where-is-my-friends__filter">
-                <span>{{i18n "where_is_my_friends.filter_members"}}</span>
-                <input
-                  type="search"
-                  value={{this.memberFilter}}
-                  aria-label={{i18n "where_is_my_friends.filter_members"}}
-                  placeholder={{i18n
-                    "where_is_my_friends.filter_members_placeholder"
-                  }}
-                  data-test-member-filter
-                  {{on "input" this.updateMemberFilter}}
-                />
-              </label>
-            {{/if}}
-            {{#if this.hasReplyNowUsers}}
-              <section
-                class="where-is-my-friends__reply-now"
-                aria-labelledby="where-is-my-friends-reply-now-title"
-                data-test-reply-now
-              >
-                <div class="where-is-my-friends__reply-now-heading">
-                  <div>
-                    <span class="where-is-my-friends__reply-now-eyebrow">
-                      {{i18n "where_is_my_friends.reply_now_eyebrow"}}
-                    </span>
-                    <h3 id="where-is-my-friends-reply-now-title">
-                      {{i18n "where_is_my_friends.reply_now_title"}}
-                    </h3>
-                    <p>{{i18n "where_is_my_friends.reply_now_description"}}</p>
-                  </div>
-                  {{#if this.onlineUsers.length}}
-                    <span
-                      class="where-is-my-friends__online-count"
-                      data-test-online-count
-                    >
-                      <span aria-hidden="true"></span>
-                      {{i18n
-                        "where_is_my_friends.online_count"
-                        count=this.onlineUsers.length
-                      }}
-                    </span>
-                  {{/if}}
-                </div>
-
-                {{#if this.onlineUsers.length}}
-                  <div class="where-is-my-friends__availability-group">
-                    <h4>{{i18n "where_is_my_friends.online_now"}}</h4>
-                    <div class="where-is-my-friends__quick-grid">
-                      {{#each this.onlineUsers as |user|}}
-                        <article
-                          class="where-is-my-friends__quick-card is-online"
-                          data-test-online-user={{user.username}}
-                        >
-                          <div class="where-is-my-friends__quick-avatar">
-                            {{#if user.avatar_template}}
-                              {{dAvatar user imageSize="large"}}
-                            {{/if}}
-                            <span
-                              class="where-is-my-friends__presence-dot"
-                              aria-label={{i18n
-                                "where_is_my_friends.online_now"
-                              }}
-                            ></span>
-                          </div>
-                          <div class="where-is-my-friends__quick-person">
-                            <h5>{{if user.name user.name user.username}}</h5>
-                            <span>@{{user.username}} · {{user.city}}</span>
-                          </div>
-                          {{#if user.action_url}}
-                            <a
-                              class="btn btn-primary btn-small"
-                              href={{user.action_url}}
-                              aria-label={{i18n
-                                "where_is_my_friends.message_user"
-                                username=user.username
-                              }}
-                              data-test-quick-message={{user.username}}
-                              {{on
-                                "click"
-                                (fn this.trackConnection "message_clicked")
-                              }}
-                            >
-                              {{i18n "where_is_my_friends.say_hi"}}
-                            </a>
-                          {{/if}}
-                        </article>
-                      {{/each}}
-                    </div>
-                  </div>
-                {{/if}}
-
-                {{#if this.recentlyActiveUsers.length}}
-                  <div class="where-is-my-friends__availability-group">
-                    <h4>{{i18n "where_is_my_friends.recently_active"}}</h4>
-                    <div class="where-is-my-friends__quick-grid">
-                      {{#each this.recentlyActiveUsers as |user|}}
-                        <article
-                          class="where-is-my-friends__quick-card"
-                          data-test-active-user={{user.username}}
-                        >
-                          <div class="where-is-my-friends__quick-avatar">
-                            {{#if user.avatar_template}}
-                              {{dAvatar user imageSize="large"}}
-                            {{/if}}
-                          </div>
-                          <div class="where-is-my-friends__quick-person">
-                            <h5>{{if user.name user.name user.username}}</h5>
-                            <span>
-                              {{#if user.last_posted_label}}
-                                {{i18n
-                                  "where_is_my_friends.posted_recently"
-                                  time=user.last_posted_label
-                                }}
-                              {{else if user.last_active_label}}
-                                {{i18n
-                                  "where_is_my_friends.seen_recently"
-                                  time=user.last_active_label
-                                }}
-                              {{/if}}
-                            </span>
-                          </div>
-                          {{#if user.action_url}}
-                            <a
-                              class="btn btn-small"
-                              href={{user.action_url}}
-                              aria-label={{i18n
-                                "where_is_my_friends.message_user"
-                                username=user.username
-                              }}
-                              data-test-quick-message={{user.username}}
-                              {{on
-                                "click"
-                                (fn this.trackConnection "message_clicked")
-                              }}
-                            >
-                              {{i18n "where_is_my_friends.message_short"}}
-                            </a>
-                          {{/if}}
-                        </article>
-                      {{/each}}
-                    </div>
-                  </div>
-                {{/if}}
-
-                <p class="where-is-my-friends__presence-note">
-                  {{i18n "where_is_my_friends.presence_privacy_note"}}
-                </p>
-              </section>
-            {{/if}}
-            {{#each this.displayCityGroups as |group|}}
-              <section
-                class="where-is-my-friends__city-group"
-                data-test-city-group={{group.city_key}}
-              >
-                {{#unless group.synthetic}}
-                  <div class="where-is-my-friends__city-group-heading">
-                    <h3>{{group.heading_label}}</h3>
-                    <span>{{group.counts_label}}</span>
-                  </div>
-                {{/unless}}
-                <div class="where-is-my-friends__user-grid">
-                  {{#each group.users as |user|}}
-                    <article
-                      class="where-is-my-friends__user-card"
-                      data-test-user-card={{user.username}}
-                    >
-                      {{#if user.avatar_template}}
-                        {{dAvatar user imageSize="large"}}
-                      {{/if}}
-                      <div>
-                        <h3>
-                          {{if user.name user.name user.username}}
-                          {{#if user.is_recent}}
-                            <span
-                              class="where-is-my-friends__new-badge"
-                              data-test-new-member-badge
-                            >{{i18n
-                                "where_is_my_friends.new_member_badge"
-                              }}</span>
-                          {{/if}}
-                        </h3>
-                        <LinkTo @route="user" @model={{user.username}}>
-                          @{{user.username}}
-                        </LinkTo>
-                        <p>{{user.city}}{{#if user.distance_label}}
-                            ·
-                            {{user.distance_label}}{{/if}}{{#if
-                            user.last_active_label
-                          }} · {{user.last_active_label}}{{/if}}{{#if
-                            user.custom_field_label
-                          }}
-                            ·
-                            <span
-                              class="where-is-my-friends__user-attrs"
-                              data-test-user-attrs
-                            >{{user.custom_field_label}}</span>{{/if}}</p>
-                        {{#if user.inactive}}
-                          <p
-                            class="where-is-my-friends__inactive"
-                            data-test-inactive-member
-                          >{{i18n "where_is_my_friends.inactive_member"}}</p>
-                        {{/if}}
-                        {{#if user.bio_excerpt}}
-                          <p
-                            class="where-is-my-friends__bio"
-                            data-test-user-bio
-                          >{{user.bio_excerpt}}</p>
-                        {{/if}}
-                      </div>
-                      <div class="where-is-my-friends__user-actions">
-                        <LinkTo
-                          @route="user"
-                          @model={{user.username}}
-                          class="btn"
-                          aria-label={{i18n
-                            "where_is_my_friends.view_profile_for"
-                            username=user.username
-                          }}
-                          data-test-profile-link={{user.username}}
-                          {{on
-                            "click"
-                            (fn this.trackConnection "profile_clicked")
-                          }}
-                        >{{i18n "where_is_my_friends.view_profile"}}</LinkTo>
-                        {{#if user.action_url}}
-                          <a
-                            class="btn"
-                            href={{user.action_url}}
-                            aria-label={{i18n
-                              "where_is_my_friends.message_user"
-                              username=user.username
-                            }}
-                            data-test-message-link={{user.username}}
-                            {{on
-                              "click"
-                              (fn this.trackConnection "message_started")
-                            }}
-                          >{{i18n
-                              (if
-                                this.chatEnabled
-                                "where_is_my_friends.start_chat"
-                                "where_is_my_friends.send_message"
-                              )
-                            }}</a>
-                        {{/if}}
-                      </div>
-                    </article>
-                  {{/each}}
-                </div>
-              </section>
-            {{/each}}
-          </section>
-        {{else if this.isEmpty}}
-          <section class="where-is-my-friends__empty" data-test-empty-state>
-            {{#if this.hasActiveFilters}}
-              <p class="alert alert-info" data-test-filter-empty-hint>{{i18n
-                  "where_is_my_friends.no_results_with_filters"
-                }}</p>
-            {{/if}}
-            <h2>{{i18n
-                "where_is_my_friends.empty_title"
-                city=this.location.city
-              }}</h2>
-            <p>{{this.participantProof}}</p>
-            <p>{{i18n
-                "where_is_my_friends.global_stats_pioneer"
-                city=this.location.city
-              }}</p>
-            {{#if this.nearbyCityCount}}
-              <p
-                class="where-is-my-friends__nearby-count"
-                data-test-nearby-city-count
-              >{{i18n
-                  "where_is_my_friends.empty_nearby_count"
-                  count=this.nearbyCityCount
-                }}</p>
-            {{/if}}
-            <label
-              class="where-is-my-friends__notify-toggle"
-              data-test-notify-toggle
-            >
-              <input
-                type="checkbox"
-                checked={{this.notifyCity}}
-                {{on "change" this.toggleNotifyCity}}
-              />
-              {{i18n
-                "where_is_my_friends.empty_notify_prompt"
-                city=this.location.city
-              }}
-            </label>
-            <DButton
-              @action={{this.copyInvite}}
-              @label="where_is_my_friends.copy_invite"
-              @icon="link"
-              class="btn"
-              data-test-copy-invite
-            />
-            {{#if this.inviteFeedback}}
-              <p
-                role="status"
-                data-test-invite-feedback
-              >{{this.inviteFeedback}}</p>
-            {{/if}}
-            <p data-test-empty-invitation>{{i18n
-                "where_is_my_friends.empty_invitation"
-              }}</p>
-          </section>
-        {{/if}}
+      {{else}}
+        <WhereIsMyFriendsResultsPanel
+          @model={{@model}}
+          @chatEnabled={{this.chatEnabled}}
+          @copyInvite={{this.copyInvite}}
+          @discoveryRadiusButtons={{this.discoveryRadiusButtons}}
+          @displayCityGroups={{this.displayCityGroups}}
+          @editLocation={{this.editLocation}}
+          @expandedRadius={{this.expandedRadius}}
+          @expandedRadiusKm={{this.expandedRadiusKm}}
+          @filterGroups={{this.filterGroups}}
+          @gpsFallback={{this.gpsFallback}}
+          @hasActiveFilters={{this.hasActiveFilters}}
+          @hasFilterableFields={{this.hasFilterableFields}}
+          @hasReplyNowUsers={{this.hasReplyNowUsers}}
+          @hasUsers={{this.hasUsers}}
+          @inviteFeedback={{this.inviteFeedback}}
+          @isEmpty={{this.isEmpty}}
+          @loading={{this.loading}}
+          @localTopicActionUrl={{this.localTopicActionUrl}}
+          @localTopicComposeUrl={{this.localTopicComposeUrl}}
+          @localTopics={{this.localTopics}}
+          @location={{this.location}}
+          @memberFilter={{this.memberFilter}}
+          @nearbyCityCount={{this.nearbyCityCount}}
+          @notifyCity={{this.notifyCity}}
+          @onlineUsers={{this.onlineUsers}}
+          @openAdvancedLocation={{this.openAdvancedLocation}}
+          @originalRadiusKm={{this.originalRadiusKm}}
+          @participantProof={{this.participantProof}}
+          @recentlyActiveUsers={{this.recentlyActiveUsers}}
+          @removeLocation={{this.removeLocation}}
+          @resultsSummary={{this.resultsSummary}}
+          @selectDiscoveryRadius={{this.selectDiscoveryRadius}}
+          @selectFilter={{this.selectFilter}}
+          @showMemberFilter={{this.showMemberFilter}}
+          @toggleNotifyCity={{this.toggleNotifyCity}}
+          @trackConnection={{this.trackConnection}}
+          @trackLocalTopicCompose={{this.trackLocalTopicCompose}}
+          @trackLocalTopicOpen={{this.trackLocalTopicOpen}}
+          @updateMemberFilter={{this.updateMemberFilter}}
+        />
       {{/if}}
     </main>
   </template>
