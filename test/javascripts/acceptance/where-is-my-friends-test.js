@@ -13,8 +13,9 @@ const CALLOUT_STORAGE_KEY = "local-friends-callout-state";
 
 function setupApi(needs, state) {
   needs.pretender((server, helper) => {
-    server.get("/where-is-my-friends.json", () =>
-      helper.response(
+    server.get("/where-is-my-friends.json", () => {
+      state.locationRequests += 1;
+      return helper.response(
         state.initial ?? {
           state: "setup",
           current_user: { id: 1, username: "current-user" },
@@ -24,8 +25,8 @@ function setupApi(needs, state) {
           settings: {},
           filterable_fields: [],
         },
-      ),
-    );
+      );
+    });
 
     server.post("/where-is-my-friends/locations.json", (request) => {
       if (state.saveError) {
@@ -123,6 +124,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       events: [],
       eventPayloads: [],
       nearbyRequests: 0,
+      locationRequests: 0,
       nearbyDelay: 0,
       nearbyError: false,
       savedLocations: [],
@@ -281,6 +283,23 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     );
   });
 
+  test("returning users respect a persisted dismissal cooldown", async function (assert) {
+    api.initial = readyState();
+    localStorage.setItem(
+      CALLOUT_STORAGE_KEY,
+      JSON.stringify({
+        views: 2,
+        cooldownUntil: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        open: false,
+      })
+    );
+
+    await visit("/");
+
+    assert.dom("[data-test-local-friends-callout]").doesNotExist();
+    assert.strictEqual(api.locationRequests, 0);
+  });
+
   test("topic-list callout is not duplicated on the Local Friends page", async function (assert) {
     await visit("/where-is-my-friends");
 
@@ -314,7 +333,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.dom("[data-test-local-friends-category-callout]").exists();
   });
 
-  test("route reuse records an impression for each visible callout surface", async function (assert) {
+  test("route reuse records an impression for the visible local callout surface", async function (assert) {
     getOwner(this).lookup("service:current-user").set(
       "where_is_my_friends_interest_onboarding_state",
       "complete",
@@ -328,7 +347,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
         (payload) => payload.get("event_name") === "local_callout_viewed",
       )
       .map((payload) => payload.get("surface"));
-    assert.deepEqual(surfaces, ["category", "homepage"]);
+    assert.deepEqual(surfaces, ["category"]);
   });
 
   test("route reuse does not record a dismissed callout on a new surface", async function (assert) {

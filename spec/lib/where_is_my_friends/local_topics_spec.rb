@@ -111,6 +111,38 @@ RSpec.describe WhereIsMyFriends::LocalTopics do
     expect(topics.pluck(:id)).to eq([valid_topic.id])
   end
 
+  it "preloads topic tags instead of querying once per topic" do
+    add_area_group("中国", "上海")
+    china, shanghai =
+      Tag.where(name: %w[中国 上海]).index_by(&:name).values_at("中国", "上海")
+    3.times do |index|
+      Fabricate(
+        :topic,
+        category: category,
+        title: "Shanghai activity #{index}",
+        tags: [china, shanghai]
+      )
+    end
+
+    sql = []
+    subscriber =
+      ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+        next if payload[:name] == "SCHEMA" || payload[:cached]
+
+        sql << payload[:sql]
+      end
+
+    begin
+      described_class.new(user: user, city_keys: ["上海"]).call
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+
+    tag_load_queries =
+      sql.grep(/SELECT .*FROM "topic_tags".*topic_id" IN \(/)
+    expect(tag_load_queries.length).to eq(1)
+  end
+
   it "maps Chinese provinces and explicit international aliases to existing tag pairs" do
     add_area_group("中国", "江苏")
     add_area_group("日本", "东京都", "大阪府")

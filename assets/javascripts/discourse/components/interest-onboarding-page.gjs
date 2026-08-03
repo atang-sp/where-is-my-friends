@@ -1,14 +1,15 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { concat, fn } from "@ember/helper";
-import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
-import { eq, not } from "discourse/truth-helpers";
+import { eq } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
+import InterestOnboardingEditor from "./interest-onboarding-editor";
+import InterestOnboardingInvitations from "./interest-onboarding-invitations";
+import InterestOnboardingResults from "./interest-onboarding-results";
 
 export default class InterestOnboardingPage extends Component {
   @service currentUser;
@@ -651,454 +652,46 @@ export default class InterestOnboardingPage extends Component {
         </div>
       {{/if}}
 
-      {{#if this.legacyPracticeBookmarks.length}}
-        <section class="interest-onboarding__legacy-bookmarks">
-          <div>
-            <p class="interest-onboarding__eyebrow">{{i18n
-                "where_is_my_friends.legacy_practice_bookmarks.eyebrow"
-              }}</p>
-            <h2>{{i18n
-                "where_is_my_friends.legacy_practice_bookmarks.title"
-              }}</h2>
-            <p>{{i18n
-                "where_is_my_friends.legacy_practice_bookmarks.description"
-              }}</p>
-          </div>
-          <div class="interest-onboarding__legacy-bookmark-list">
-            {{#each this.legacyPracticeBookmarks as |bookmark|}}
-              <article data-test-legacy-practice-bookmark={{bookmark.id}}>
-                <div>
-                  <h3>@{{bookmark.target.username}}</h3>
-                  {{#if bookmark.mutual_history}}
-                    <span>{{i18n
-                        "where_is_my_friends.legacy_practice_bookmarks.mutual_history"
-                      }}</span>
-                  {{/if}}
-                </div>
-                {{#if (eq bookmark.state "needs_reconfirmation")}}
-                  <p>{{i18n
-                      "where_is_my_friends.legacy_practice_bookmarks.no_auto_invite"
-                    }}</p>
-                  <div class="interest-onboarding__invitation-actions">
-                    <DButton
-                      @action={{fn
-                        this.respondToLegacyBookmark
-                        bookmark
-                        "reconfirm"
-                      }}
-                      @label="where_is_my_friends.legacy_practice_bookmarks.reconfirm"
-                      @icon="check"
-                      @disabled={{this.loading}}
-                      class="btn-primary"
-                      data-test-reconfirm-legacy-practice={{bookmark.id}}
-                    />
-                    <DButton
-                      @action={{fn
-                        this.respondToLegacyBookmark
-                        bookmark
-                        "dismiss"
-                      }}
-                      @label="where_is_my_friends.legacy_practice_bookmarks.dismiss"
-                      @disabled={{this.loading}}
-                      class="btn-flat"
-                      data-test-dismiss-legacy-practice={{bookmark.id}}
-                    />
-                  </div>
-                {{else}}
-                  <span class="interest-onboarding__invitation-status">
-                    {{i18n
-                      (concat
-                        "where_is_my_friends.legacy_practice_bookmarks.status."
-                        bookmark.state
-                      )
-                    }}
-                  </span>
-                {{/if}}
-              </article>
-            {{/each}}
-          </div>
-        </section>
-      {{/if}}
-
-      {{#if this.invitationTarget}}
-        <section
-          class="interest-onboarding__invitation-form"
-          data-test-practice-invitation-form
-        >
-          <div>
-            <p class="interest-onboarding__eyebrow">{{i18n
-                "where_is_my_friends.practice_invitations.eyebrow"
-              }}</p>
-            <h2>{{i18n
-                "where_is_my_friends.practice_invitations.form_title"
-                username=this.invitationTarget.username
-              }}</h2>
-            <p>{{i18n
-                "where_is_my_friends.practice_invitations.one_to_one_notice"
-              }}</p>
-          </div>
-
-          <label>
-            <span>{{i18n
-                "where_is_my_friends.practice_invitations.interest"
-              }}</span>
-            <select
-              value={{this.invitationInterestId}}
-              data-test-practice-invitation-interest
-              {{on "change" this.updateInvitationInterest}}
-            >
-              {{#each this.invitationInterests as |interest|}}
-                <option value={{interest.id}}>{{interest.name}}</option>
-              {{/each}}
-            </select>
-          </label>
-
-          <label>
-            <span>{{i18n
-                "where_is_my_friends.practice_invitations.proposed_time"
-              }}</span>
-            <input
-              type="datetime-local"
-              value={{this.invitationProposedAt}}
-              data-test-practice-invitation-time
-              {{on "input" this.updateInvitationProposedAt}}
-            />
-          </label>
-
-          <label>
-            <span>{{i18n
-                "where_is_my_friends.practice_invitations.note"
-              }}</span>
-            <textarea
-              maxlength="500"
-              value={{this.invitationNote}}
-              data-test-practice-invitation-note
-              {{on "input" this.updateInvitationNote}}
-            ></textarea>
-          </label>
-
-          <p
-            class="interest-onboarding__invitation-preview"
-            data-test-practice-invitation-preview
-          >
-            {{this.invitationPreview}}
-          </p>
-
-          <div class="interest-onboarding__form-actions">
-            <DButton
-              @action={{this.sendInvitation}}
-              @label="where_is_my_friends.practice_invitations.send"
-              @icon="paper-plane"
-              @disabled={{this.loading}}
-              class="btn-primary"
-              data-test-send-practice-invitation
-            />
-            <DButton
-              @action={{this.closeInvitation}}
-              @label="where_is_my_friends.practice_invitations.cancel"
-              @disabled={{this.loading}}
-              class="btn-flat"
-              data-test-cancel-practice-invitation
-            />
-          </div>
-        </section>
-      {{/if}}
-
-      {{#if this.incomingInvitations.length}}
-        <section class="interest-onboarding__invitations">
-          <h2>{{i18n
-              "where_is_my_friends.practice_invitations.incoming"
-            }}</h2>
-          <div class="interest-onboarding__invitation-list">
-            {{#each this.incomingInvitations as |invitation|}}
-              <article data-test-incoming-invitation={{invitation.id}}>
-                <h3>@{{invitation.sender.username}}</h3>
-                <p>{{invitation.preset_message}}</p>
-                {{#if invitation.proposed_at}}
-                  <p>{{i18n
-                      "where_is_my_friends.practice_invitations.proposed_time_value"
-                      time=invitation.proposed_at
-                    }}</p>
-                {{/if}}
-                {{#if invitation.note}}
-                  <blockquote>{{invitation.note}}</blockquote>
-                {{/if}}
-                {{#if (eq invitation.status "pending")}}
-                  <div class="interest-onboarding__invitation-actions">
-                    <DButton
-                      @action={{fn
-                        this.respondToInvitation
-                        invitation
-                        "accept"
-                      }}
-                      @label="where_is_my_friends.practice_invitations.accept"
-                      @icon="check"
-                      @disabled={{this.loading}}
-                      class="btn-primary"
-                      data-test-accept-practice-invitation={{invitation.id}}
-                    />
-                    <DButton
-                      @action={{fn
-                        this.respondToInvitation
-                        invitation
-                        "decline"
-                      }}
-                      @label="where_is_my_friends.practice_invitations.decline"
-                      @disabled={{this.loading}}
-                      class="btn-default"
-                      data-test-decline-practice-invitation={{invitation.id}}
-                    />
-                    <DButton
-                      @action={{fn
-                        this.respondToInvitation
-                        invitation
-                        "ignore"
-                      }}
-                      @label="where_is_my_friends.practice_invitations.ignore"
-                      @disabled={{this.loading}}
-                      class="btn-flat"
-                      data-test-ignore-practice-invitation={{invitation.id}}
-                    />
-                  </div>
-                {{else if invitation.pm_url}}
-                  <a href={{invitation.pm_url}}>{{i18n
-                      "where_is_my_friends.practice_invitations.open_pm"
-                    }}</a>
-                {{else}}
-                  <span class="interest-onboarding__invitation-status">
-                    {{i18n
-                      (concat
-                        "where_is_my_friends.practice_invitations.status."
-                        invitation.status
-                      )
-                    }}
-                  </span>
-                {{/if}}
-              </article>
-            {{/each}}
-          </div>
-        </section>
-      {{/if}}
-
-      {{#if this.outgoingInvitations.length}}
-        <details class="interest-onboarding__outgoing-invitations">
-          <summary>{{i18n
-              "where_is_my_friends.practice_invitations.outgoing"
-            }}</summary>
-          {{#each this.outgoingInvitations as |invitation|}}
-            <p data-test-outgoing-invitation={{invitation.id}}>
-              @{{invitation.recipient.username}} ·
-              {{invitation.interest.name}}
-              ·
-              {{i18n
-                (concat
-                  "where_is_my_friends.practice_invitations.status."
-                  invitation.status
-                )
-              }}
-            </p>
-          {{/each}}
-        </details>
-      {{/if}}
-
+      <InterestOnboardingInvitations
+        @closeInvitation={{this.closeInvitation}}
+        @incomingInvitations={{this.incomingInvitations}}
+        @invitationInterestId={{this.invitationInterestId}}
+        @invitationInterests={{this.invitationInterests}}
+        @invitationNote={{this.invitationNote}}
+        @invitationPreview={{this.invitationPreview}}
+        @invitationProposedAt={{this.invitationProposedAt}}
+        @invitationTarget={{this.invitationTarget}}
+        @legacyPracticeBookmarks={{this.legacyPracticeBookmarks}}
+        @loading={{this.loading}}
+        @outgoingInvitations={{this.outgoingInvitations}}
+        @respondToInvitation={{this.respondToInvitation}}
+        @respondToLegacyBookmark={{this.respondToLegacyBookmark}}
+        @sendInvitation={{this.sendInvitation}}
+        @updateInvitationInterest={{this.updateInvitationInterest}}
+        @updateInvitationNote={{this.updateInvitationNote}}
+        @updateInvitationProposedAt={{this.updateInvitationProposedAt}}
+        />
       {{#if this.editing}}
-        <section
-          class="interest-onboarding__form"
-          data-test-interest-onboarding-form
-        >
-          {{#if this.catalogue.length}}
-            <fieldset>
-              <legend>{{i18n
-                  "where_is_my_friends.interests.choose_interests"
-                }}</legend>
-              <p>{{i18n
-                  "where_is_my_friends.interests.choose_interests_help"
-                }}</p>
-              <label class="interest-onboarding__search">
-                <span>{{i18n
-                    "where_is_my_friends.interests.search_label"
-                  }}</span>
-                <input
-                  type="search"
-                  value={{this.interestSearch}}
-                  placeholder={{i18n
-                    "where_is_my_friends.interests.search_placeholder"
-                  }}
-                  data-test-interest-search
-                  {{on "input" this.updateInterestSearch}}
-                />
-              </label>
-
-              {{#if this.interestGroups.length}}
-                <div
-                  class="interest-onboarding__interest-groups"
-                  data-test-interest-options
-                >
-                  {{#each this.interestGroups as |group|}}
-                    <section
-                      class="interest-onboarding__interest-group
-                        {{if group.isSingle 'interest-onboarding__interest-group--single'}}"
-                      data-test-interest-group={{group.key}}
-                      data-selection-mode={{group.selection_mode}}
-                    >
-                      <div class="interest-onboarding__group-header">
-                        <h3>{{group.name}}
-                          {{#if group.isSingle}}
-                            <span
-                              class="interest-onboarding__group-badge"
-                            >{{i18n
-                                "where_is_my_friends.interests.single_select"
-                              }}</span>
-                          {{/if}}
-                        </h3>
-                        {{#if group.description}}
-                          <p>{{group.description}}</p>
-                        {{/if}}
-                        {{#if group.maxPerGroup}}
-                          {{#unless group.isSingle}}
-                            <span
-                              class="interest-onboarding__group-count
-                                {{if group.groupFull 'interest-onboarding__group-count--full'}}"
-                            >{{i18n
-                                "where_is_my_friends.interests.group_count"
-                                count=group.selectedCount
-                                maximum=group.maxPerGroup
-                              }}</span>
-                          {{/unless}}
-                        {{/if}}
-                      </div>
-                      <div
-                        class="interest-onboarding__chips"
-                        role={{if group.isSingle "radiogroup" "group"}}
-                      >
-                        {{#each group.interests as |interest|}}
-                          <DButton
-                            @action={{fn
-                              this.toggleInterest
-                              interest.id
-                            }}
-                            @translatedLabel={{interest.name}}
-                            @icon={{if interest.selected "check" "plus"}}
-                            @disabled={{this.loading}}
-                            class={{if
-                              interest.selected
-                              "btn-primary"
-                              "btn-default"
-                            }}
-                            aria-pressed={{if
-                              interest.selected
-                              "true"
-                              "false"
-                            }}
-                            data-test-interest={{interest.name}}
-                          />
-                        {{/each}}
-                      </div>
-                    </section>
-                  {{/each}}
-                </div>
-              {{else}}
-                <p
-                  class="interest-onboarding__search-empty"
-                  data-test-interest-search-empty
-                >{{i18n
-                    "where_is_my_friends.interests.search_empty"
-                  }}</p>
-              {{/if}}
-              <p
-                class="interest-onboarding__selection-count"
-                data-test-interest-count
-              >{{i18n
-                  "where_is_my_friends.interests.selection_count"
-                  count=this.selectedInterestIds.size
-                  maximum=this.maximumInterests
-                }}</p>
-            </fieldset>
-
-            <fieldset>
-              <legend>{{i18n
-                  "where_is_my_friends.interests.choose_purpose"
-                }}</legend>
-              <div
-                class="interest-onboarding__chips"
-                data-test-purpose-options
-              >
-                {{#each this.purposeOptions as |option|}}
-                  <DButton
-                    @action={{fn this.selectPurpose option.id}}
-                    @translatedLabel={{option.label}}
-                    @disabled={{this.loading}}
-                    class={{if option.selected "btn-primary" "btn-default"}}
-                    aria-pressed={{if option.selected "true" "false"}}
-                    data-test-purpose={{option.id}}
-                  />
-                {{/each}}
-              </div>
-            </fieldset>
-
-            <fieldset class="interest-onboarding__privacy">
-              <legend>{{i18n
-                  "where_is_my_friends.interests.privacy_title"
-                }}</legend>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={{this.recommendable}}
-                  data-test-recommendable
-                  {{on "change" this.updateRecommendable}}
-                />
-                <span>{{i18n
-                    "where_is_my_friends.interests.recommendable"
-                  }}</span>
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={{this.showInterestsPublicly}}
-                  data-test-public-interests
-                  {{on "change" this.updatePublicInterests}}
-                />
-                <span>{{i18n
-                    "where_is_my_friends.interests.public_interests"
-                  }}</span>
-              </label>
-              <p>{{i18n
-                  "where_is_my_friends.interests.private_by_default"
-                }}</p>
-            </fieldset>
-
-            <div class="interest-onboarding__form-actions">
-              <DButton
-                @action={{this.save}}
-                @label="where_is_my_friends.interests.save"
-                @icon="sparkles"
-                @disabled={{not this.canSave}}
-                class="btn-primary"
-                data-test-save-interests
-              />
-              {{#if (eq this.state "pending")}}
-                <DButton
-                  @action={{this.skip}}
-                  @label="where_is_my_friends.interests.skip"
-                  @disabled={{this.loading}}
-                  class="btn-flat"
-                  data-test-skip-interests
-                />
-              {{/if}}
-            </div>
-          {{else}}
-            <div class="alert alert-info" data-test-interest-catalogue-empty>
-              {{i18n "where_is_my_friends.interests.catalogue_empty"}}
-            </div>
-            <DButton
-              @action={{this.skip}}
-              @label="where_is_my_friends.interests.skip"
-              @disabled={{this.loading}}
-              class="btn-flat"
-              data-test-skip-interests
-            />
-          {{/if}}
-        </section>
+        <InterestOnboardingEditor
+          @canSave={{this.canSave}}
+          @catalogue={{this.catalogue}}
+          @interestGroups={{this.interestGroups}}
+          @interestSearch={{this.interestSearch}}
+          @loading={{this.loading}}
+          @maximumInterests={{this.maximumInterests}}
+          @purposeOptions={{this.purposeOptions}}
+          @recommendable={{this.recommendable}}
+          @save={{this.save}}
+          @selectPurpose={{this.selectPurpose}}
+          @selectedInterestIds={{this.selectedInterestIds}}
+          @showInterestsPublicly={{this.showInterestsPublicly}}
+          @skip={{this.skip}}
+          @state={{this.state}}
+          @toggleInterest={{this.toggleInterest}}
+          @updateInterestSearch={{this.updateInterestSearch}}
+          @updatePublicInterests={{this.updatePublicInterests}}
+          @updateRecommendable={{this.updateRecommendable}}
+        />
       {{else if (eq this.state "dismissed")}}
         <section
           class="interest-onboarding__dismissed"
@@ -1115,153 +708,19 @@ export default class InterestOnboardingPage extends Component {
           />
         </section>
       {{else}}
-        <section class="interest-onboarding__results">
-          <div class="interest-onboarding__results-header">
-            <div>
-              <h2>{{i18n
-                  "where_is_my_friends.interests.results_title"
-                }}</h2>
-              <p>{{i18n
-                  "where_is_my_friends.interests.results_description"
-                }}</p>
-            </div>
-            <DButton
-              @action={{this.edit}}
-              @label="where_is_my_friends.interests.edit"
-              @icon="pencil"
-              class="btn-flat"
-              data-test-edit-interests
-            />
-          </div>
-
-          {{#if this.hasRecommendations}}
-            {{#if this.recommendedTopics.length}}
-              <h3>{{i18n
-                  "where_is_my_friends.interests.recommended_topics"
-                }}</h3>
-              <div class="interest-onboarding__topic-grid">
-                {{#each this.recommendedTopics as |topic|}}
-                  <article data-test-recommended-topic={{topic.id}}>
-                    <a
-                      href={{topic.url}}
-                      {{on "click" (fn this.trackTopicOpen topic)}}
-                    >
-                      <h4>{{topic.fancy_title}}</h4>
-                    </a>
-                    <p>{{i18n
-                        "where_is_my_friends.interests.topic_reason"
-                      }}
-                      {{#each topic.matching_interests as |interest|}}
-                        <span class="interest-onboarding__reason">
-                          {{interest.name}}
-                        </span>
-                      {{/each}}
-                    </p>
-                    <DButton
-                      @action={{fn this.dismiss "topic" topic}}
-                      @label="where_is_my_friends.interests.not_interested"
-                      @disabled={{this.loading}}
-                      class="btn-flat"
-                      data-test-dismiss-topic={{topic.id}}
-                    />
-                  </article>
-                {{/each}}
-              </div>
-            {{/if}}
-
-            {{#if this.recommendedUsers.length}}
-              <h3>{{i18n
-                  "where_is_my_friends.interests.recommended_people"
-                }}</h3>
-              <div class="interest-onboarding__people-grid">
-                {{#each this.recommendedUsers as |user|}}
-                  <article data-test-recommended-user={{user.username}}>
-                    <div>
-                      <a
-                        href={{user.profile_url}}
-                        {{on "click" (fn this.trackUserOpen user)}}
-                      >
-                        <h4>{{if user.name user.name user.username}}</h4>
-                        <span>@{{user.username}}</span>
-                      </a>
-                      {{#if user.bio_excerpt}}
-                        <p>{{user.bio_excerpt}}</p>
-                      {{/if}}
-                    </div>
-                    <p>
-                      {{i18n "where_is_my_friends.interests.person_reason"}}
-                      {{#each user.reason_interests as |interest|}}
-                        <span class="interest-onboarding__reason">
-                          {{interest.name}}
-                        </span>
-                      {{/each}}
-                    </p>
-                    {{#if user.representative_topics.length}}
-                      <ul>
-                        {{#each user.representative_topics as |topic|}}
-                          <li>
-                            <a
-                              href={{topic.url}}
-                              {{on "click" (fn this.trackUserOpen user)}}
-                            >{{topic.title}}</a>
-                          </li>
-                        {{/each}}
-                      </ul>
-                    {{/if}}
-                    {{#if
-                      this.siteSettings.where_is_my_friends_practice_invitations_enabled
-                    }}
-                      {{#if user.invitation_interests.length}}
-                        <DButton
-                          @action={{fn this.openInvitation user}}
-                          @label="where_is_my_friends.practice_invitations.invite"
-                          @icon="user-plus"
-                          @disabled={{this.loading}}
-                          class="btn-primary"
-                          data-test-invite-user={{user.id}}
-                        />
-                      {{/if}}
-                    {{/if}}
-                    <DButton
-                      @action={{fn this.dismiss "user" user}}
-                      @label="where_is_my_friends.interests.not_interested"
-                      @disabled={{this.loading}}
-                      class="btn-flat"
-                      data-test-dismiss-user={{user.id}}
-                    />
-                  </article>
-                {{/each}}
-              </div>
-            {{/if}}
-          {{else}}
-            <div
-              class="interest-onboarding__empty"
-              data-test-recommendations-empty
-            >
-              <h3>{{i18n "where_is_my_friends.interests.empty_title"}}</h3>
-              <p>{{i18n
-                  "where_is_my_friends.interests.empty_description"
-                }}</p>
-            </div>
-          {{/if}}
-
-          <details class="interest-onboarding__settings">
-            <summary>{{i18n
-                "where_is_my_friends.interests.settings"
-              }}</summary>
-            <p>{{i18n
-                "where_is_my_friends.interests.disable_description"
-              }}</p>
-            <DButton
-              @action={{this.disablePersonalization}}
-              @label="where_is_my_friends.interests.disable"
-              @icon="trash-can"
-              @disabled={{this.loading}}
-              class="btn-danger"
-              data-test-disable-personalization
-            />
-          </details>
-        </section>
+        <InterestOnboardingResults
+          @disablePersonalization={{this.disablePersonalization}}
+          @dismiss={{this.dismiss}}
+          @edit={{this.edit}}
+          @hasRecommendations={{this.hasRecommendations}}
+          @loading={{this.loading}}
+          @openInvitation={{this.openInvitation}}
+          @recommendedTopics={{this.recommendedTopics}}
+          @recommendedUsers={{this.recommendedUsers}}
+          @siteSettings={{this.siteSettings}}
+          @trackTopicOpen={{this.trackTopicOpen}}
+          @trackUserOpen={{this.trackUserOpen}}
+        />
       {{/if}}
     </main>
   </template>

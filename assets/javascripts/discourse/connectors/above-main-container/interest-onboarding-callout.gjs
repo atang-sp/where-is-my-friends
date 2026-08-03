@@ -8,6 +8,10 @@ import { ajax } from "discourse/lib/ajax";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import CommunityDiscoveryPanel from "discourse/plugins/where-is-my-friends/discourse/components/community-discovery-panel";
+import {
+  HOMEPAGE_DISCOVERY_ENTRIES,
+  homepageDiscoveryEntry,
+} from "discourse/plugins/where-is-my-friends/discourse/lib/homepage-discovery-entry";
 
 export default class InterestOnboardingCallout extends Component {
   static shouldRender(_args, { currentUser, siteSettings }) {
@@ -20,6 +24,7 @@ export default class InterestOnboardingCallout extends Component {
 
   @service currentUser;
   @service router;
+  @service siteSettings;
 
   @tracked dismissed = false;
 
@@ -32,14 +37,24 @@ export default class InterestOnboardingCallout extends Component {
 
   get shouldShowPrompt() {
     return (
-      this.onboardingState === "pending" &&
+      this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.INTEREST_ONBOARDING &&
       !this.dismissed &&
       this.isTopicListRoute
     );
   }
 
   get shouldShowDiscovery() {
-    return this.onboardingState === "complete" && this.isHomeRoute;
+    return (
+      this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.COMMUNITY &&
+      this.isHomeRoute
+    );
+  }
+
+  get homepageEntry() {
+    return homepageDiscoveryEntry({
+      onboardingState: this.onboardingState,
+      enabled: this.siteSettings.where_is_my_friends_interest_onboarding_enabled,
+    });
   }
 
   get isHomeRoute() {

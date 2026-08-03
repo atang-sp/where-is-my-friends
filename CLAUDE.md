@@ -9,9 +9,9 @@ This is a city-first local discovery plugin for current Discourse.
 - Discovery uses only the signed-in user's server-side record. Never accept search-origin coordinates from the client.
 - Never serialize or log coordinates, exact distances, or exception backtraces.
 - Never serialize custom user fields unless explicitly whitelisted via `where_is_my_friends_filterable_user_fields`. Only admin-curated dropdown fields are allowed.
-- Results exclude the current user and expired/disabled records.
+- Results exclude the current user and disabled records. Location TTL is intentionally disabled; legacy `expires_at` values are ignored and cleared by the migration.
 - Analytics accepts only the event/model allowlists and contains no location values.
-- Keep explicit setup, ready, empty, loading, expired, and error states.
+- Keep explicit setup, ready, empty, loading, and error states.
 
 ## Architecture
 

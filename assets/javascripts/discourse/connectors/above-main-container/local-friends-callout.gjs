@@ -9,6 +9,10 @@ import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
+import {
+  HOMEPAGE_DISCOVERY_ENTRIES,
+  homepageDiscoveryEntry,
+} from "discourse/plugins/where-is-my-friends/discourse/lib/homepage-discovery-entry";
 import { isWhereIsMyFriendsTargetCategory } from "discourse/plugins/where-is-my-friends/discourse/lib/target-category";
 
 const STORAGE_KEY = "local-friends-callout-state";
@@ -69,23 +73,28 @@ export default class LocalFriendsCallout extends Component {
     return Boolean(
       this.currentUser &&
         this.isTopicListRoute &&
-        !this.homepageHasPendingInterestPrompt
+        (!this.isHomeRoute ||
+          this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.LOCAL) &&
+        !this.calloutCooldownActive
     );
   }
 
-  get homepageHasPendingInterestPrompt() {
-    if (
-      !this.isHomeRoute ||
-      !this.siteSettings.where_is_my_friends_interest_onboarding_enabled
-    ) {
-      return false;
-    }
+  get homepageEntry() {
+    return homepageDiscoveryEntry({
+      onboardingState: get(
+        this.currentUser,
+        "where_is_my_friends_interest_onboarding_state"
+      ),
+      enabled: this.siteSettings.where_is_my_friends_interest_onboarding_enabled,
+    });
+  }
 
-    const state = get(
-      this.currentUser,
-      "where_is_my_friends_interest_onboarding_state"
+  get calloutCooldownActive() {
+    const persistedState = readCalloutState();
+    const cooldownTimestamp = Date.parse(
+      persistedState.cooldownUntil ?? this.calloutState.cooldownUntil ?? ""
     );
-    return state === "pending";
+    return Number.isFinite(cooldownTimestamp) && cooldownTimestamp > Date.now();
   }
 
   get isHomeRoute() {
