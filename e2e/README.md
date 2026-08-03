@@ -25,6 +25,10 @@ pnpm exec playwright install chromium
 pnpm exec playwright test
 ```
 
+When the suite itself runs inside a container with browser user namespaces
+disabled, set `DISCOURSE_DISABLE_BROWSER_SANDBOX=1`; this only adds Chromium's
+`--no-sandbox` launch argument to the development test process.
+
 To reuse an already installed Chromium-compatible browser instead of
 downloading Playwright's managed build:
 
@@ -40,7 +44,7 @@ LOCAL_FRIENDS_E2E_CLIENT_IP=172.18.0.1 \
   d/rails runner plugins/where-is-my-friends/e2e/setup.rb
 ```
 
-The setup script refuses to run outside the Rails development environment. It resets only the five `admin`, `shanghai_one`, `shanghai_two`, `empty_city`, and `city_entry` test accounts, their Local Friends interest/location records, one exact interest test topic, and the exact development login-rate-limit keys used by this suite. Playwright's global setup logs in each account once and stores ignored session state under `.auth/`; individual tests still use real Rails sessions and plugin endpoints. Re-run the Ruby setup before each full E2E run so the serial onboarding/removal scenarios start from a known state.
+The setup script refuses to run outside the Rails development environment. It resets only the seven `admin`, `shanghai_one`, `shanghai_two`, `empty_city`, `city_entry`, `dynamics_one`, and `dynamics_two` test accounts, their Local Friends interest/location records, dynamics owned by the two dynamics accounts, one exact interest test topic, and the exact development login-rate-limit keys used by this suite. Playwright's global setup logs in each account once and stores ignored session state under `.auth/`; individual tests still use real Rails sessions and plugin endpoints. Re-run the Ruby setup before each full E2E run so the serial onboarding/removal and dynamics scenarios start from a known state.
 
 Override the server with `BASE_URL=http://...` when needed. Traces, screenshots, and video are retained only for failures under `test-results/`.
 
@@ -50,3 +54,7 @@ entry, privacy-safe participation proof, city suggestions, optional region
 setup, populated and empty result paths, invite copying,
 profile/message/topic actions, location settings, GPS/map behavior, removal,
 mobile layout, and aggregate admin metrics.
+The personal dynamics suite additionally covers two-member publishing and
+viewing, the lazy homepage group, member-card previews, native replies,
+anonymous denial, media rejection, ordinary-topic-list exclusion, and desktop,
+tablet, and mobile layouts.

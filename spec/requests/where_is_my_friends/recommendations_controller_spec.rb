@@ -59,6 +59,38 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
     ).to eq(true)
   end
 
+  it "keeps marked dynamics out of discussion recommendations" do
+    normal =
+      Fabricate(
+        :topic,
+        user: author,
+        title: "A normal Ruby discussion",
+        tags: [ruby_tag]
+      )
+    Fabricate(:post, topic: normal, user: author)
+    dynamic =
+      Fabricate(
+        :topic,
+        user: author,
+        title: "A marked dynamic that must stay isolated",
+        tags: [ruby_tag]
+      )
+    Fabricate(:post, topic: dynamic, user: author)
+    dynamic.custom_fields[WhereIsMyFriends::DynamicFeed::FIELD] = true
+    dynamic.save_custom_fields
+
+    put "/where-is-my-friends/recommendations/profile.json",
+        params: {
+          interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+          purpose: "learn",
+          recommendable: true
+        }
+
+    topic_ids = response.parsed_body.fetch("recommended_topics").pluck("id")
+    expect(topic_ids).to include(normal.id)
+    expect(topic_ids).not_to include(dynamic.id)
+  end
+
   describe "#index" do
     it "returns a grouped curated catalogue instead of deriving interests from recent topics" do
       %w[纯实践 惩戒管教 游戏互动].each { |name| Tag.find_by!(name: name) }
@@ -739,6 +771,70 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
       "private_interests",
       "show_interests_publicly"
     )
+  end
+
+  it "batch-attaches one visible recent dynamic to an eligible member without changing ranking" do
+    members = Group.find(Group::AUTO_GROUPS[:trust_level_0])
+    dynamics_category = Fabricate(:private_category, group: members)
+    SiteSetting.where_is_my_friends_dynamics_enabled = true
+    SiteSetting.where_is_my_friends_dynamics_member_preview_enabled = true
+    SiteSetting.where_is_my_friends_dynamics_category_id = dynamics_category.id
+    SiteSetting.default_categories_muted = dynamics_category.id.to_s
+    profile =
+      WhereIsMyFriendsInterestProfile.create!(
+        user: author,
+        purpose: "share",
+        personalization_enabled: true,
+        recommendable: true,
+        completed_at: Time.current
+      )
+    profile.interests.create!(tag: ruby_tag, position: 0)
+    dynamic =
+      Fabricate(
+        :topic,
+        category: dynamics_category,
+        user: author,
+        title: "这是由服务端自动生成且长度足够的个人动态标题"
+      )
+    dynamic.custom_fields[WhereIsMyFriends::DynamicFeed::FIELD] = true
+    dynamic.save_custom_fields
+    raw = "今天刚完成一个小目标，想找人交流一下。"
+    Fabricate(
+      :post,
+      topic: dynamic,
+      user: author,
+      raw: raw,
+      cooked: PrettyText.cook(raw)
+    )
+    dynamic.update_columns(posts_count: 1, highest_post_number: 1)
+
+    put "/where-is-my-friends/recommendations/profile.json",
+        params: {
+          interest_ids: [ruby_tag.id, design_tag.id, community_tag.id],
+          purpose: "learn",
+          recommendable: true
+        }
+
+    recommendation =
+      response
+        .parsed_body
+        .fetch("recommended_users")
+        .find { |entry| entry["id"] == author.id }
+    expect(recommendation).to include(
+      "rank" => 1,
+      "latest_dynamic" =>
+        include("id" => dynamic.id, "excerpt" => include("今天刚完成一个小目标"))
+    )
+
+    SiteSetting.where_is_my_friends_dynamics_member_preview_enabled = false
+    get "/where-is-my-friends/recommendations.json"
+    without_preview =
+      response
+        .parsed_body
+        .fetch("recommended_users")
+        .find { |entry| entry["id"] == author.id }
+    expect(without_preview.fetch("rank")).to eq(1)
+    expect(without_preview).not_to have_key("latest_dynamic")
   end
 
   it "keeps opted-out contributors recommendable without offering an invitation" do

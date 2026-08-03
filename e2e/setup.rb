@@ -30,11 +30,22 @@ users = {
   },
   city_entry: {
     location: nil
+  },
+  dynamics_one: {
+    location: nil,
+    trust_level: TrustLevel[2]
+  },
+  dynamics_two: {
+    location: nil,
+    trust_level: TrustLevel[2]
   }
 }.freeze
 
 SiteSetting.where_is_my_friends_enabled = true
 SiteSetting.where_is_my_friends_interest_onboarding_enabled = true
+SiteSetting.where_is_my_friends_dynamics_enabled = true
+SiteSetting.where_is_my_friends_dynamics_homepage_enabled = true
+SiteSetting.where_is_my_friends_dynamics_member_preview_enabled = true
 SiteSetting.where_is_my_friends_interest_tags = "ruby|design|community"
 SiteSetting.where_is_my_friends_enable_virtual_location = true
 SiteSetting.where_is_my_friends_map_provider = "openstreetmap"
@@ -43,6 +54,8 @@ SiteSetting.tagging_enabled = true
 SiteSetting.default_locale = "en"
 SiteSetting.login_required = false
 SiteSetting.tagging_enabled = true
+SiteSetting.max_logins_per_ip_per_minute = 50
+SiteSetting.max_logins_per_ip_per_hour = 100
 
 WhereIsMyFriendsAiProviderProfile.where(
   name: "E2E generation gateway"
@@ -79,8 +92,17 @@ users.each do |username, attributes|
   user.locale = "en"
   user.save!
   user.activate unless user.email_confirmed?
-  user.change_trust_level!(attributes[:admin] ? TrustLevel[4] : TrustLevel[1])
+  user.change_trust_level!(
+    (
+      if attributes[:admin]
+        TrustLevel[4]
+      else
+        attributes.fetch(:trust_level, TrustLevel[1])
+      end
+    )
+  )
   user.update!(last_seen_at: Time.current)
+  user.user_option.update!(hide_profile: false)
   seeded_users[username.to_sym] = user
 
   UserLocation.where(user_id: user.id).delete_all
@@ -94,6 +116,36 @@ users.each do |username, attributes|
   end
 end
 
+dynamics_category =
+  Category.find_by(slug: "personal-dynamics-e2e") ||
+    Category.create!(
+      user: seeded_users.fetch(:admin),
+      name: "Personal Dynamics E2E",
+      slug: "personal-dynamics-e2e",
+      color: "7057FF",
+      text_color: "FFFFFF",
+      read_restricted: true
+    )
+dynamics_category.update!(read_restricted: true)
+dynamics_category.set_permissions(
+  Group.find(Group::AUTO_GROUPS.fetch(:trust_level_0)) => :full
+)
+dynamics_category.save!
+SiteSetting.where_is_my_friends_dynamics_category_id = dynamics_category.id
+muted_category_ids = SiteSetting.default_categories_muted.split("|").map(&:to_i)
+SiteSetting.default_categories_muted =
+  (muted_category_ids | [dynamics_category.id]).join("|")
+
+Topic
+  .joins(
+    "INNER JOIN topic_custom_fields ON topic_custom_fields.topic_id = topics.id"
+  )
+  .where(
+    user_id: seeded_users.values_at(:dynamics_one, :dynamics_two).map(&:id)
+  )
+  .where(topic_custom_fields: { name: WhereIsMyFriends::DynamicFeed::FIELD })
+  .find_each(&:destroy!)
+
 WhereIsMyFriendsInterestProfile.create!(
   user: seeded_users.fetch(:city_entry),
   purpose: nil,
@@ -104,7 +156,7 @@ WhereIsMyFriendsInterestProfile.create!(
 )
 
 interest_tags =
-  %w[ruby design community].to_h do |name|
+  %w[ruby design community 上海].to_h do |name|
     [name, Tag.find_or_create_by!(name: name)]
   end
 
@@ -122,6 +174,19 @@ candidate_profile.interests.create!(
   tag: interest_tags.fetch("ruby"),
   position: 0
 )
+
+%i[dynamics_one dynamics_two].each do |username|
+  profile =
+    WhereIsMyFriendsInterestProfile.create!(
+      user: seeded_users.fetch(username),
+      purpose: "connect",
+      personalization_enabled: true,
+      recommendable: true,
+      show_interests_publicly: false,
+      completed_at: Time.current
+    )
+  profile.interests.create!(tag: interest_tags.fetch("上海"), position: 0)
+end
 
 interest_topic_title = "Practical Ruby patterns for community projects"
 Topic.where(title: interest_topic_title).find_each(&:destroy!)

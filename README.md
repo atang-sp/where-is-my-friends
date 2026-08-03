@@ -5,6 +5,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 ## 核心体验
 
 - 首页常驻社区发现：完成兴趣设置后，话题列表页持续展示 3 个现在值得参与的讨论、3 位拥有共同语境的成员和 2 个兴趣入口；支持换一批和逐项“不感兴趣”。
+- 个人动态 MVP：登录会员可在原生个人 Activity 页发布 8–500 字纯文字近况，复用 Discourse 主题完成回复、通知、举报和审核；首页第四栏与成员卡摘要都由独立开关分阶段启用。
 - 细分兴趣目录：从互动类型、强度、角色、感受、附加元素、工具、部位、内容和交流方式中选择 3–12 项，立即看到最多 5 个话题和 6 位成员。
 - 可参与性排序：新鲜、未读、回复较少、作者活跃和开放式讨论优先；已回复、长期无人参与以及同一作者集中出现会降权，点赞数只作为最后的同分信号。
 - 相似兴趣匹配：完全相同的选择优先，也会识别相邻兴趣；参与推荐的成员即使尚未发过相关帖子，也可以互相发现。
@@ -30,7 +31,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 
 首页和兴趣页会记录 `surface`、`recommendation_group`、`candidate_source`、`rank_bucket`、`algorithm_version` 与 `result_bucket`。这些事件不保存话题、成员或兴趣目标 ID，也不保存内容。推荐北极星指标是“看过推荐的用户中，七日内产生公开发帖或回复的比例”；同时聚合推荐面板展开/收起、分组切换、刷新、各分组展示到打开和不感兴趣，以及同城入口的展示、打开、保存城市和关闭漏斗。
 
-七日参与、首次回复、插件回访和内容响应率只用已经走完整个七日观察窗的成熟 cohort 计算，尚未成熟的用户或话题单独列为 `in_progress`；推荐成熟 cohort 只纳入带 `recommendation_group` 的新版曝光。原有顶层曝光后 24 小时回复率和七日兼容键也映射到同一成熟 cohort，不再混入未成熟样本。24 小时回复率同样只用已走完 24 小时的曝光。插件回访以本插件记录的 `page_view` 为准，不代表全站回访。内容供给统计公开可见、非受限分区的主题，并区分人工原创、许可导入、人工作者/回复者和七日内获得人工回复的成熟主题。
+七日参与、首次回复、插件回访和内容响应率只用已经走完整个七日观察窗的成熟 cohort 计算，尚未成熟的用户或话题单独列为 `in_progress`；推荐成熟 cohort 只纳入带 `recommendation_group` 的新版曝光。原有顶层曝光后 24 小时回复率和七日兼容键也映射到同一成熟 cohort，不再混入未成熟样本。24 小时回复率同样只用已走完 24 小时的曝光。旧版插件回访指标仍以本插件记录的 `page_view` 为准，不代表全站回访；新增的动态发布者、回复者、打开者和同期普通公开内容参与者七日回访明确使用 Discourse `UserVisit`，代表全站自然日访问。内容供给统计公开可见、非受限分区的主题，并区分人工原创、许可导入、人工作者/回复者和七日内获得人工回复的成熟主题。
 
 ## 隐私边界
 
@@ -51,10 +52,11 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 旧意向书签只向原意向所有者返回；迁移、重新确认和历史互选导入都不会自动发送邀请或通知。
 - 只有明确允许“被推荐”且近期活跃的成员才会出现；不会暴露对方的私密兴趣或使用目的。
 - 插件绝不自动订阅标签、分区，也不会改变任何通知级别。
+- 个人动态只存在于仅登录会员可读、默认静音的专用分区；功能配置不合格时接口 fail closed。动态及回复在安全上传落地前拒绝图片、音视频和附件，且动态不会进入普通 Latest、用户“主题”页或讨论推荐。
 - 七日公开互动率和首次回复率直接从公开帖子按 onboarding 或推荐曝光时间窗聚合；私信、受限分区、内容和目标 ID 均不会进入统计结果。
 - 英文原文只在单次任务内存中存在，不写插件数据库或日志；数据库只保存来源、许可、失败代码、token 用量和通过校验的中文内容。模型 API 密钥与 Discourse AI 的 `AiSecret` 一样由数据库保存；管理接口只返回“已配置”状态，绝不返回密钥，日志也会过滤密钥参数。数据库管理员和数据库备份仍可读取密钥。发送给模型供应商的内容已经过许可校验和隐私清理；供应商的数据保留、日志和缓存政策需由管理员单独确认。
 
-管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据。响应包含统计起止时间、原有位置与推荐漏斗、推荐分组和面板操作、同城入口漏斗、成熟 cohort、公开内容供给，以及按自然日汇总的发现和内容趋势。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。完整口径和上线观察方法见 [增长可观测性口径](docs/plans/2026-08-02-growth-observability.md)。
+管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据。响应包含统计起止时间、原有位置与推荐漏斗、推荐分组和面板操作、同城入口漏斗、成熟 cohort、公开内容供给、动态供给/回复/发现/全站回访，以及按自然日汇总的发现和内容趋势。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。完整口径和上线观察方法见 [增长可观测性口径](docs/plans/2026-08-02-growth-observability.md)。
 
 ## 安装与升级
 
@@ -65,6 +67,8 @@ bundle exec rake db:migrate
 ```
 
 重启 Discourse 后，在管理后台确认 `where_is_my_friends_enabled`、`where_is_my_friends_interest_onboarding_enabled` 与 `where_is_my_friends_practice_invitations_enabled` 已启用。插件会安装内置细分兴趣目录；管理员还可额外配置最多 20 个论坛标签。目录关系和话题映射维护在 `config/interest_catalogue.yml`。
+
+个人动态必须先由管理员创建只授予 `trust_level_0` 完整权限、加入 `default_categories_muted` 的受限分区，再设置 `where_is_my_friends_dynamics_category_id`。三个动态开关默认关闭，不能在分区校验通过前打开。分阶段启用、匿名验证和数据保留回滚见 [个人动态上线手册](docs/plans/2026-08-03-personal-dynamics-rollout.md)。该流程不创建标签。
 
 若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
 
@@ -79,6 +83,10 @@ bundle exec rake db:migrate
 | `where_is_my_friends_enabled` | `true` | 启用插件 |
 | `where_is_my_friends_interest_onboarding_enabled` | `true` | 启用一次性兴趣冷启动和个性化推荐 |
 | `where_is_my_friends_interest_tags` | 空 | 在内置兴趣目录之外补充的论坛标签，最多 20 个 |
+| `where_is_my_friends_dynamics_enabled` | `false` | 启用个人 Activity 动态页和发布接口；分区不合格时仍 fail closed |
+| `where_is_my_friends_dynamics_homepage_enabled` | `false` | 启用首页折叠发现面板的第四个“动态”分组 |
+| `where_is_my_friends_dynamics_member_preview_enabled` | `false` | 在成员推荐卡上批量附加一条 30 天内动态摘要，不改变排名 |
+| `where_is_my_friends_dynamics_category_id` | 空 | 仅 `trust_level_0` 可读写且加入默认静音的专用分区 |
 | `where_is_my_friends_practice_invitations_enabled` | `true` | 启用严格一对一实践邀请 |
 | `where_is_my_friends_practice_invitation_min_trust_level` | `1` | 允许发送邀请的最低信任等级 |
 | `where_is_my_friends_practice_invitation_daily_limit` | `5` | 每位成员每天最多发送的邀请数 |
@@ -111,6 +119,9 @@ OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的�
 | `GET` | `/where-is-my-friends/locations/nearby.json` | 使用服务端已保存位置查找同城成员 |
 | `DELETE` | `/where-is-my-friends/locations.json` | 删除当前用户位置 |
 | `GET` | `/where-is-my-friends/recommendations.json` | 私密偏好、可见兴趣目录、算法版本、讨论/成员推荐和兴趣入口；可传 `refresh` 生成一轮多样性顺序 |
+| `GET` | `/where-is-my-friends/dynamics.json?username=...&before_id=...` | 读取某成员的动态，每页 20 条并显式返回较早分页游标 |
+| `POST` | `/where-is-my-friends/dynamics.json` | 当前用户通过正常 Discourse 发帖/审核链路创建纯文字动态；只接受 `raw` |
+| `GET` | `/where-is-my-friends/dynamics/recent.json` | 首页第四栏读取最近 30 天、作者去重、最多 3 条动态 |
 | `PUT` | `/where-is-my-friends/recommendations/profile.json` | 保存兴趣、目的与隐私选项 |
 | `DELETE` | `/where-is-my-friends/recommendations/profile.json` | 关闭并清空个性化数据 |
 | `POST` | `/where-is-my-friends/recommendations/skip.json` | 跳过一次性引导 |
@@ -146,6 +157,8 @@ d/exec bin/lint plugins/where-is-my-friends
 ## 主要目录
 
 - `lib/where_is_my_friends/recommendation_engine.rb`：权限安全、可解释、以参与为目标的话题/成员/兴趣入口推荐。
+- `lib/where_is_my_friends/dynamic_feed.rb`：个人动态的配置校验、创建、权限过滤、分页、最近作者去重、批量成员摘要和序列化唯一策略入口。
+- `lib/where_is_my_friends/dynamic_metrics.rb`：动态成熟作者、七日回复、入口漏斗和基于 `UserVisit` 的全站回访聚合。
 - `lib/where_is_my_friends/growth_report.rb`：管理员可见的漏斗、成熟 cohort、内容供给和按日趋势聚合。
 - `lib/where_is_my_friends/licensed_import/`：许可校验、内容清理、安全分类、忠实翻译、独立复核、发布和自动停发。
 - `lib/where_is_my_friends/practice_invitation_eligibility.rb`：共同兴趣、信任、屏蔽、opt-out 和私信权限策略。

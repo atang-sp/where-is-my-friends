@@ -5,6 +5,10 @@ zh_CN:
     invalid_interests: "请选择 3 至 20 个当前可见的兴趣，并确保每个分类未超出上限"
     invalid_purpose: "请选择你当前使用论坛的主要目的"
     invalid_recommendation: "这条推荐已不可用"
+    dynamics:
+      unavailable: "个人动态当前不可用"
+      invalid_length: "动态需包含 8 至 500 个可见字符"
+      media_not_allowed: "个人动态暂不支持图片、音视频或附件"
     licensed_import:
       title_prefix: "[英文精选·译文]"
       deleted_source_user: "已删除用户"
@@ -166,6 +170,10 @@ zh_CN:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
     where_is_my_friends_interest_onboarding_enabled: "启用首次兴趣引导和个性化推荐"
     where_is_my_friends_interest_tags: "在插件内置细分兴趣目录之外补充的论坛标签，最多 20 个"
+    where_is_my_friends_dynamics_enabled: "启用仅登录会员可见的个人动态"
+    where_is_my_friends_dynamics_homepage_enabled: "在首页社区发现面板中启用动态分组"
+    where_is_my_friends_dynamics_member_preview_enabled: "在成员推荐卡中显示近期动态摘要"
+    where_is_my_friends_dynamics_category_id: "仅登录会员可见且默认静音的个人动态分区"
     where_is_my_friends_practice_invitations_enabled: "启用严格一对一实践邀请"
     where_is_my_friends_practice_invitation_min_trust_level: "允许发送实践邀请的最低信任等级"
     where_is_my_friends_practice_invitation_daily_limit: "每位成员每天最多发送的实践邀请数"

@@ -4,13 +4,19 @@ import { concat, fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { scheduleOnce } from "@ember/runloop";
+import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { eq } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 
 export default class CommunityDiscoveryPanel extends Component {
+  @service currentUser;
+  @service siteSettings;
+
   @tracked model = null;
+  @tracked recentDynamics = [];
+  @tracked dynamicsLoaded = false;
   @tracked loading = false;
   @tracked error = false;
   @tracked expanded = false;
@@ -33,6 +39,17 @@ export default class CommunityDiscoveryPanel extends Component {
     return (this.model?.recommended_interests ?? []).slice(0, 2);
   }
 
+  get dynamicsEnabled() {
+    return (
+      this.siteSettings.where_is_my_friends_dynamics_enabled &&
+      this.siteSettings.where_is_my_friends_dynamics_homepage_enabled
+    );
+  }
+
+  get ownDynamicsUrl() {
+    return `/u/${this.currentUser.username}/activity/dynamics`;
+  }
+
   get resultCount() {
     return this.topics.length + this.people.length + this.interests.length;
   }
@@ -51,6 +68,7 @@ export default class CommunityDiscoveryPanel extends Component {
       topics: this.topics,
       people: this.people,
       interests: this.interests,
+      dynamics: this.recentDynamics,
     }[this.activeGroup];
   }
 
@@ -80,12 +98,16 @@ export default class CommunityDiscoveryPanel extends Component {
       null,
       this.activeGroup
     );
+    if (this.activeGroup === "dynamics") {
+      await this.loadRecentDynamics(true);
+      return;
+    }
     this.refreshSequence += 1;
     await this.loadRecommendations(this.refreshSequence);
   }
 
   @action
-  selectGroup(group) {
+  async selectGroup(group) {
     if (group === this.activeGroup) {
       return;
     }
@@ -96,7 +118,15 @@ export default class CommunityDiscoveryPanel extends Component {
       null,
       group
     );
-    this.queueImpressions();
+    if (group === "dynamics") {
+      if (this.dynamicsLoaded) {
+        void this.recordEvent("recent_dynamics_viewed", null, "dynamics");
+      } else {
+        await this.loadRecentDynamics();
+      }
+    } else {
+      this.queueImpressions();
+    }
   }
 
   @action
@@ -139,6 +169,11 @@ export default class CommunityDiscoveryPanel extends Component {
     void this.recordEvent(eventName, recommendation);
   }
 
+  @action
+  trackDynamicOpen(eventName, recommendation = null) {
+    void this.recordEvent(eventName, recommendation, "dynamics");
+  }
+
   async loadRecommendations(refresh = null) {
     this.loading = true;
     this.error = false;
@@ -160,12 +195,38 @@ export default class CommunityDiscoveryPanel extends Component {
     }
   }
 
+  async loadRecentDynamics(force = false) {
+    if (this.dynamicsLoaded && !force) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = false;
+    try {
+      const result = await ajax(
+        "/where-is-my-friends/dynamics/recent.json",
+      );
+      this.recentDynamics = (result.dynamics ?? []).slice(0, 3);
+      this.dynamicsLoaded = true;
+      void this.recordEvent("recent_dynamics_viewed", null, "dynamics");
+    } catch {
+      this.error = true;
+    } finally {
+      this.loading = false;
+    }
+  }
+
   queueImpressions() {
     scheduleOnce("afterRender", this, this.recordImpressions);
   }
 
   recordImpressions() {
-    if (!this.expanded || this.loading || !this.model) {
+    if (
+      !this.expanded ||
+      this.loading ||
+      !this.model ||
+      this.activeGroup === "dynamics"
+    ) {
       return;
     }
 
@@ -191,6 +252,9 @@ export default class CommunityDiscoveryPanel extends Component {
         algorithm_version: this.model?.algorithm_version,
         result_count: this.resultCount,
       });
+      if (recommendationGroup === "people") {
+        data.has_dynamic_preview = Boolean(recommendation.latest_dynamic);
+      }
     }
 
     try {
@@ -338,6 +402,22 @@ export default class CommunityDiscoveryPanel extends Component {
             }}
             data-test-community-group="interests"
           />
+          {{#if this.dynamicsEnabled}}
+            <DButton
+              @action={{fn this.selectGroup "dynamics"}}
+              @translatedLabel={{i18n
+                "where_is_my_friends.community_discovery.dynamics_group"
+                count=this.recentDynamics.length
+              }}
+              @ariaPressed={{eq this.activeGroup "dynamics"}}
+              class={{if
+                (eq this.activeGroup "dynamics")
+                "btn-primary community-discovery__group"
+                "btn-default community-discovery__group"
+              }}
+              data-test-community-group="dynamics"
+            />
+          {{/if}}
         </nav>
         {{#if (eq this.activeGroup "topics")}}
         {{#if this.topics.length}}
@@ -403,6 +483,58 @@ export default class CommunityDiscoveryPanel extends Component {
         {{/if}}
         {{/if}}
 
+        {{#if (eq this.activeGroup "dynamics")}}
+          {{#if this.recentDynamics.length}}
+            <section class="community-discovery__section">
+              <h3>{{i18n
+                  "where_is_my_friends.community_discovery.dynamics_title"
+                }}</h3>
+              <div class="community-discovery__grid">
+                {{#each this.recentDynamics as |dynamic|}}
+                  <article data-test-community-dynamic={{dynamic.id}}>
+                    <div class="community-discovery__person-heading">
+                      <h4>{{if
+                          dynamic.author.name
+                          dynamic.author.name
+                          dynamic.author.username
+                        }}</h4>
+                      <span>@{{dynamic.author.username}}</span>
+                    </div>
+                    <p>{{dynamic.excerpt}}</p>
+                    <div class="community-discovery__actions">
+                      <a
+                        class="btn btn-primary"
+                        href={{dynamic.url}}
+                        data-test-community-dynamic-open
+                        {{on
+                          "click"
+                          (fn
+                            this.trackDynamicOpen "dynamic_opened" dynamic
+                          )
+                        }}
+                      >{{i18n
+                          "where_is_my_friends.dynamics.open_and_reply"
+                        }}</a>
+                    </div>
+                  </article>
+                {{/each}}
+              </div>
+            </section>
+          {{else}}
+            <div
+              class="community-discovery__empty"
+              data-test-community-dynamics-empty
+            >
+              <span>{{i18n
+                  "where_is_my_friends.community_discovery.dynamics_empty"
+                }}</span>
+              <a class="btn btn-flat" href={{this.ownDynamicsUrl}}>{{i18n
+                  "where_is_my_friends.community_discovery.share_dynamic"
+                }}</a>
+            </div>
+          {{/if}}
+        {{/if}}
+
         {{#if (eq this.activeGroup "people")}}
         {{#if this.people.length}}
           <section class="community-discovery__section">
@@ -427,6 +559,26 @@ export default class CommunityDiscoveryPanel extends Component {
                       <span>{{interest.name}}</span>
                     {{/each}}
                   </p>
+                  {{#if person.latest_dynamic}}
+                    <a
+                      class="community-discovery__dynamic-preview"
+                      href={{person.latest_dynamic.url}}
+                      data-test-community-person-dynamic
+                      {{on
+                        "click"
+                        (fn
+                          this.trackOpen
+                          "recommended_user_dynamic_opened"
+                          person
+                        )
+                      }}
+                    >
+                      <strong>{{i18n
+                          "where_is_my_friends.community_discovery.latest_dynamic"
+                        }}</strong>
+                      {{person.latest_dynamic.excerpt}}
+                    </a>
+                  {{/if}}
                   <div class="community-discovery__actions">
                     {{#if person.primaryTopic}}
                       <a
@@ -575,17 +727,19 @@ export default class CommunityDiscoveryPanel extends Component {
           </section>
         {{/if}}
         {{/if}}
-        {{#unless this.activeHasResults}}
-          <div
-            class="community-discovery__empty"
-            data-test-community-empty
-          >
-            <p>{{i18n "where_is_my_friends.community_discovery.empty"}}</p>
-            <a
-              class="btn btn-primary"
-              href="/where-is-my-friends/interests"
-            >{{i18n "where_is_my_friends.interests.edit"}}</a>
-          </div>
+        {{#unless (eq this.activeGroup "dynamics")}}
+          {{#unless this.activeHasResults}}
+            <div
+              class="community-discovery__empty"
+              data-test-community-empty
+            >
+              <p>{{i18n "where_is_my_friends.community_discovery.empty"}}</p>
+              <a
+                class="btn btn-primary"
+                href="/where-is-my-friends/interests"
+              >{{i18n "where_is_my_friends.interests.edit"}}</a>
+            </div>
+          {{/unless}}
         {{/unless}}
       {{else}}
         {{#unless this.loading}}

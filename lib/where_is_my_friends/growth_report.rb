@@ -15,8 +15,8 @@ module WhereIsMyFriends
           starts_at: @since.iso8601,
           ends_at: @as_of.iso8601
         },
-        funnel:
-          FunnelMetrics.new(since: @since, as_of: @as_of).call,
+        funnel: FunnelMetrics.new(since: @since, as_of: @as_of).call,
+        dynamics: DynamicMetrics.new(since: @since, as_of: @as_of).call,
         content_supply: content_supply,
         daily: daily_trend
       }
@@ -99,6 +99,7 @@ module WhereIsMyFriends
                 recommended_user_profile_opened
                 recommended_user_related_topic_opened
                 recommended_user_invite_started
+                recommended_user_dynamic_opened
                 recommended_interest_opened
               ]
             ),

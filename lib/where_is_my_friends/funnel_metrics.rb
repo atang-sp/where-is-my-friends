@@ -2,9 +2,14 @@
 
 module WhereIsMyFriends
   class FunnelMetrics
-    RECOMMENDATION_GROUPS = WhereIsMyFriendsEvent::RECOMMENDATION_GROUPS
+    RECOMMENDATION_GROUPS =
+      (WhereIsMyFriendsEvent::RECOMMENDATION_GROUPS - %w[dynamics]).freeze
 
-    def initialize(since:, as_of: Time.current, event_model: WhereIsMyFriendsEvent)
+    def initialize(
+      since:,
+      as_of: Time.current,
+      event_model: WhereIsMyFriendsEvent
+    )
       @since = since
       @as_of = as_of
       @event_model = event_model
@@ -14,17 +19,20 @@ module WhereIsMyFriends
       since = @since
       as_of = @as_of
       events =
-        @event_model.where(created_at: since..as_of).select(
-          :user_id,
-          :event_name,
-          :result_bucket,
-          :surface,
-          :recommendation_group,
-          :candidate_source,
-          :rank_bucket,
-          :algorithm_version,
-          :created_at
-        ).to_a
+        @event_model
+          .where(created_at: since..as_of)
+          .select(
+            :user_id,
+            :event_name,
+            :result_bucket,
+            :surface,
+            :recommendation_group,
+            :candidate_source,
+            :rank_bucket,
+            :algorithm_version,
+            :created_at
+          )
+          .to_a
       viewers = users_for(events, "page_view")
       setup_starters = users_for(events, "setup_started")
       completed_setups = users_for(events, "location_saved")
@@ -37,7 +45,8 @@ module WhereIsMyFriends
       results_with_people =
         events
           .select do |event|
-            event.event_name == "results_viewed" && event.result_bucket != "zero"
+            event.event_name == "results_viewed" &&
+              event.result_bucket != "zero"
           end
           .map(&:user_id)
           .uniq
@@ -59,6 +68,7 @@ module WhereIsMyFriends
             recommended_user_profile_opened
             recommended_user_related_topic_opened
             recommended_user_invite_started
+            recommended_user_dynamic_opened
           ]
         )
       recommended_user_related_topic_openers =
@@ -68,7 +78,9 @@ module WhereIsMyFriends
       recommended_interest_openers =
         users_for(events, "recommended_interest_opened")
       impression_events =
-        events.select { |event| event.event_name == "recommendation_impression" }
+        events.select do |event|
+          event.event_name == "recommendation_impression"
+        end
       recommendation_exposed_users = impression_events.map(&:user_id).uniq
       recommendation_openers =
         users_with_events_after_anchor(
@@ -80,6 +92,7 @@ module WhereIsMyFriends
             recommended_user_profile_opened
             recommended_user_related_topic_opened
             recommended_user_invite_started
+            recommended_user_dynamic_opened
             recommended_interest_opened
           ]
         )
@@ -136,7 +149,10 @@ module WhereIsMyFriends
         impression_to_24h_reply_rate:
           mature_recommendation.fetch(:reply_rate_24h),
         topic_open_to_24h_reply_rate:
-          rate(topic_open_24h_repliers.length, recommended_topic_openers.length),
+          rate(
+            topic_open_24h_repliers.length,
+            recommended_topic_openers.length
+          ),
         recommended_user_related_topic_open_rate:
           rate(
             recommended_user_related_topic_openers.length,
@@ -152,9 +168,13 @@ module WhereIsMyFriends
         seven_day_public_interaction_rate:
           mature_onboarding.fetch(:public_interaction_rate),
         seven_day_first_reply_rate: mature_onboarding.fetch(:first_reply_rate),
-        seven_day_return_rate: mature_plugin_visits.fetch(:seven_day_return_rate),
+        seven_day_return_rate:
+          mature_plugin_visits.fetch(:seven_day_return_rate),
         thirty_day_return_rate:
-          rate(returning_viewers(events, within_days: 30).length, viewers.length),
+          rate(
+            returning_viewers(events, within_days: 30).length,
+            viewers.length
+          ),
         effective_connection_rate:
           rate(effective_connections(events).length, completed_setups.length),
         local_topic_open_rate:
@@ -182,7 +202,10 @@ module WhereIsMyFriends
     private
 
     def users_for(events, event_name)
-      events.select { |event| event.event_name == event_name }.map(&:user_id).uniq
+      events
+        .select { |event| event.event_name == event_name }
+        .map(&:user_id)
+        .uniq
     end
 
     def users_for_any(events, event_names)
@@ -200,6 +223,7 @@ module WhereIsMyFriends
           recommended_user_profile_opened
           recommended_user_related_topic_opened
           recommended_user_invite_started
+          recommended_user_dynamic_opened
         ],
         "interests" => %w[recommended_interest_opened]
       }
@@ -302,7 +326,9 @@ module WhereIsMyFriends
           days = page_views.map { |event| event.created_at.to_date }.uniq.sort
           if days
                .combination(2)
-               .any? { |first, second| (second - first).between?(1, within_days) }
+               .any? { |first, second|
+                 (second - first).between?(1, within_days)
+               }
             user_id
           end
         end
@@ -346,7 +372,11 @@ module WhereIsMyFriends
           )
           .where(user_id: anchored_at_by_user.keys)
           .where(created_at: earliest..latest)
-          .where(post_type: Post.types[:regular], hidden: false, deleted_at: nil)
+          .where(
+            post_type: Post.types[:regular],
+            hidden: false,
+            deleted_at: nil
+          )
           .where(topics: { visible: true, deleted_at: nil })
           .where.not(topics: { archetype: Archetype.private_message })
           .where("categories.id IS NULL OR categories.read_restricted = FALSE")
@@ -437,7 +467,10 @@ module WhereIsMyFriends
           in_progress_users: recommendation_in_progress.length,
           public_interactors: recommendation_interactors.length,
           public_interaction_rate:
-            rate(recommendation_interactors.length, recommendation_mature.length),
+            rate(
+              recommendation_interactors.length,
+              recommendation_mature.length
+            ),
           mature_24h_users: recommendation_24h_mature.length,
           in_progress_24h_users: recommendation_24h_in_progress.length,
           repliers_within_24h: recommendation_24h_repliers.length,
@@ -461,7 +494,8 @@ module WhereIsMyFriends
           mature_users: visit_mature.length,
           in_progress_users: visit_in_progress.length,
           returning_users: returning_users.length,
-          seven_day_return_rate: rate(returning_users.length, visit_mature.length)
+          seven_day_return_rate:
+            rate(returning_users.length, visit_mature.length)
         }
       }
     end
@@ -480,9 +514,10 @@ module WhereIsMyFriends
           "created_at <= ?",
           as_of
         )
-      if require_recommendation_group
-        scope = scope.where.not(recommendation_group: nil)
-      end
+      scope =
+        scope.where.not(
+          recommendation_group: nil
+        ) if require_recommendation_group
 
       scope
         .group(:user_id)
@@ -512,11 +547,7 @@ module WhereIsMyFriends
       end
     end
 
-    def users_with_events_after_anchor(
-      events,
-      anchor_event_name:,
-      event_names:
-    )
+    def users_with_events_after_anchor(events, anchor_event_name:, event_names:)
       anchored_at_by_user =
         events
           .select { |event| event.event_name == anchor_event_name }

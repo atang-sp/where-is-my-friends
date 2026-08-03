@@ -73,6 +73,37 @@ RSpec.describe WhereIsMyFriends::EventsController do
       )
     end
 
+    it "records only boolean dynamic-preview context without content or identity" do
+      sign_in(user)
+
+      post "/where-is-my-friends/events.json",
+           params: {
+             event_name: "recommended_user_dynamic_opened",
+             surface: "homepage",
+             recommendation_group: "people",
+             has_dynamic_preview: true,
+             dynamic_id: 99_999,
+             author_id: 88_888,
+             username: "private-name",
+             raw: "private content"
+           }
+
+      expect(response.status).to eq(200)
+      expect(WhereIsMyFriendsEvent.last).to have_attributes(
+        user_id: user.id,
+        event_name: "recommended_user_dynamic_opened",
+        surface: "homepage",
+        recommendation_group: "people",
+        has_dynamic_preview: true
+      )
+      expect(WhereIsMyFriendsEvent.column_names).not_to include(
+        "dynamic_id",
+        "author_id",
+        "username",
+        "raw"
+      )
+    end
+
     it "rejects unknown event names" do
       sign_in(user)
 

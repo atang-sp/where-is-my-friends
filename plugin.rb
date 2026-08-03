@@ -21,12 +21,20 @@ register_svg_icon "floppy-disk"
 require_relative "lib/where_is_my_friends/engine"
 
 after_initialize do
-  SeedFu.fixture_paths <<
-    Rails.root.join("plugins/where-is-my-friends/db/fixtures").to_s
+  SeedFu.fixture_paths << Rails
+    .root
+    .join("plugins/where-is-my-friends/db/fixtures")
+    .to_s
 
   Rails.application.config.filter_parameters |= %i[api_key]
 
   require_relative "lib/where_is_my_friends/interest_visibility"
+  if PostRevisor.ancestors.exclude?(WhereIsMyFriends::DynamicPostRevisor)
+    PostRevisor.prepend(WhereIsMyFriends::DynamicPostRevisor)
+  end
+  if PostValidator.ancestors.exclude?(WhereIsMyFriends::DynamicPostValidator)
+    PostValidator.prepend(WhereIsMyFriends::DynamicPostValidator)
+  end
 
   register_topic_custom_field_type(
     "where_is_my_friends_licensed_import_source_id",
@@ -36,6 +44,96 @@ after_initialize do
     "where_is_my_friends_licensed_import_source_key",
     :string
   )
+  register_topic_custom_field_type(
+    WhereIsMyFriends::DynamicFeed::FIELD,
+    :boolean
+  )
+  allow_new_queued_post_payload_attribute(
+    WhereIsMyFriends::DynamicFeed::INTERNAL_CREATION_PARAM
+  )
+
+  on(:after_validate_topic) do |topic, _creator|
+    dynamic_category_id =
+      SiteSetting.where_is_my_friends_dynamics_category_id.to_i
+    next if dynamic_category_id.zero?
+    next unless topic.category_id == dynamic_category_id
+    next if WhereIsMyFriends::DynamicFeed.creating?
+
+    topic.errors.add(:base, I18n.t("where_is_my_friends.dynamics.unavailable"))
+  end
+
+  on(:before_create_topic) do |topic, creator|
+    unless creator.opts[WhereIsMyFriends::DynamicFeed::INTERNAL_CREATION_PARAM]
+      next
+    end
+
+    topic.custom_fields[WhereIsMyFriends::DynamicFeed::FIELD] = true
+  end
+
+  on(:before_create_post) do |post, _options|
+    creating_dynamic = WhereIsMyFriends::DynamicFeed.creating?
+    existing_dynamic =
+      post.topic_id.present? &&
+        WhereIsMyFriends::DynamicFeed.dynamic?(post.topic)
+    next unless creating_dynamic || existing_dynamic
+
+    post.cooking_options =
+      WhereIsMyFriends::DynamicFeed.plain_link_cooking_options(
+        post.cooking_options
+      )
+  end
+
+  validate(:post, :validate_where_is_my_friends_dynamic_content) do
+    next unless raw_changed?
+
+    creating_dynamic = WhereIsMyFriends::DynamicFeed.creating?
+    existing_dynamic =
+      topic_id.present? && WhereIsMyFriends::DynamicFeed.dynamic?(topic)
+    next unless creating_dynamic || existing_dynamic
+
+    message =
+      WhereIsMyFriends::DynamicFeed.validation_message(
+        raw,
+        enforce_length: creating_dynamic || post_number == 1
+      )
+    errors.add(:raw, message) if message
+  end
+
+  on(:before_post_process_cooked) do |document, post|
+    next unless WhereIsMyFriends::DynamicFeed.dynamic?(post.topic)
+
+    WhereIsMyFriends::DynamicFeed.disable_oneboxes!(document)
+  end
+
+  on(:post_edited) do |post|
+    next unless post.is_first_post?
+    next unless WhereIsMyFriends::DynamicFeed.dynamic?(post.topic)
+
+    editor = User.find_by(id: post.last_editor_id)
+    attributes = {}
+    if post.previous_changes.key?("raw") || !editor&.staff?
+      attributes[:title] = WhereIsMyFriends::DynamicFeed.title_for(post.raw)
+    end
+    post.topic.update!(attributes) if attributes.present?
+    post.topic.tags.delete_all if post.topic.tags.exists?
+  end
+
+  on(:topic_tags_changed) do |topic, _payload|
+    next unless WhereIsMyFriends::DynamicFeed.dynamic?(topic)
+
+    topic.tags.delete_all
+  end
+
+  TopicQuery.add_custom_filter(
+    :where_is_my_friends_without_dynamics
+  ) do |result|
+    result.where.not(
+      id:
+        TopicCustomField.where(
+          name: WhereIsMyFriends::DynamicFeed::FIELD
+        ).select(:topic_id)
+    )
+  end
 
   UserUpdater::OPTION_ATTR.push(:where_is_my_friends_notify_city)
   UserUpdater::OPTION_ATTR.push(:where_is_my_friends_notify_nearby)
@@ -92,6 +190,10 @@ after_initialize do
       object,
       guardian: scope
     )
+  end
+
+  add_to_serializer(:topic_view, :where_is_my_friends_dynamic) do
+    WhereIsMyFriends::DynamicFeed.dynamic?(object.topic)
   end
 
   add_to_serializer(

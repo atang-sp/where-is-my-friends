@@ -9,7 +9,7 @@
 ## 入口与推荐漏斗
 
 - `funnel.recommendation_actions`：推荐面板的唯一展开用户、展开次数、唯一收起用户、收起次数，以及按当前分组统计的切换和刷新次数。
-- `funnel.recommendation_groups.topics|people|interests`：真正渲染该分组后产生的唯一曝光用户、曝光后打开用户和“不感兴趣”用户及其比率。
+- `funnel.recommendation_groups.topics|people|interests`：推荐分组在真正渲染后产生唯一曝光用户、曝光后打开用户和“不感兴趣”用户及其比率；动态分组不伪装成逐卡推荐曝光，专用查看到打开漏斗位于 `dynamics.homepage`，分组选择/刷新动作仍可记录 `recommendation_group=dynamics`。
 - `funnel.local_callout`：仅首页同城入口的唯一展示用户、展示后打开、保存城市和关闭用户及其比率。分类页事件保留 `surface=category`，不进入首页漏斗。
 - 原有推荐来源、位置、排序桶、算法版本和结果桶分布继续保留。
 
@@ -37,6 +37,18 @@
 - `seven_day_human_response_rate` 的分子是七日内获得非系统用户、非主题作者人工回复的成熟主题。
 
 `daily` 提供面板展开、推荐曝光/打开、同城入口展示/打开/保存、公开主题创建和人工回复主题数的自然日趋势。人工回复趋势覆盖当天在任意公开主题产生的合格回复，不限于当期新建主题；日界线采用站点时区。
+
+## 个人动态试点
+
+`dynamics` 不从行为事件推算内容供给，而是直接聚合带 `where_is_my_friends_dynamic` 标记的 Topic/Post：
+
+- `supply` 返回动态数、唯一非员工作者、按自然日作者数，以及首次发布满 14 天的作者在另一个自然日再次发布的比例；
+- `replies` 只把创建满 7 天的动态放入成熟分母，并统计七日内非作者真人（包括管理员和版主、排除系统机器人）回复率、未回复数、首次回复中位秒数和唯一回复者；
+- `homepage` 使用 `recent_dynamics_viewed` 到其后 `dynamic_opened` 的唯一用户漏斗；
+- `member_cards.with_dynamic_preview|without_dynamic_preview` 使用布尔上下文分组，报告成员卡综合打开率；有预览组另报动态摘要打开率。事件不保存动态、作者或推荐目标 ID；
+- `seven_day_return` 分别给出动态发布者、回复者、打开者和同期普通公开内容参与者的成熟/进行中 cohort。这里从锚点后的第 1 至第 7 个自然日查询 Discourse `UserVisit`，代表全站访问，不使用插件 `page_view`。
+
+动态与同期普通内容的回访比较是观察性关联，不构成随机实验或因果结论。少于计划规定样本量时只报告数量，不宣称试点成功。
 
 ## 上线与观察
 
