@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.15.1 — 2026-08-04
+
+- Merge the separate recently active member spotlight into the complete local
+  member directory so profile, chat, bio, and configured attributes stay
+  visible together.
+- Show online or relative last-visit status on each member card while
+  preserving the privacy note for approximate and hidden presence.
+- Put local people before discussions and replace topic previews with one
+  compact navigation action; setup still offers the existing topic composer.
+
 ## 1.15.0 — 2026-08-04
 
 - Add a signed-in-members-only personal dynamics MVP backed by ordinary

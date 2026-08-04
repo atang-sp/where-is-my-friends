@@ -5,7 +5,7 @@ module WhereIsMyFriends
     def initialize(user:, params:)
       @user = user
       @params = params
-end
+    end
     def call
       if discovery_mode != "city" &&
            !SiteSetting.where_is_my_friends_enable_virtual_location
@@ -70,8 +70,7 @@ end
       return false unless discovery_mode == existing.discovery_mode
       return true if discovery_mode == "city"
 
-      existing.precise? &&
-        @params[:latitude].blank? &&
+      existing.precise? && @params[:latitude].blank? &&
         @params[:longitude].blank?
     end
 

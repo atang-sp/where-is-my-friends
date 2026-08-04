@@ -14,8 +14,7 @@ module WhereIsMyFriends
     end
 
     def create
-      location =
-        LocationSaver.new(user: current_user, params: params).call
+      location = LocationSaver.new(user: current_user, params: params).call
 
       render json: { state: "ready", location: location_metadata(location) }
     rescue ActiveRecord::RecordInvalid
@@ -26,8 +25,7 @@ module WhereIsMyFriends
     end
 
     def preview
-      render json:
-               CityPreview.new(user: current_user, city: params[:city]).call
+      render json: CityPreview.new(user: current_user, city: params[:city]).call
     end
 
     def nearby
@@ -52,10 +50,7 @@ module WhereIsMyFriends
       window_days = report_window_days
       as_of = Time.current
       report =
-        GrowthReport.new(
-          since: as_of - window_days.days,
-          as_of: as_of
-        ).call
+        GrowthReport.new(since: as_of - window_days.days, as_of: as_of).call
 
       render json: {
                window_days: window_days,

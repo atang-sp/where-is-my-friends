@@ -8,8 +8,7 @@ module WhereIsMyFriends
     end
 
     def call
-      network =
-        CityNetwork.new.preview(city: @city, exclude_user_id: @user.id)
+      network = CityNetwork.new.preview(city: @city, exclude_user_id: @user.id)
       city = network[:city]
       local_topics =
         if city[:canonical]
@@ -21,11 +20,7 @@ module WhereIsMyFriends
       network.merge(
         local_topics: local_topics,
         local_topic_compose_url:
-          (
-            if city[:canonical]
-              LocalTopics.compose_url(city[:city_key])
-            end
-          )
+          (LocalTopics.compose_url(city[:city_key]) if city[:canonical])
       )
     end
   end

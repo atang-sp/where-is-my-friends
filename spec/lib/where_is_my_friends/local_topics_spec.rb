@@ -126,7 +126,9 @@ RSpec.describe WhereIsMyFriends::LocalTopics do
 
     sql = []
     subscriber =
-      ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      ActiveSupport::Notifications.subscribe(
+        "sql.active_record"
+      ) do |*, payload|
         next if payload[:name] == "SCHEMA" || payload[:cached]
 
         sql << payload[:sql]
@@ -138,8 +140,7 @@ RSpec.describe WhereIsMyFriends::LocalTopics do
       ActiveSupport::Notifications.unsubscribe(subscriber)
     end
 
-    tag_load_queries =
-      sql.grep(/SELECT .*FROM "topic_tags".*topic_id" IN \(/)
+    tag_load_queries = sql.grep(/SELECT .*FROM "topic_tags".*topic_id" IN \(/)
     expect(tag_load_queries.length).to eq(1)
   end
 

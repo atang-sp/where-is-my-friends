@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.15.0
+# version: 1.15.1
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0.beta1
