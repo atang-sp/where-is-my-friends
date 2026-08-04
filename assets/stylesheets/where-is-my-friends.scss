@@ -1927,6 +1927,13 @@
   }
 }
 
+.local-friends-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
 .local-friends-city-badge {
   margin-top: 0.25em;
 
