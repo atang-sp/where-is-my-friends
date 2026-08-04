@@ -1,10 +1,12 @@
 # Changelog
 
-## Unreleased
+## 1.15.0 — 2026-08-04
 
 - Add a signed-in-members-only personal dynamics MVP backed by ordinary
   Discourse topics and replies, with a lightweight Activity tab publisher,
   explicit older-page loading, and fail-closed category validation.
+- Enable the profile, homepage, and member-preview dynamics switches by default;
+  an absent or unsafe dedicated category still keeps every surface fail closed.
 - Add a lazy fourth homepage discovery group and optional member-card dynamic
   previews without changing recommendation ranking, the existing 3-3-2
   contract, or collapsed-panel request and impression behavior.

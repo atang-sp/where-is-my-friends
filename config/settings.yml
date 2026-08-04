@@ -24,7 +24,7 @@ plugins:
     translated: true
 
   where_is_my_friends_dynamics_enabled:
-    default: false
+    default: true
     client: true
     type: bool
     description: "启用仅登录会员可见的个人动态"
@@ -32,7 +32,7 @@ plugins:
     translated: true
 
   where_is_my_friends_dynamics_homepage_enabled:
-    default: false
+    default: true
     client: true
     type: bool
     description: "在首页社区发现面板中启用动态分组"
@@ -40,7 +40,7 @@ plugins:
     translated: true
 
   where_is_my_friends_dynamics_member_preview_enabled:
-    default: false
+    default: true
     client: true
     type: bool
     description: "在成员推荐卡中显示近期动态摘要"

@@ -68,7 +68,7 @@ bundle exec rake db:migrate
 
 重启 Discourse 后，在管理后台确认 `where_is_my_friends_enabled`、`where_is_my_friends_interest_onboarding_enabled` 与 `where_is_my_friends_practice_invitations_enabled` 已启用。插件会安装内置细分兴趣目录；管理员还可额外配置最多 20 个论坛标签。目录关系和话题映射维护在 `config/interest_catalogue.yml`。
 
-个人动态必须先由管理员创建只授予 `trust_level_0` 完整权限、加入 `default_categories_muted` 的受限分区，再设置 `where_is_my_friends_dynamics_category_id`。三个动态开关默认关闭，不能在分区校验通过前打开。分阶段启用、匿名验证和数据保留回滚见 [个人动态上线手册](docs/plans/2026-08-03-personal-dynamics-rollout.md)。该流程不创建标签。
+个人动态必须先由管理员创建只授予 `trust_level_0` 完整权限、加入 `default_categories_muted` 的受限分区，再设置 `where_is_my_friends_dynamics_category_id`。三个动态开关默认开启，但在分区校验通过前接口仍会 fail closed。上线验收、匿名验证和数据保留回滚见 [个人动态上线手册](docs/plans/2026-08-03-personal-dynamics-rollout.md)。该流程不创建标签。
 
 若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
 
@@ -83,9 +83,9 @@ bundle exec rake db:migrate
 | `where_is_my_friends_enabled` | `true` | 启用插件 |
 | `where_is_my_friends_interest_onboarding_enabled` | `true` | 启用一次性兴趣冷启动和个性化推荐 |
 | `where_is_my_friends_interest_tags` | 空 | 在内置兴趣目录之外补充的论坛标签，最多 20 个 |
-| `where_is_my_friends_dynamics_enabled` | `false` | 启用个人 Activity 动态页和发布接口；分区不合格时仍 fail closed |
-| `where_is_my_friends_dynamics_homepage_enabled` | `false` | 启用首页折叠发现面板的第四个“动态”分组 |
-| `where_is_my_friends_dynamics_member_preview_enabled` | `false` | 在成员推荐卡上批量附加一条 30 天内动态摘要，不改变排名 |
+| `where_is_my_friends_dynamics_enabled` | `true` | 启用个人 Activity 动态页和发布接口；分区不合格时仍 fail closed |
+| `where_is_my_friends_dynamics_homepage_enabled` | `true` | 启用首页折叠发现面板的第四个“动态”分组 |
+| `where_is_my_friends_dynamics_member_preview_enabled` | `true` | 在成员推荐卡上批量附加一条 30 天内动态摘要，不改变排名 |
 | `where_is_my_friends_dynamics_category_id` | 空 | 仅 `trust_level_0` 可读写且加入默认静音的专用分区 |
 | `where_is_my_friends_practice_invitations_enabled` | `true` | 启用严格一对一实践邀请 |
 | `where_is_my_friends_practice_invitation_min_trust_level` | `1` | 允许发送邀请的最低信任等级 |
