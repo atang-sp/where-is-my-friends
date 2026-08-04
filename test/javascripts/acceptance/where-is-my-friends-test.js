@@ -577,9 +577,8 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .includesText("about 90 km")
       .includesText("2 active");
     assert
-      .dom("[data-test-city-network-preview] [data-test-local-topic='41']")
-      .includesText("上海周末野餐")
-      .hasAttribute("href", "/t/shanghai-weekend-picnic/41");
+      .dom("[data-test-city-network-preview] [data-test-local-topic]")
+      .doesNotExist();
     assert
       .dom("[data-test-city-network-preview] [data-test-compose-local-topic]")
       .hasAttribute(
@@ -822,7 +821,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     assert.true(api.events.includes("profile_clicked"));
     assert.true(api.events.includes("message_started"));
-    assert.true(api.events.includes("local_topic_interacted"));
+    assert.true(api.events.includes("local_topic_opened"));
     assert.dom("[data-test-member-filter]").doesNotExist();
   });
 
@@ -905,7 +904,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .dom("[data-test-local-topics]")
       .hasAttribute("aria-label", "Browse topics about 上海");
     await triggerEvent("[data-test-local-topics]", "click", { ctrlKey: true });
-    assert.true(api.events.includes("local_topic_interacted"));
+    assert.true(api.events.includes("local_topic_opened"));
     assert.dom("[data-test-empty-invitation]").exists();
   });
 
@@ -1017,20 +1016,31 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .hasText("Inactive for more than 90 days");
   });
 
-  test("results spotlight online and recently active members for quick replies", async function (assert) {
-    api.initial = readyState();
+  test("full member cards integrate activity, profile, and attributes without a duplicate spotlight", async function (assert) {
+    api.initial = readyState(
+      {},
+      {
+        filterable_fields: [
+          { name: "Gender", key: "user_field_3", options: ["Woman"] },
+          { name: "Role", key: "user_field_5", options: ["Bottom"] },
+        ],
+      },
+    );
     const onlineMember = {
       ...localUser("alice", "Alice"),
       online: true,
       activity_status: "online",
       last_seen_at: new Date().toISOString(),
+      custom_fields: { Gender: "Woman", Role: "Bottom" },
     };
     const activeMember = {
       ...localUser("carol", "Carol"),
       online: false,
       activity_status: "recent",
       last_seen_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-      last_posted_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+      last_posted_at: new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
     };
     const inactiveMember = {
       ...localUser("bob", "Bob"),
@@ -1044,17 +1054,32 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     await visit("/where-is-my-friends");
 
-    assert.dom("[data-test-reply-now]").exists();
-    assert.dom("[data-test-online-count]").hasText("1 online");
-    assert.dom("[data-test-online-user='alice']").includesText("Alice");
-    assert.dom("[data-test-active-user='carol']").includesText("Carol");
-    assert.dom("[data-test-active-user='bob']").doesNotExist();
+    assert.dom("[data-test-reply-now]").doesNotExist();
     assert
-      .dom("[data-test-quick-message='alice']")
+      .dom("[data-test-user-card='alice'] [data-test-user-activity]")
+      .hasText("Online now");
+    assert
+      .dom("[data-test-user-card='carol'] [data-test-user-activity]")
+      .includesText("Here")
+      .includesText("ago");
+    assert
+      .dom("[data-test-presence-note]")
+      .includesText("Online status is approximate");
+    assert
+      .dom("[data-test-user-card='alice'] [data-test-user-attrs]")
+      .hasText("Woman / Bottom");
+    assert
+      .dom("[data-test-user-card='alice'] [data-test-profile-link='alice']")
+      .hasAttribute("href", "/u/alice");
+    assert
+      .dom("[data-test-user-card='alice'] [data-test-message-link='alice']")
       .hasAttribute("href", "/chat/new-message?recipients=alice");
+    assert
+      .dom("[data-test-user-card='bob'] [data-test-inactive-member]")
+      .exists();
   });
 
-  test("joined results prioritize native local topics inside the selected radius", async function (assert) {
+  test("joined results put members before one compact local-topics action", async function (assert) {
     api.initial = readyState();
     api.nearby = {
       state: "ready",
@@ -1075,17 +1100,22 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
 
     await visit("/where-is-my-friends");
 
+    assert.dom("[data-test-local-topic='42']").doesNotExist();
     assert
-      .dom("[data-test-local-topic='42']")
-      .includesText("苏州周六桌游")
-      .includesText("江苏")
-      .hasAttribute("href", "/t/suzhou-board-games/42");
-    assert
-      .dom("[data-test-compose-local-topic]")
-      .hasAttribute(
-        "href",
-        "/new-topic?category_id=7&tags=%E4%B8%AD%E5%9B%BD,%E4%B8%8A%E6%B5%B7",
-      );
+      .dom("[data-test-local-topics]")
+      .hasText("Browse local topics")
+      .hasAttribute("href", "/search?q=%E4%B8%8A%E6%B5%B7");
+    const topicsAction = document.querySelector("[data-test-local-topics]");
+    const directoryOrder = [
+      ...document.querySelectorAll(
+        "[data-test-user-card], [data-test-local-topics]",
+      ),
+    ];
+    assert.strictEqual(
+      directoryOrder[directoryOrder.length - 1],
+      topicsAction,
+      "the member directory appears before the topics action",
+    );
     assert
       .dom("[data-test-message-link='alice']")
       .doesNotHaveClass("btn-primary");

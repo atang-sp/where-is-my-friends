@@ -44,8 +44,6 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked networkPreview = null;
   @tracked previewLoading = false;
   @tracked selectedPreviewRadius = null;
-  @tracked localTopics = [];
-  @tracked localTopicComposeUrl = null;
 
   constructor() {
     super(...arguments);
@@ -121,50 +119,38 @@ export default class WhereIsMyFriendsPage extends Component {
           (bandOrder[a.distance_band ?? "same_city"] ?? 99) -
           (bandOrder[b.distance_band ?? "same_city"] ?? 99)
       )
-      .map((user) => ({
-        ...user,
-        distance_label:
-          (user.distance_band ?? "same_city") === "same_city"
-            ? null
-            : i18n(`where_is_my_friends.distance_bands.${user.distance_band}`),
-        action_url: useChat
-          ? `/chat/new-message?recipients=${encodeURIComponent(user.username)}`
-          : user.message_url,
-        last_active_label: user.last_seen_at
+      .map((user) => {
+        const lastActiveLabel = user.last_seen_at
           ? relativeAge(new Date(user.last_seen_at), { format: "tiny" })
-          : null,
-        last_posted_label: user.last_posted_at
-          ? relativeAge(new Date(user.last_posted_at), { format: "tiny" })
-          : null,
-        custom_field_label: fields
-          .map((f) => user.custom_fields?.[f.name])
-          .filter(Boolean)
-          .join(" / "),
-        inactive: user.activity_status === "inactive",
-      }));
-  }
+          : null;
+        let activityLabel = null;
+        if (user.online) {
+          activityLabel = i18n("where_is_my_friends.online_now");
+        } else if (lastActiveLabel) {
+          activityLabel = i18n("where_is_my_friends.seen_recently", {
+            time: lastActiveLabel,
+          });
+        }
 
-  get onlineUsers() {
-    return this.visibleUsers.filter((user) => user.online).slice(0, 6);
-  }
-
-  get recentlyActiveUsers() {
-    return this.visibleUsers
-      .filter((user) => !user.online && !user.inactive)
-      .sort((a, b) => {
-        const aTime = new Date(
-          a.last_posted_at ?? a.last_seen_at ?? 0
-        ).getTime();
-        const bTime = new Date(
-          b.last_posted_at ?? b.last_seen_at ?? 0
-        ).getTime();
-        return bTime - aTime;
-      })
-      .slice(0, 6);
-  }
-
-  get hasReplyNowUsers() {
-    return this.onlineUsers.length > 0 || this.recentlyActiveUsers.length > 0;
+        return {
+          ...user,
+          distance_label:
+            (user.distance_band ?? "same_city") === "same_city"
+              ? null
+              : i18n(
+                  `where_is_my_friends.distance_bands.${user.distance_band}`,
+                ),
+          action_url: useChat
+            ? `/chat/new-message?recipients=${encodeURIComponent(user.username)}`
+            : user.message_url,
+          activity_label: activityLabel,
+          custom_field_label: fields
+            .map((f) => user.custom_fields?.[f.name])
+            .filter(Boolean)
+            .join(" / "),
+          inactive: user.activity_status === "inactive",
+        };
+      });
   }
 
   get displayCityGroups() {
@@ -335,10 +321,6 @@ export default class WhereIsMyFriendsPage extends Component {
   }
 
   get localTopicActionUrl() {
-    if (this.localTopicComposeUrl) {
-      return this.localTopicComposeUrl;
-    }
-
     return `/search?q=${encodeURIComponent(this.location?.city ?? "")}`;
   }
 
@@ -528,8 +510,6 @@ export default class WhereIsMyFriendsPage extends Component {
       );
       this.users = response.users ?? [];
       this.cityGroups = response.city_groups ?? [];
-      this.localTopics = response.local_topics ?? [];
-      this.localTopicComposeUrl = response.local_topic_compose_url ?? null;
       this.nearbyCityCount = response.nearby_city_count ?? 0;
       this.expandedRadius = response.expanded_radius ?? false;
       this.originalRadiusKm = response.original_radius_km ?? null;
@@ -641,8 +621,6 @@ export default class WhereIsMyFriendsPage extends Component {
     this.showRegion = Boolean(this.region);
     this.users = [];
     this.cityGroups = [];
-    this.localTopics = [];
-    this.localTopicComposeUrl = null;
     this.memberFilter = "";
     this.activeFilters = {};
     this.gpsFallback = false;
@@ -664,8 +642,6 @@ export default class WhereIsMyFriendsPage extends Component {
       this.location = null;
       this.users = [];
       this.cityGroups = [];
-      this.localTopics = [];
-      this.localTopicComposeUrl = null;
       this.discoveryState = "setup";
       this.memberFilter = "";
       this.activeFilters = {};
@@ -797,7 +773,6 @@ export default class WhereIsMyFriendsPage extends Component {
           @toggleJoinNotifyCity={{this.toggleJoinNotifyCity}}
           @toggleJoinNotifyNearby={{this.toggleJoinNotifyNearby}}
           @trackLocalTopicCompose={{this.trackLocalTopicCompose}}
-          @trackLocalTopicOpen={{this.trackLocalTopicOpen}}
           @updateCity={{this.updateCity}}
           @updateRegion={{this.updateRegion}}
         />
@@ -815,23 +790,18 @@ export default class WhereIsMyFriendsPage extends Component {
           @gpsFallback={{this.gpsFallback}}
           @hasActiveFilters={{this.hasActiveFilters}}
           @hasFilterableFields={{this.hasFilterableFields}}
-          @hasReplyNowUsers={{this.hasReplyNowUsers}}
           @hasUsers={{this.hasUsers}}
           @inviteFeedback={{this.inviteFeedback}}
           @isEmpty={{this.isEmpty}}
           @loading={{this.loading}}
           @localTopicActionUrl={{this.localTopicActionUrl}}
-          @localTopicComposeUrl={{this.localTopicComposeUrl}}
-          @localTopics={{this.localTopics}}
           @location={{this.location}}
           @memberFilter={{this.memberFilter}}
           @nearbyCityCount={{this.nearbyCityCount}}
           @notifyCity={{this.notifyCity}}
-          @onlineUsers={{this.onlineUsers}}
           @openAdvancedLocation={{this.openAdvancedLocation}}
           @originalRadiusKm={{this.originalRadiusKm}}
           @participantProof={{this.participantProof}}
-          @recentlyActiveUsers={{this.recentlyActiveUsers}}
           @removeLocation={{this.removeLocation}}
           @resultsSummary={{this.resultsSummary}}
           @selectDiscoveryRadius={{this.selectDiscoveryRadius}}
@@ -839,7 +809,6 @@ export default class WhereIsMyFriendsPage extends Component {
           @showMemberFilter={{this.showMemberFilter}}
           @toggleNotifyCity={{this.toggleNotifyCity}}
           @trackConnection={{this.trackConnection}}
-          @trackLocalTopicCompose={{this.trackLocalTopicCompose}}
           @trackLocalTopicOpen={{this.trackLocalTopicOpen}}
           @updateMemberFilter={{this.updateMemberFilter}}
         />

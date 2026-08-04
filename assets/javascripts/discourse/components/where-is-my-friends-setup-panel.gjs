@@ -181,12 +181,10 @@ export default <template>
                 {{/if}}
                 {{#if @networkPreview.local_topic_compose_url}}
                   <LocalTopicsPanel
-                    @topics={{@networkPreview.local_topics}}
                     @actionUrl={{@networkPreview.local_topic_compose_url}}
                     @city={{@networkPreview.city.city}}
                     @compose={{true}}
-                    @onOpen={{@trackLocalTopicOpen}}
-                    @onCompose={{@trackLocalTopicCompose}}
+                    @onAction={{@trackLocalTopicCompose}}
                   />
                 {{/if}}
                 <fieldset class="where-is-my-friends__join-notifications">

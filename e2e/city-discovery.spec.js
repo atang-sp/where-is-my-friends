@@ -204,9 +204,13 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await openDiscovery(context, page, "admin");
     await page.locator("[data-test-city-input]").fill("上海");
     await page.locator("[data-test-preview-city]").click();
+    await expect(page.locator("[data-test-local-topic]")).toHaveCount(0);
     await expect(
-      page.locator("[data-test-city-network-preview]")
-    ).toContainText("Shanghai weekend picnic");
+      page.locator("[data-test-city-network-preview] [data-test-local-topics]")
+    ).toHaveAttribute(
+      "href",
+      /^\/new-topic\?category_id=\d+&tags=%E4%B8%AD%E5%9B%BD,%E4%B8%8A%E6%B5%B7$/
+    );
     await expect(page.locator("[data-test-join-notify-city]")).toBeChecked();
     await expect(page.locator("[data-test-join-notify-nearby]")).toBeChecked();
     await page.locator("[data-test-join-city]").click();
@@ -236,17 +240,17 @@ test.describe.serial("Local Friends against real Discourse", () => {
     const localTopics = page.locator("[data-test-local-topics]");
     await expect(localTopics).toHaveAttribute(
       "href",
-      /^\/new-topic\?category_id=\d+&tags=%E4%B8%AD%E5%9B%BD,%E6%B5%99%E6%B1%9F$/
+      "/search?q=%E6%9D%AD%E5%B7%9E"
     );
-    await localTopics.click();
-    await expect(page.locator(".composer-fields")).toBeVisible();
-    await expect(page.locator(".category-chooser")).toContainText(
-      "Practice Friends E2E"
-    );
-    await expect(page.locator(".mini-tag-chooser")).toContainText("中国");
-    await expect(page.locator(".mini-tag-chooser")).toContainText("浙江");
-    await page.locator(".toggle-save-and-close").click();
-    await expect(page.locator("#reply-control")).toHaveClass(/closed/);
+    await expect(page.locator("[data-test-local-topic]")).toHaveCount(0);
+    const contentOrder = await page
+      .locator("[data-test-user-card], [data-test-local-topics]")
+      .evaluateAll((elements) =>
+        elements.map((element) =>
+          element.hasAttribute("data-test-user-card") ? "member" : "topics"
+        )
+      );
+    expect(contentOrder[contentOrder.length - 1]).toBe("topics");
   });
 
   test("profile and secondary connection actions work", async ({
@@ -260,24 +264,12 @@ test.describe.serial("Local Friends against real Discourse", () => {
     await expect(page.locator("[data-test-results-summary]")).toHaveText(
       "2 members within 100 km of 上海"
     );
-    const composeTopic = page.locator("[data-test-compose-local-topic]");
-    await expect(composeTopic).toHaveAttribute(
+    const localTopics = page.locator("[data-test-local-topics]");
+    await expect(localTopics).toHaveAttribute(
       "href",
-      /^\/new-topic\?category_id=\d+&tags=%E4%B8%AD%E5%9B%BD,%E4%B8%8A%E6%B5%B7$/
+      "/search?q=%E4%B8%8A%E6%B5%B7"
     );
-    await expect(page.locator("[data-test-local-topic]")).toContainText(
-      "Shanghai weekend picnic"
-    );
-    await composeTopic.click();
-    await expect(page.locator(".composer-fields")).toBeVisible();
-    await expect(page.locator(".category-chooser")).toContainText(
-      "Practice Friends E2E"
-    );
-    await expect(page.locator(".mini-tag-chooser")).toContainText("中国");
-    await expect(page.locator(".mini-tag-chooser")).toContainText("上海");
-    await page.locator(".toggle-save-and-close").click();
-    await expect(page.locator("#reply-control")).toHaveClass(/closed/);
-    await page.goto(PLUGIN_PATH);
+    await expect(page.locator("[data-test-local-topic]")).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Local Friends" })
     ).toBeVisible();
