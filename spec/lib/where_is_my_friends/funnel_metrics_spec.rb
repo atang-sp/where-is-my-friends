@@ -11,11 +11,7 @@ RSpec.describe WhereIsMyFriends::FunnelMetrics do
       created_at: as_of - 1.hour
     )
 
-    report =
-      described_class.new(
-        since: as_of - 30.days,
-        as_of: as_of
-      ).call
+    report = described_class.new(since: as_of - 30.days, as_of: as_of).call
 
     expect(report.fetch(:unique_page_visitors)).to eq(1)
   end

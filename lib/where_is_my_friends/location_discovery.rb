@@ -23,11 +23,9 @@ module WhereIsMyFriends
 
       return empty_result(radius) if users.empty?
 
-      result = {
-        state: "ready",
-        users: users,
-        city_groups: city_groups
-      }.merge(local_topic_snapshot(radius))
+      result = { state: "ready", users: users, city_groups: city_groups }.merge(
+        local_topic_snapshot(radius)
+      )
       if expanded
         result[:expanded_radius] = true
         result[:original_radius_km] = radius
@@ -114,11 +112,9 @@ module WhereIsMyFriends
           .where.not(user_id: @user.id)
           .count
 
-      {
-        state: "empty",
-        users: [],
-        nearby_city_count: nearby_city_count
-      }.merge(local_topic_snapshot(radius))
+      { state: "empty", users: [], nearby_city_count: nearby_city_count }.merge(
+        local_topic_snapshot(radius)
+      )
     end
 
     def local_topic_snapshot(radius)
@@ -128,8 +124,7 @@ module WhereIsMyFriends
           radius
         )
       {
-        local_topics:
-          LocalTopics.new(user: @user, city_keys: city_keys).call,
+        local_topics: LocalTopics.new(user: @user, city_keys: city_keys).call,
         local_topic_compose_url: LocalTopics.compose_url(@origin.city_key)
       }
     end
