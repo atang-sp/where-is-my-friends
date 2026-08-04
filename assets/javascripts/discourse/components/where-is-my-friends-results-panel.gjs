@@ -74,19 +74,6 @@ export default <template>
             }}</p>
         {{/if}}
 
-        <LocalTopicsPanel
-          @topics={{@localTopics}}
-          @actionUrl={{@localTopicActionUrl}}
-          @city={{@location.city}}
-          @compose={{@localTopicComposeUrl}}
-          @onOpen={{@trackLocalTopicOpen}}
-          @onCompose={{@trackLocalTopicCompose}}
-        />
-        <aside class="where-is-my-friends__safety" data-test-safety-tip>
-          <strong>{{i18n "where_is_my_friends.safety_title"}}</strong>
-          <span>{{i18n "where_is_my_friends.safety_copy"}}</span>
-        </aside>
-
         {{#if @loading}}
           <div class="where-is-my-friends__loading" role="status">
             {{i18n "where_is_my_friends.loading_results"}}
@@ -161,141 +148,6 @@ export default <template>
                 />
               </label>
             {{/if}}
-            {{#if @hasReplyNowUsers}}
-              <section
-                class="where-is-my-friends__reply-now"
-                aria-labelledby="where-is-my-friends-reply-now-title"
-                data-test-reply-now
-              >
-                <div class="where-is-my-friends__reply-now-heading">
-                  <div>
-                    <span class="where-is-my-friends__reply-now-eyebrow">
-                      {{i18n "where_is_my_friends.reply_now_eyebrow"}}
-                    </span>
-                    <h3 id="where-is-my-friends-reply-now-title">
-                      {{i18n "where_is_my_friends.reply_now_title"}}
-                    </h3>
-                    <p>{{i18n "where_is_my_friends.reply_now_description"}}</p>
-                  </div>
-                  {{#if @onlineUsers.length}}
-                    <span
-                      class="where-is-my-friends__online-count"
-                      data-test-online-count
-                    >
-                      <span aria-hidden="true"></span>
-                      {{i18n
-                        "where_is_my_friends.online_count"
-                        count=@onlineUsers.length
-                      }}
-                    </span>
-                  {{/if}}
-                </div>
-
-                {{#if @onlineUsers.length}}
-                  <div class="where-is-my-friends__availability-group">
-                    <h4>{{i18n "where_is_my_friends.online_now"}}</h4>
-                    <div class="where-is-my-friends__quick-grid">
-                      {{#each @onlineUsers as |user|}}
-                        <article
-                          class="where-is-my-friends__quick-card is-online"
-                          data-test-online-user={{user.username}}
-                        >
-                          <div class="where-is-my-friends__quick-avatar">
-                            {{#if user.avatar_template}}
-                              {{dAvatar user imageSize="large"}}
-                            {{/if}}
-                            <span
-                              class="where-is-my-friends__presence-dot"
-                              aria-label={{i18n
-                                "where_is_my_friends.online_now"
-                              }}
-                            ></span>
-                          </div>
-                          <div class="where-is-my-friends__quick-person">
-                            <h5>{{if user.name user.name user.username}}</h5>
-                            <span>@{{user.username}} · {{user.city}}</span>
-                          </div>
-                          {{#if user.action_url}}
-                            <a
-                              class="btn btn-primary btn-small"
-                              href={{user.action_url}}
-                              aria-label={{i18n
-                                "where_is_my_friends.message_user"
-                                username=user.username
-                              }}
-                              data-test-quick-message={{user.username}}
-                              {{on
-                                "click"
-                                (fn @trackConnection "message_clicked")
-                              }}
-                            >
-                              {{i18n "where_is_my_friends.say_hi"}}
-                            </a>
-                          {{/if}}
-                        </article>
-                      {{/each}}
-                    </div>
-                  </div>
-                {{/if}}
-
-                {{#if @recentlyActiveUsers.length}}
-                  <div class="where-is-my-friends__availability-group">
-                    <h4>{{i18n "where_is_my_friends.recently_active"}}</h4>
-                    <div class="where-is-my-friends__quick-grid">
-                      {{#each @recentlyActiveUsers as |user|}}
-                        <article
-                          class="where-is-my-friends__quick-card"
-                          data-test-active-user={{user.username}}
-                        >
-                          <div class="where-is-my-friends__quick-avatar">
-                            {{#if user.avatar_template}}
-                              {{dAvatar user imageSize="large"}}
-                            {{/if}}
-                          </div>
-                          <div class="where-is-my-friends__quick-person">
-                            <h5>{{if user.name user.name user.username}}</h5>
-                            <span>
-                              {{#if user.last_posted_label}}
-                                {{i18n
-                                  "where_is_my_friends.posted_recently"
-                                  time=user.last_posted_label
-                                }}
-                              {{else if user.last_active_label}}
-                                {{i18n
-                                  "where_is_my_friends.seen_recently"
-                                  time=user.last_active_label
-                                }}
-                              {{/if}}
-                            </span>
-                          </div>
-                          {{#if user.action_url}}
-                            <a
-                              class="btn btn-small"
-                              href={{user.action_url}}
-                              aria-label={{i18n
-                                "where_is_my_friends.message_user"
-                                username=user.username
-                              }}
-                              data-test-quick-message={{user.username}}
-                              {{on
-                                "click"
-                                (fn @trackConnection "message_clicked")
-                              }}
-                            >
-                              {{i18n "where_is_my_friends.message_short"}}
-                            </a>
-                          {{/if}}
-                        </article>
-                      {{/each}}
-                    </div>
-                  </div>
-                {{/if}}
-
-                <p class="where-is-my-friends__presence-note">
-                  {{i18n "where_is_my_friends.presence_privacy_note"}}
-                </p>
-              </section>
-            {{/if}}
             {{#each @displayCityGroups as |group|}}
               <section
                 class="where-is-my-friends__city-group"
@@ -333,21 +185,34 @@ export default <template>
                         </LinkTo>
                         <p>{{user.city}}{{#if user.distance_label}}
                             ·
-                            {{user.distance_label}}{{/if}}{{#if
-                            user.last_active_label
-                          }} · {{user.last_active_label}}{{/if}}{{#if
-                            user.custom_field_label
-                          }}
-                            ·
+                            {{user.distance_label}}{{/if}}</p>
+                        {{#if user.activity_label}}
+                          <p
+                            class={{if
+                              user.online
+                              "where-is-my-friends__activity is-online"
+                              "where-is-my-friends__activity"
+                            }}
+                            data-test-user-activity
+                          >{{user.activity_label}}</p>
+                        {{/if}}
+                        {{#if user.custom_field_label}}
+                          <p>
                             <span
                               class="where-is-my-friends__user-attrs"
                               data-test-user-attrs
-                            >{{user.custom_field_label}}</span>{{/if}}</p>
+                            >{{user.custom_field_label}}</span>
+                          </p>
+                        {{/if}}
                         {{#if user.inactive}}
-                          <p
-                            class="where-is-my-friends__inactive"
-                            data-test-inactive-member
-                          >{{i18n "where_is_my_friends.inactive_member"}}</p>
+                          {{#unless user.activity_label}}
+                            <p
+                              class="where-is-my-friends__inactive"
+                              data-test-inactive-member
+                            >{{i18n
+                                "where_is_my_friends.inactive_member"
+                              }}</p>
+                          {{/unless}}
                         {{/if}}
                         {{#if user.bio_excerpt}}
                           <p
@@ -398,6 +263,10 @@ export default <template>
                 </div>
               </section>
             {{/each}}
+            <p
+              class="where-is-my-friends__presence-note"
+              data-test-presence-note
+            >{{i18n "where_is_my_friends.presence_privacy_note"}}</p>
           </section>
         {{else if @isEmpty}}
           <section class="where-is-my-friends__empty" data-test-empty-state>
@@ -456,4 +325,14 @@ export default <template>
               }}</p>
           </section>
         {{/if}}
+        <aside class="where-is-my-friends__safety" data-test-safety-tip>
+          <strong>{{i18n "where_is_my_friends.safety_title"}}</strong>
+          <span>{{i18n "where_is_my_friends.safety_copy"}}</span>
+        </aside>
+        <LocalTopicsPanel
+          @actionUrl={{@localTopicActionUrl}}
+          @city={{@location.city}}
+          @compose={{false}}
+          @onAction={{@trackLocalTopicOpen}}
+        />
 </template>
