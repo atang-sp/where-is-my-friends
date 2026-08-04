@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.15.0 — 2026-08-04
+
+- Add a signed-in-members-only personal dynamics MVP backed by ordinary
+  Discourse topics and replies, with a lightweight Activity tab publisher,
+  explicit older-page loading, and fail-closed category validation.
+- Enable the profile, homepage, and member-preview dynamics switches by default;
+  an absent or unsafe dedicated category still keeps every surface fail closed.
+- Add a lazy fourth homepage discovery group and optional member-card dynamic
+  previews without changing recommendation ranking, the existing 3-3-2
+  contract, or collapsed-panel request and impression behavior.
+- Reject media and attachments in dynamics and their replies until secure
+  uploads are available; hide dynamics from ordinary topic lists and block the
+  normal composer from entering the dedicated category.
+- Add privacy-safe dynamic funnels, mature supply and reply cohorts, and
+  seven-day site-return comparisons based on Discourse `UserVisit` records.
+
 ## 1.14.0 — 2026-08-03
 
 - Keep homepage discovery low-distraction with one state-aware entry, lazy

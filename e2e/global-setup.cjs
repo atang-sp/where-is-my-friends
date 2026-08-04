@@ -9,6 +9,8 @@ const USERS = [
   "shanghai_two",
   "empty_city",
   "city_entry",
+  "dynamics_one",
+  "dynamics_two",
 ];
 
 module.exports = async function globalSetup(config) {
@@ -16,9 +18,13 @@ module.exports = async function globalSetup(config) {
   const authDirectory = path.join(__dirname, ".auth");
   await fs.mkdir(authDirectory, { recursive: true });
   const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
-  const browser = await chromium.launch(
-    executablePath ? { executablePath } : {}
+  const disableBrowserSandbox = ["1", "true"].includes(
+    (process.env.DISCOURSE_DISABLE_BROWSER_SANDBOX || "").toLowerCase()
   );
+  const browser = await chromium.launch({
+    ...(executablePath ? { executablePath } : {}),
+    ...(disableBrowserSandbox ? { args: ["--no-sandbox"] } : {}),
+  });
 
   try {
     for (const username of USERS) {

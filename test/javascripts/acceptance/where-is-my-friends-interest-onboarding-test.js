@@ -216,6 +216,14 @@ function setupApi(needs, state) {
       }
     );
 
+    server.get("/where-is-my-friends/dynamics/recent.json", () => {
+      state.recentDynamicsRequests += 1;
+      if (state.recentDynamicsError) {
+        return helper.response(500, { errors: ["unavailable"] });
+      }
+      return helper.response({ dynamics: state.recentDynamics });
+    });
+
     server.get("/where-is-my-friends/practice-invitations.json", () =>
       helper.response({
         incoming: state.incoming,
@@ -379,6 +387,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       events: [],
       eventPayloads: [],
       recommendationRequests: 0,
+      recentDynamicsRequests: 0,
+      recentDynamicsError: false,
+      recentDynamics: [],
       locationRequests: 0,
       recommendationError: false,
       deferRecommendations: false,
@@ -437,7 +448,126 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-community-person]").doesNotExist();
     assert.dom("[data-test-community-interest]").doesNotExist();
     assert.strictEqual(api.recommendationRequests, 0);
+    assert.strictEqual(api.recentDynamicsRequests, 0);
     assert.false(api.events.includes("recommendation_impression"));
+  });
+
+  test("the dynamics group stays lazy until selected and shows at most three recent authors", async function (assert) {
+    api.model = homepageModel();
+    api.recentDynamics = Array.from({ length: 4 }, (_, index) => ({
+      id: 900 + index,
+      url: `/t/dynamic-${index + 1}/${900 + index}`,
+      excerpt: `Recent update ${index + 1}`,
+      author: {
+        username: `dynamic-author-${index + 1}`,
+        name: `Dynamic Author ${index + 1}`,
+      },
+      reply_count: index,
+      created_at: new Date().toISOString(),
+    }));
+    const settings = getOwner(this).lookup("service:site-settings");
+    settings.where_is_my_friends_dynamics_enabled = true;
+    settings.where_is_my_friends_dynamics_homepage_enabled = true;
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    assert.strictEqual(api.recentDynamicsRequests, 0, "collapsed is zero-request");
+
+    await click("[data-test-community-toggle]");
+    assert.strictEqual(
+      api.recentDynamicsRequests,
+      0,
+      "expanding the default discussions group does not load dynamics"
+    );
+    await click("[data-test-community-group='dynamics']");
+
+    assert.strictEqual(api.recentDynamicsRequests, 1);
+    assert.dom("[data-test-community-dynamic]").exists({ count: 3 });
+    assert.strictEqual(
+      api.events.filter((event) => event === "recent_dynamics_viewed").length,
+      1
+    );
+
+    await click("[data-test-community-group='topics']");
+    await click("[data-test-community-group='dynamics']");
+    assert.strictEqual(
+      api.recentDynamicsRequests,
+      1,
+      "reselecting uses the loaded result"
+    );
+  });
+
+  test("an empty dynamics group offers only the personal dynamics entry", async function (assert) {
+    api.model = homepageModel();
+    api.recentDynamics = [];
+    const settings = getOwner(this).lookup("service:site-settings");
+    settings.where_is_my_friends_dynamics_enabled = true;
+    settings.where_is_my_friends_dynamics_homepage_enabled = true;
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+    await click("[data-test-community-group='dynamics']");
+
+    assert.dom("[data-test-community-dynamics-empty]").exists({ count: 1 });
+    assert.dom("[data-test-community-empty]").doesNotExist();
+    assert
+      .dom("[data-test-community-dynamics-empty] a")
+      .hasAttribute("href", "/u/current-user/activity/dynamics");
+  });
+
+  test("member cards add an optional dynamic preview with privacy-safe context", async function (assert) {
+    api.model = homepageModel();
+    api.model.recommended_users[0].latest_dynamic = {
+      id: 901,
+      url: "/t/recent-update/901",
+      excerpt: "I am preparing a small speaking practice session.",
+    };
+    getOwner(this).lookup("service:current-user").set(
+      "where_is_my_friends_interest_onboarding_state",
+      "complete"
+    );
+
+    await visit("/");
+    await click("[data-test-community-toggle]");
+    await click("[data-test-community-group='people']");
+
+    assert.dom("[data-test-community-person-dynamic]").exists({ count: 1 });
+    assert
+      .dom("[data-test-community-person='member2']")
+      .doesNotContainText("Recent dynamic:");
+    await triggerTrackedLink("[data-test-community-person-dynamic]");
+
+    const opens = api.eventPayloads.filter(
+      (payload) =>
+        payload.get("event_name") === "recommended_user_dynamic_opened"
+    );
+    assert.strictEqual(opens.length, 1);
+    assert.strictEqual(opens[0].get("has_dynamic_preview"), "true");
+    const peopleImpressions = api.eventPayloads.filter(
+      (payload) =>
+        payload.get("event_name") === "recommendation_impression" &&
+        payload.get("recommendation_group") === "people"
+    );
+    assert.deepEqual(
+      peopleImpressions.map((payload) => payload.get("has_dynamic_preview")),
+      ["true", "false", "false"]
+    );
+    assert.true(
+      opens.every(
+        (payload) =>
+          payload.get("target_id") === null &&
+          payload.get("topic_id") === null &&
+          payload.get("username") === null
+      ),
+      "events contain no author or dynamic identifiers"
+    );
   });
 
   test("first expansion loads and exposes only the discussion group", async function (assert) {

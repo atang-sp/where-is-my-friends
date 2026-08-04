@@ -18,7 +18,8 @@ module WhereIsMyFriends
           recommendation_group: params[:recommendation_group].presence,
           candidate_source: params[:candidate_source].presence,
           rank_bucket: rank_bucket,
-          algorithm_version: params[:algorithm_version].presence
+          algorithm_version: params[:algorithm_version].presence,
+          has_dynamic_preview: boolean_context(:has_dynamic_preview)
         )
 
       render json: success_json.merge(event_id: event.id)
@@ -41,6 +42,12 @@ module WhereIsMyFriends
       return if params[:rank].blank?
 
       WhereIsMyFriendsEvent.rank_bucket(params[:rank])
+    end
+
+    def boolean_context(name)
+      return unless params.key?(name)
+
+      ActiveModel::Type::Boolean.new.cast(params[name])
     end
 
     def ensure_plugin_enabled

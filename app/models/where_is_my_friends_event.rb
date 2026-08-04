@@ -37,11 +37,15 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     local_callout_dismissed
     local_callout_location_saved
     personalization_disabled
+    dynamics_profile_viewed
+    recent_dynamics_viewed
+    dynamic_opened
+    recommended_user_dynamic_opened
   ].freeze
   LOCATION_MODES = %w[city gps map].freeze
   RESULT_BUCKETS = %w[zero one_to_four five_to_nineteen twenty_plus].freeze
-  SURFACES = %w[homepage category interest_page topic_footer].freeze
-  RECOMMENDATION_GROUPS = %w[topics people interests].freeze
+  SURFACES = %w[homepage category interest_page topic_footer profile].freeze
+  RECOMMENDATION_GROUPS = %w[topics people interests dynamics].freeze
   CANDIDATE_SOURCES = %w[
     interest
     behavior

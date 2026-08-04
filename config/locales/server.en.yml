@@ -5,6 +5,10 @@ en:
     invalid_interests: "Choose 3 to 20 currently visible interests without exceeding any group limit."
     invalid_purpose: "Choose your current reason for using the community."
     invalid_recommendation: "That recommendation is no longer available."
+    dynamics:
+      unavailable: "Personal updates are not available."
+      invalid_length: "Updates must contain 8 to 500 visible characters."
+      media_not_allowed: "Images, audio, video, and attachments are not available in updates yet."
     licensed_import:
       title_prefix: "[English selection · translation]"
       deleted_source_user: "deleted user"
@@ -166,6 +170,10 @@ en:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
     where_is_my_friends_interest_onboarding_enabled: "Enable first-use interest onboarding and personalized recommendations"
     where_is_my_friends_interest_tags: "Up to 20 forum tags to add alongside the plugin's built-in detailed interest catalogue"
+    where_is_my_friends_dynamics_enabled: "Enable member-only personal updates"
+    where_is_my_friends_dynamics_homepage_enabled: "Enable the updates group in homepage community discovery"
+    where_is_my_friends_dynamics_member_preview_enabled: "Show a recent update preview on member recommendation cards"
+    where_is_my_friends_dynamics_category_id: "Member-only, default-muted category for personal updates"
     where_is_my_friends_practice_invitations_enabled: "Enable strictly one-to-one practice invitations"
     where_is_my_friends_practice_invitation_min_trust_level: "Minimum trust level required to send practice invitations"
     where_is_my_friends_practice_invitation_daily_limit: "Maximum practice invitations each member can send per day"

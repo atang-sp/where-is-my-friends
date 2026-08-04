@@ -247,37 +247,40 @@ module WhereIsMyFriends
           user_id: @user.id,
           target_type: "user"
         ).pluck(:target_id)
-      users
-        .select { |candidate| candidate_matches.key?(candidate.id) }
-        .reject { |candidate| dismissed_ids.include?(candidate.id) }
-        .sort_by do |candidate|
-          candidate_profile = eligible_profiles.fetch(candidate.id)
-          candidate_match = candidate_matches.fetch(candidate.id)
-          [
-            -candidate_match.fetch(:match).score,
-            -candidate_match.fetch(:contribution_score),
-            -purpose_complement_score(
-              profile.purpose,
-              candidate_profile.purpose
-            ),
-            -candidate.last_seen_at.to_i,
-            diversity_key(candidate.id)
-          ]
-        end
-        .then { |candidates| refresh_record_candidates(candidates) }
-        .first(MAX_USERS)
-        .each_with_index
-        .map do |candidate, index|
-          candidate_match = candidate_matches.fetch(candidate.id)
-          serialize_user(
-            candidate,
-            contributions.fetch(candidate.id, []),
-            viewer_tags,
-            candidate_match.fetch(:match),
-            candidate_source: member_candidate_source(candidate_match),
-            rank: index + 1
-          )
-        end
+      selected_candidates =
+        users
+          .select { |candidate| candidate_matches.key?(candidate.id) }
+          .reject { |candidate| dismissed_ids.include?(candidate.id) }
+          .sort_by do |candidate|
+            candidate_profile = eligible_profiles.fetch(candidate.id)
+            candidate_match = candidate_matches.fetch(candidate.id)
+            [
+              -candidate_match.fetch(:match).score,
+              -candidate_match.fetch(:contribution_score),
+              -purpose_complement_score(
+                profile.purpose,
+                candidate_profile.purpose
+              ),
+              -candidate.last_seen_at.to_i,
+              diversity_key(candidate.id)
+            ]
+          end
+          .then { |candidates| refresh_record_candidates(candidates) }
+          .first(MAX_USERS)
+      latest_dynamics = latest_member_dynamics(selected_candidates)
+
+      selected_candidates.each_with_index.map do |candidate, index|
+        candidate_match = candidate_matches.fetch(candidate.id)
+        serialize_user(
+          candidate,
+          contributions.fetch(candidate.id, []),
+          viewer_tags,
+          candidate_match.fetch(:match),
+          candidate_source: member_candidate_source(candidate_match),
+          rank: index + 1,
+          latest_dynamic: latest_dynamics[candidate.id]
+        )
+      end
     end
 
     def recommended_interests(profile)
@@ -881,7 +884,8 @@ module WhereIsMyFriends
       viewer_tags,
       match,
       candidate_source:,
-      rank:
+      rank:,
+      latest_dynamic: nil
     )
       representative_topics = topics.sort_by(&:bumped_at).reverse.first(2)
       public_reason_tags =
@@ -903,7 +907,7 @@ module WhereIsMyFriends
           recipient: candidate
         ).common_interests
 
-      {
+      payload = {
         id: candidate.id,
         username: candidate.username,
         name: candidate.name,
@@ -942,6 +946,18 @@ module WhereIsMyFriends
             )
           end
       }
+      payload[:latest_dynamic] = latest_dynamic if latest_dynamic
+      payload
+    end
+
+    def latest_member_dynamics(candidates)
+      unless SiteSetting.where_is_my_friends_dynamics_member_preview_enabled
+        return {}
+      end
+
+      DynamicFeed.new(viewer: @user).latest_by_user_ids(candidates.map(&:id))
+    rescue Discourse::NotFound
+      {}
     end
 
     def member_candidate_source(candidate_match)

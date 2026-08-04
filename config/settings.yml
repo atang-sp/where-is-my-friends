@@ -23,6 +23,38 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
+  where_is_my_friends_dynamics_enabled:
+    default: true
+    client: true
+    type: bool
+    description: "启用仅登录会员可见的个人动态"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_dynamics_homepage_enabled:
+    default: true
+    client: true
+    type: bool
+    description: "在首页社区发现面板中启用动态分组"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_dynamics_member_preview_enabled:
+    default: true
+    client: true
+    type: bool
+    description: "在成员推荐卡中显示近期动态摘要"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_dynamics_category_id:
+    default: ""
+    client: true
+    type: category
+    description: "仅登录会员可见且默认静音的个人动态分区"
+    category: "where_is_my_friends"
+    translated: true
+
   where_is_my_friends_practice_invitations_enabled:
     default: true
     client: true

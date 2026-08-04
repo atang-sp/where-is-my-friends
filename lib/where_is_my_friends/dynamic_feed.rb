@@ -1,0 +1,280 @@
+# frozen_string_literal: true
+
+module WhereIsMyFriends
+  class DynamicFeed
+    FIELD = "where_is_my_friends_dynamic"
+    PAGE_SIZE = 20
+    RECENT_LIMIT = 3
+    RECENT_WINDOW = 30.days
+    MIN_VISIBLE_CHARACTERS = 8
+    MAX_VISIBLE_CHARACTERS = 500
+    CREATION_CONTEXT_KEY = :where_is_my_friends_dynamic_creation
+    INTERNAL_CREATION_PARAM = :where_is_my_friends_dynamic
+    MEDIA_PATTERN =
+      %r{
+      upload://|
+      /uploads/|
+      !\[[^\]]*\]\s*(?:\(|\[)|
+      \[img(?:=[^\]]+)?\]|
+      <\s*(?:img|picture|video|audio|source|object|embed|iframe|svg)\b
+    }ix
+    COOKED_MEDIA_SELECTOR =
+      "img:not(.emoji), picture, video, audio, source, object, embed, iframe, svg"
+
+    class InvalidContent < StandardError
+    end
+
+    def initialize(viewer:)
+      @viewer = viewer
+      @guardian = Guardian.new(viewer)
+      ensure_available!
+    end
+
+    def feed(username:, before_id: nil)
+      member = User.find_by(username_lower: username.to_s.downcase)
+      raise Discourse::NotFound unless @guardian.can_see_profile?(member)
+
+      topics = visible_topics.where(user_id: member.id)
+      topics =
+        topics.where(
+          "topics.id < ?",
+          before_id.to_i
+        ) if before_id.to_i.positive?
+      page = topics.order(id: :desc).limit(PAGE_SIZE + 1).to_a
+      has_more = page.length > PAGE_SIZE
+      page = page.first(PAGE_SIZE)
+
+      {
+        dynamics: page.map { |topic| serialize(topic) },
+        has_more: has_more,
+        before_id: has_more ? page.last.id : nil
+      }
+    end
+
+    def recent
+      topics = latest_topics_by_author(visible_topics).limit(RECENT_LIMIT)
+
+      { dynamics: topics.map { |topic| serialize(topic) } }
+    end
+
+    def latest_by_user_ids(user_ids)
+      ids = Array(user_ids).map(&:to_i).uniq
+      return {} if ids.empty?
+
+      latest_topics_by_author(visible_topics.where(user_id: ids))
+        .index_by(&:user_id)
+        .transform_values { |topic| serialize(topic) }
+    end
+
+    def create(raw:)
+      validate_content!(raw)
+      result =
+        self.class.with_creation_context do
+          NewPostManager.new(
+            @viewer,
+            :raw => raw.to_s,
+            :title => self.class.title_for(raw),
+            :category => @category.id,
+            :archetype => Archetype.default,
+            :guardian => @guardian,
+            :cooking_options => self.class.plain_link_cooking_options,
+            INTERNAL_CREATION_PARAM => true
+          ).perform
+        end
+
+      unless result.success?
+        raise InvalidContent, result.errors.full_messages.to_sentence
+      end
+
+      if result.post
+        { queued: false, dynamic: serialize(result.post.topic) }
+      else
+        { queued: true }
+      end
+    end
+
+    def self.dynamic?(topic)
+      ActiveModel::Type::Boolean.new.cast(topic&.custom_fields&.[](FIELD))
+    end
+
+    def self.creating?
+      ActiveSupport::IsolatedExecutionState[CREATION_CONTEXT_KEY] == true
+    end
+
+    def self.with_creation_context
+      previous = ActiveSupport::IsolatedExecutionState[CREATION_CONTEXT_KEY]
+      ActiveSupport::IsolatedExecutionState[CREATION_CONTEXT_KEY] = true
+      yield
+    ensure
+      ActiveSupport::IsolatedExecutionState[CREATION_CONTEXT_KEY] = previous
+    end
+
+    def self.visible_text(raw, document: cooked_document(raw))
+      document
+        .css("img.emoji")
+        .each do |emoji|
+          replacement = emoji["title"].presence || emoji["alt"].presence || ""
+          emoji.replace(Nokogiri::XML::Text.new(replacement, document))
+        end
+      document.text.gsub(/\s+/, " ").strip
+    end
+
+    def self.title_for(raw, at: Time.current)
+      maximum = SiteSetting.max_topic_title_length
+      suffix = "#{at.utc.strftime("%y%m%d%H%M%S")}-#{SecureRandom.hex(3)}"
+      separator = " · "
+      return suffix.last(maximum) if maximum <= suffix.length + separator.length
+
+      summary_limit = [maximum - suffix.length - separator.length, 100].min
+      summary = visible_text(raw).truncate(summary_limit, omission: "")
+      "#{summary}#{separator}#{suffix}"
+    end
+
+    def self.disable_oneboxes!(document)
+      document
+        .css("a.onebox, a.inline-onebox-loading")
+        .each do |link|
+          link.remove_class("onebox")
+          link.remove_class("inline-onebox-loading")
+        end
+    end
+
+    def self.plain_link_cooking_options(options = nil)
+      (options || {}).deep_symbolize_keys.deep_merge(
+        features: {
+          onebox: false
+        }
+      )
+    end
+
+    def self.validation_message(raw, enforce_length:)
+      if raw.to_s.match?(MEDIA_PATTERN) ||
+           Upload.extract_upload_ids(raw.to_s).present?
+        return I18n.t("where_is_my_friends.dynamics.media_not_allowed")
+      end
+
+      document = cooked_document(raw)
+      if document.css(COOKED_MEDIA_SELECTOR).present?
+        return I18n.t("where_is_my_friends.dynamics.media_not_allowed")
+      end
+
+      if enforce_length
+        length = visible_text(raw, document: document).grapheme_clusters.length
+        unless length.between?(MIN_VISIBLE_CHARACTERS, MAX_VISIBLE_CHARACTERS)
+          return I18n.t("where_is_my_friends.dynamics.invalid_length")
+        end
+      end
+
+      nil
+    end
+
+    def self.cooked_document(raw)
+      Nokogiri::HTML5.fragment(
+        PrettyText.cook(raw.to_s, features: { onebox: false })
+      )
+    end
+
+    private
+
+    def ensure_available!
+      raise Discourse::NotFound unless SiteSetting.where_is_my_friends_enabled
+      unless SiteSetting.where_is_my_friends_dynamics_enabled
+        raise Discourse::NotFound
+      end
+
+      @category =
+        Category.find_by(
+          id: SiteSetting.where_is_my_friends_dynamics_category_id.to_i
+        )
+      raise Discourse::NotFound unless valid_category?(@category)
+      raise Discourse::NotFound unless @guardian.can_see?(@category)
+    end
+
+    def validate_content!(raw)
+      message = self.class.validation_message(raw, enforce_length: true)
+      raise InvalidContent, message if message
+    end
+
+    def valid_category?(category)
+      return false unless category&.read_restricted?
+      return false if category.minimum_required_tags.to_i.nonzero?
+
+      members_group_id = Group::AUTO_GROUPS[:trust_level_0]
+      full_permission = CategoryGroup.permission_types[:full]
+      permissions = category.category_groups.pluck(:group_id, :permission_type)
+      return false unless permissions == [[members_group_id, full_permission]]
+
+      SiteSetting
+        .default_categories_muted
+        .split("|")
+        .map(&:to_i)
+        .include?(category.id)
+    end
+
+    def visible_topics
+      topics =
+        Topic
+          .joins(
+            "INNER JOIN topic_custom_fields AS dynamic_fields " \
+              "ON dynamic_fields.topic_id = topics.id " \
+              "AND dynamic_fields.name = #{Topic.connection.quote(FIELD)}"
+          )
+          .joins(
+            "INNER JOIN posts AS dynamic_first_posts " \
+              "ON dynamic_first_posts.topic_id = topics.id " \
+              "AND dynamic_first_posts.post_number = 1"
+          )
+          .where(
+            archetype: Archetype.default,
+            visible: true,
+            deleted_at: nil,
+            category_id: @category.id
+          )
+          .where(
+            "dynamic_first_posts.deleted_at IS NULL " \
+              "AND dynamic_first_posts.hidden = FALSE " \
+              "AND dynamic_first_posts.post_type = ?",
+            Post.types[:regular]
+          )
+          .secured(@guardian)
+          .includes(:first_post, :user)
+
+      ignored_ids = @viewer.ignored_user_ids
+      topics = topics.where.not(user_id: ignored_ids) if ignored_ids.present?
+      topics
+    end
+
+    def latest_topics_by_author(scope)
+      latest_ids =
+        scope
+          .where("topics.created_at >= ?", RECENT_WINDOW.ago)
+          .reorder(
+            Arel.sql("topics.user_id, topics.created_at DESC, topics.id DESC")
+          )
+          .select(Arel.sql("DISTINCT ON (topics.user_id) topics.id"))
+
+      visible_topics.where(id: latest_ids).order(created_at: :desc, id: :desc)
+    end
+
+    def serialize(topic)
+      post = topic.first_post
+      author = {
+        id: topic.user.id,
+        username: topic.user.username,
+        avatar_template: topic.user.avatar_template,
+        profile_url: "/u/#{topic.user.username}"
+      }
+      author[:name] = topic.user.name if SiteSetting.enable_names
+
+      {
+        id: topic.id,
+        url: "/t/#{topic.slug}/#{topic.id}",
+        author: author,
+        cooked: post.cooked,
+        excerpt: post.excerpt(160),
+        created_at: topic.created_at,
+        reply_count: topic.reply_count.to_i
+      }
+    end
+  end
+end
