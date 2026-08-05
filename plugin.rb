@@ -253,6 +253,8 @@ after_initialize do
         :constraints => ->(request) { request.format.html? }
     get "/where-is-my-friends/interests" => "list#latest",
         :constraints => ->(request) { request.format.html? }
+    get "/where-is-my-friends/dynamics" => "list#latest",
+        :constraints => ->(request) { request.format.html? }
     get "/admin/plugins/where-is-my-friends/ai-providers" =>
           "admin/plugins#show",
         :defaults => {

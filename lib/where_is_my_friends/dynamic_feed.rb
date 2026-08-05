@@ -4,6 +4,7 @@ module WhereIsMyFriends
   class DynamicFeed
     FIELD = "where_is_my_friends_dynamic"
     PAGE_SIZE = 20
+    DISCOVERY_PAGE_SIZE = 10
     RECENT_LIMIT = 3
     RECENT_WINDOW = 30.days
     MIN_VISIBLE_CHARACTERS = 8
@@ -55,6 +56,24 @@ module WhereIsMyFriends
       topics = latest_topics_by_author(visible_topics).limit(RECENT_LIMIT)
 
       { dynamics: topics.map { |topic| serialize(topic) } }
+    end
+
+    def discover(before_id: nil)
+      scope =
+        visible_topics
+          .where("topics.created_at >= ?", RECENT_WINDOW.ago)
+          .where.not(user_id: @viewer.id)
+      scope = before_cursor(scope, before_id)
+
+      page = latest_topics_by_author(scope).limit(DISCOVERY_PAGE_SIZE + 1).to_a
+      has_more = page.length > DISCOVERY_PAGE_SIZE
+      page = page.first(DISCOVERY_PAGE_SIZE)
+
+      {
+        dynamics: page.map { |topic| serialize(topic) },
+        has_more: has_more,
+        before_id: has_more ? page.last.id : nil
+      }
     end
 
     def latest_by_user_ids(user_ids)
@@ -253,7 +272,22 @@ module WhereIsMyFriends
           )
           .select(Arel.sql("DISTINCT ON (topics.user_id) topics.id"))
 
-      visible_topics.where(id: latest_ids).order(created_at: :desc, id: :desc)
+      scope.where(id: latest_ids).order(created_at: :desc, id: :desc)
+    end
+
+    def before_cursor(scope, before_id)
+      cursor_id = before_id.to_i
+      return scope unless cursor_id.positive?
+
+      cursor = Topic.find_by(id: cursor_id)
+      return scope.where("topics.id < ?", cursor_id) unless cursor
+
+      scope.where(
+        "topics.created_at < :created_at OR " \
+          "(topics.created_at = :created_at AND topics.id < :id)",
+        created_at: cursor.created_at,
+        id: cursor.id
+      )
     end
 
     def serialize(topic)
@@ -262,7 +296,9 @@ module WhereIsMyFriends
         id: topic.user.id,
         username: topic.user.username,
         avatar_template: topic.user.avatar_template,
-        profile_url: "/u/#{topic.user.username}"
+        profile_url: "/u/#{topic.user.username}",
+        dynamics_url:
+          "/u/#{CGI.escape(topic.user.username)}/activity/dynamics"
       }
       author[:name] = topic.user.name if SiteSetting.enable_names
 

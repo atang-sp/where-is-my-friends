@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add the native Discourse emoji picker to the personal-dynamics publisher while
+  keeping images and attachments disabled.
+- Add a member-only, recent and author-diverse homepage dynamics feed with a
+  paginated browse-all page and a community navigation entry.
+
 ## 1.15.2 — 2026-08-05
 
 - Add a prominent self-only “Publish dynamic” action to each member's own

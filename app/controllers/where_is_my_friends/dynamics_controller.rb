@@ -21,6 +21,13 @@ module WhereIsMyFriends
       render json: dynamic_feed.recent
     end
 
+    def feed
+      unless SiteSetting.where_is_my_friends_dynamics_feed_enabled
+        raise Discourse::NotFound
+      end
+      render json: dynamic_feed.discover(before_id: params[:before_id])
+    end
+
     def create
       result = dynamic_feed.create(raw: params.require(:raw))
       render json: result, status: result[:queued] ? 202 : 200

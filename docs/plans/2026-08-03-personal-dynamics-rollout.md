@@ -34,10 +34,10 @@ puts({ id: category.id, slug: category.slug, permissions: actual, muted: true }.
 
 ## 首次部署与启用
 
-1. 三个动态开关默认开启；专用分区 ID 未配置或权限不合格时，三个动态接口必须 fail closed。
-2. 完成迁移、服务重启和资产编译后立即设置 `where_is_my_friends_dynamics_category_id`，并再次确认三个开关均为 `true`。
+1. 四个动态开关默认开启；专用分区 ID 未配置或权限不合格时，所有动态接口必须 fail closed。
+2. 完成迁移、服务重启和资产编译后立即设置 `where_is_my_friends_dynamics_category_id`，并再次确认四个开关均为 `true`。
 3. 验证匿名访问动态 API 与动态主题失败；由真实会员自然发布，确认普通 composer 不能向专用分区发主题、个人页发布走正常审核、普通 Latest 和用户“主题”页均不出现动态、原生回复和通知可用。
-4. 验证首页第四栏保持折叠零请求、首次选择后才加载且最多显示 3 位作者；确认成员卡有无预览时原有理由、讨论、资料、邀请与“不感兴趣”行为均不变，排名不因动态改变。
+4. 验证首页推荐流和“查看全部动态”入口只对登录会员可见；验证首页第四栏保持折叠零请求、首次选择后才加载且最多显示 3 位作者；确认成员卡有无预览时原有理由、讨论、资料、邀请与“不感兴趣”行为均不变，排名不因动态改变。
 5. 若出现匿名泄露、审核绕过、媒体绕过或持续错误，按下述顺序关闭入口并回滚；无需等待试点样本成熟后才执行安全回退。
 
 ## 观察与决策
@@ -54,7 +54,7 @@ puts({ id: category.id, slug: category.slug, permissions: actual, muted: true }.
 ## 回滚
 
 1. 先关闭 `where_is_my_friends_dynamics_member_preview_enabled`。
-2. 再关闭 `where_is_my_friends_dynamics_homepage_enabled`。
+2. 再关闭 `where_is_my_friends_dynamics_homepage_enabled` 和 `where_is_my_friends_dynamics_feed_enabled`。
 3. 最后关闭 `where_is_my_friends_dynamics_enabled`。
 4. 复查普通主题列表、HTTP、日志和分区权限。不删除 Topic/Post、不清空自定义字段、不移动分区，也不删除迁移列；已有动态继续留在会员受限分区，后续可以恢复。
 
