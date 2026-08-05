@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# rubocop:disable Discourse/Plugins/NamespaceMethods -- RSpec example-group helper.
 
 RSpec.describe WhereIsMyFriendsAiProviderProfile do
   fab!(:admin)
