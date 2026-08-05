@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.16.0 — 2026-08-05
 
 - Add the native Discourse emoji picker to the personal-dynamics publisher while
   keeping images and attachments disabled.
