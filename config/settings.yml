@@ -7,6 +7,30 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
+  where_is_my_friends_flying_chess_achievements_enabled:
+    default: false
+    client: true
+    type: bool
+    description: "启用飞行棋服务端完成记录认领与个人资料展示"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_flying_chess_claim_secret:
+    default: ""
+    type: string
+    secret: true
+    description: "验证飞行棋房间服务完成凭证的共享密钥（至少 32 字节）"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_flying_chess_game_url:
+    default: "https://atang-sp.github.io/flying-chess/online.html"
+    client: true
+    type: string
+    description: "论坛个人资料卡中的飞行棋入口"
+    category: "where_is_my_friends"
+    translated: true
+
   where_is_my_friends_interest_onboarding_enabled:
     default: true
     client: true

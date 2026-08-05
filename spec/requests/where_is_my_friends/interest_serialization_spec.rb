@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# rubocop:disable RSpec/DescribeClass -- Request-level serialization contract.
 
 RSpec.describe "Where Is My Friends interest serialization" do
   fab!(:viewer, :user)

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# rubocop:disable Discourse/Plugins/NamespaceMethods -- RSpec example-group helpers.
 
 RSpec.describe WhereIsMyFriends::PracticeInvitationsController do
   fab!(:sender, :user)

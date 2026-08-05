@@ -2,8 +2,8 @@
 
 desc "Send a one-time notification to users with a Discourse profile location who haven't joined local discovery"
 task "where_is_my_friends:notify_profile_location_users" => :environment do
-  MESSAGE_KEY = "where_is_my_friends.notification.title"
-  TITLE_KEY = "where_is_my_friends.notification.title"
+  message_key = "where_is_my_friends.notification.title"
+  title_key = "where_is_my_friends.notification.title"
 
   users =
     User
@@ -29,8 +29,8 @@ task "where_is_my_friends:notify_profile_location_users" => :environment do
       notification_type: Notification.types[:custom],
       user_id: user.id,
       data: {
-        message: MESSAGE_KEY,
-        title: TITLE_KEY,
+        message: message_key,
+        title: title_key,
         topic_title:
           I18n.t(
             "where_is_my_friends.notification.profile_location_invite",
