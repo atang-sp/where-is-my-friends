@@ -490,9 +490,15 @@ RSpec.describe WhereIsMyFriends::DynamicsController do
     expect(response.status).to eq(200)
     expect(first_page.fetch("dynamics").length).to eq(10)
     expect(first_page.fetch("dynamics").pluck("id")).to eq(
-      dynamics.first(10).sort_by { |topic| [topic.created_at, topic.id] }.reverse.pluck(:id)
+      dynamics
+        .first(10)
+        .sort_by { |topic| [topic.created_at, topic.id] }
+        .reverse
+        .pluck(:id)
     )
-    expect(first_page.fetch("dynamics").pluck("author").pluck("id").uniq.length).to eq(10)
+    expect(
+      first_page.fetch("dynamics").pluck("author").pluck("id").uniq.length
+    ).to eq(10)
     expect(first_page.fetch("dynamics").pluck("id")).not_to include(
       own_dynamic.id,
       ignored_dynamic.id
@@ -508,7 +514,10 @@ RSpec.describe WhereIsMyFriends::DynamicsController do
     expect(response.parsed_body.fetch("dynamics").pluck("id")).to eq(
       [dynamics.last.id]
     )
-    expect(response.parsed_body).to include("has_more" => false, "before_id" => nil)
+    expect(response.parsed_body).to include(
+      "has_more" => false,
+      "before_id" => nil
+    )
   end
 
   it "fails closed when the homepage dynamics feed is disabled" do

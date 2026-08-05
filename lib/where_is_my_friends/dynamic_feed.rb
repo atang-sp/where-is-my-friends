@@ -297,8 +297,7 @@ module WhereIsMyFriends
         username: topic.user.username,
         avatar_template: topic.user.avatar_template,
         profile_url: "/u/#{topic.user.username}",
-        dynamics_url:
-          "/u/#{CGI.escape(topic.user.username)}/activity/dynamics"
+        dynamics_url: "/u/#{CGI.escape(topic.user.username)}/activity/dynamics"
       }
       author[:name] = topic.user.name if SiteSetting.enable_names
 
