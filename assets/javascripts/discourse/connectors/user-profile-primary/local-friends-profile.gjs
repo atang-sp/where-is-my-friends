@@ -1,7 +1,6 @@
 import Component from "@glimmer/component";
 import { LinkTo } from "@ember/routing";
 import { service } from "@ember/service";
-import { or } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 
 export default class LocalFriendsProfile extends Component {
@@ -9,7 +8,30 @@ export default class LocalFriendsProfile extends Component {
     return siteSettings.where_is_my_friends_enabled;
   }
 
+  @service currentUser;
   @service siteSettings;
+
+  get profileUsername() {
+    return this.args.outletArgs?.model?.username;
+  }
+
+  get canPublishDynamic() {
+    return (
+      this.siteSettings.where_is_my_friends_dynamics_enabled &&
+      this.currentUser?.username?.toLowerCase() ===
+        this.profileUsername?.toLowerCase()
+    );
+  }
+
+  get hasContent() {
+    return Boolean(
+      this.city || this.publicInterests.length || this.canPublishDynamic
+    );
+  }
+
+  get dynamicsHref() {
+    return `/u/${encodeURIComponent(this.profileUsername)}/activity/dynamics`;
+  }
 
   get city() {
     return this.args.outletArgs?.model?.where_is_my_friends_city;
@@ -29,14 +51,13 @@ export default class LocalFriendsProfile extends Component {
   }
 
   get inviteHref() {
-    const username = this.args.outletArgs?.model?.username;
     return `/where-is-my-friends/interests?invite_to=${encodeURIComponent(
-      username
+      this.profileUsername
     )}`;
   }
 
   <template>
-    {{#if (or this.city this.publicInterests.length)}}
+    {{#if this.hasContent}}
       <div class="local-friends-profile-city">
         {{#if this.city}}
         <LinkTo
@@ -57,6 +78,17 @@ export default class LocalFriendsProfile extends Component {
                 {{interest.name}}
               </span>
             {{/each}}
+          </div>
+        {{/if}}
+        {{#if this.canPublishDynamic}}
+          <div class="local-friends-profile-actions">
+            <a
+              href={{this.dynamicsHref}}
+              class="btn btn-primary btn-small"
+              data-test-profile-publish-dynamic
+            >
+              {{i18n "where_is_my_friends.dynamics.publish"}}
+            </a>
           </div>
         {{/if}}
         {{#if

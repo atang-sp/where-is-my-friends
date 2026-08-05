@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.15.2 — 2026-08-05
+
+- Add a prominent self-only “Publish dynamic” action to each member's own
+  profile, linking directly to the personal dynamics publisher while respecting
+  the dynamics feature switch.
+
 ## 1.15.1 — 2026-08-04
 
 - Merge the separate recently active member spotlight into the complete local

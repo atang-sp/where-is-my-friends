@@ -15,13 +15,22 @@ async function authenticate(context, username) {
 test.describe.serial("Personal dynamics against real Discourse", () => {
   let dynamicUrl;
 
-  test("one member publishes a text-only dynamic from their activity tab", async ({
+  test("one member publishes a text-only dynamic from their profile entry", async ({
     context,
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await authenticate(context, "dynamics_one");
-    await page.goto("/u/dynamics_one/activity/dynamics");
+    await page.goto("/u/dynamics_one");
+
+    const publishEntry = page.locator("[data-test-profile-publish-dynamic]");
+    await expect(publishEntry).toBeVisible();
+    await expect(publishEntry).toHaveAttribute(
+      "href",
+      "/u/dynamics_one/activity/dynamics"
+    );
+    await publishEntry.click();
+    await expect(page).toHaveURL(/\/u\/dynamics_one\/activity\/dynamics$/);
 
     await expect(page.locator("[data-test-personal-dynamics]")).toBeVisible();
     await expect(
@@ -83,15 +92,20 @@ test.describe.serial("Personal dynamics against real Discourse", () => {
 
     await context.clearCookies();
     await authenticate(context, "dynamics_one");
-    const notificationsResponse = await page.request.get("/notifications.json");
-    expect(notificationsResponse.ok()).toBeTruthy();
-    const notifications = await notificationsResponse.json();
     const topicId = Number(dynamicUrl.split("/").at(-1));
-    expect(
-      notifications.notifications.some(
-        (notification) => notification.topic_id === topicId
-      )
-    ).toBeTruthy();
+    await expect
+      .poll(async () => {
+        const response = await page.request.get("/notifications.json");
+        if (!response.ok()) {
+          return false;
+        }
+
+        const notifications = await response.json();
+        return notifications.notifications.some(
+          (notification) => notification.topic_id === topicId
+        );
+      })
+      .toBeTruthy();
   });
 
   test("homepage dynamics stay zero-request until the fourth group is selected", async ({

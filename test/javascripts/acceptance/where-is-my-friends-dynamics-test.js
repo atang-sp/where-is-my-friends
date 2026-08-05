@@ -71,6 +71,31 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
     });
   });
 
+  test("own profile exposes a direct publish-dynamic entry", async function (assert) {
+    await visit("/u/eviltrout");
+
+    assert
+      .dom("[data-test-profile-publish-dynamic]")
+      .hasText("Publish dynamic")
+      .hasAttribute("href", "/u/eviltrout/activity/dynamics");
+  });
+
+  test("other profiles do not expose the publish-dynamic entry", async function (assert) {
+    await visit("/u/charlie");
+
+    assert.dom("[data-test-profile-publish-dynamic]").doesNotExist();
+  });
+
+  test("disabled personal dynamics hide the profile entry", async function (assert) {
+    getOwner(this).lookup(
+      "service:site-settings"
+    ).where_is_my_friends_dynamics_enabled = false;
+
+    await visit("/u/eviltrout");
+
+    assert.dom("[data-test-profile-publish-dynamic]").doesNotExist();
+  });
+
   test("self view publishes text, counts characters, and has no upload UI", async function (assert) {
     await visit("/u/eviltrout/activity/dynamics");
 
