@@ -122,3 +122,33 @@ class WhereIsMyFriendsAiProviderProfile < ActiveRecord::Base
     errors.add(:base_url, :invalid)
   end
 end
+
+# == Schema Information
+#
+# Table name: where_is_my_friends_ai_provider_profiles
+#
+#  id                     :bigint           not null, primary key
+#  active                 :boolean          default(FALSE), not null
+#  api_key                :string(10000)    not null
+#  base_url               :string           not null
+#  last_test_error_code   :string
+#  last_test_status       :string
+#  last_tested_at         :datetime
+#  model                  :string           not null
+#  name                   :string           not null
+#  protocol               :string           not null
+#  purpose                :string           not null
+#  structured_output_mode :string           default("json_schema"), not null
+#  verified_at            :datetime
+#  verified_config_digest :string
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  created_by_id          :bigint           not null
+#  updated_by_id          :bigint           not null
+#
+# Indexes
+#
+#  idx_on_created_by_id_458394d3de              (created_by_id)
+#  idx_on_updated_by_id_ecefe100b4              (updated_by_id)
+#  idx_wimf_ai_profiles_one_active_per_purpose  (purpose) UNIQUE WHERE (active = true)
+#

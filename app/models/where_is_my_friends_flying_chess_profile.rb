@@ -52,3 +52,20 @@ class WhereIsMyFriendsFlyingChessProfile < ActiveRecord::Base
     self
   end
 end
+
+# == Schema Information
+#
+# Table name: where_is_my_friends_flying_chess_profiles
+#
+#  id                 :bigint           not null, primary key
+#  completed_games    :integer          default(0), not null
+#  first_completed_at :datetime
+#  profile_visible    :boolean          default(TRUE), not null
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  user_id            :bigint           not null
+#
+# Indexes
+#
+#  idx_wimf_fc_profiles_user  (user_id) UNIQUE
+#
