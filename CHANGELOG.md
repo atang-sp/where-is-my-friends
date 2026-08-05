@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.15.2 — 2026-08-05
 
 - Add a prominent self-only “Publish dynamic” action to each member's own
   profile, linking directly to the personal dynamics publisher while respecting
