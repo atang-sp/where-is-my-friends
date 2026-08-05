@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-# rubocop:disable Discourse/Plugins/NamespaceMethods -- Anonymous test source class.
-
 RSpec.describe WhereIsMyFriends::LicensedImport::Pipeline do
   subject(:pipeline) do
     described_class.new(source: source, model: model, publisher: publisher)

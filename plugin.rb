@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.16.0
+# version: 1.17.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0.beta1
@@ -287,6 +287,8 @@ after_initialize do
     get "/where-is-my-friends" => "list#latest",
         :constraints => ->(request) { request.format.html? }
     get "/where-is-my-friends/interests" => "list#latest",
+        :constraints => ->(request) { request.format.html? }
+    get "/where-is-my-friends/dynamics" => "list#latest",
         :constraints => ->(request) { request.format.html? }
     get "/where-is-my-friends/flying-chess" => "list#latest",
         :constraints => ->(request) { request.format.html? }

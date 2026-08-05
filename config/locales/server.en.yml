@@ -180,6 +180,7 @@ en:
     where_is_my_friends_interest_tags: "Up to 20 forum tags to add alongside the plugin's built-in detailed interest catalogue"
     where_is_my_friends_dynamics_enabled: "Enable member-only personal updates"
     where_is_my_friends_dynamics_homepage_enabled: "Enable the updates group in homepage community discovery"
+    where_is_my_friends_dynamics_feed_enabled: "Show a personal updates feed and browse-all entry on the homepage"
     where_is_my_friends_dynamics_member_preview_enabled: "Show a recent update preview on member recommendation cards"
     where_is_my_friends_dynamics_category_id: "Member-only, default-muted category for personal updates"
     where_is_my_friends_practice_invitations_enabled: "Enable strictly one-to-one practice invitations"

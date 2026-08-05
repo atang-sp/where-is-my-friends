@@ -8,6 +8,7 @@ WhereIsMyFriends::Engine.routes.draw do
   delete "/locations" => "locations#destroy"
   get "/recommendations" => "recommendations#index"
   get "/dynamics" => "dynamics#index"
+  get "/dynamics/feed" => "dynamics#feed"
   get "/dynamics/recent" => "dynamics#recent"
   post "/dynamics" => "dynamics#create"
   put "/recommendations/profile" => "recommendations#update_profile"

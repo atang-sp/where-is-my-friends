@@ -452,6 +452,86 @@ RSpec.describe WhereIsMyFriends::DynamicsController do
     )
   end
 
+  it "returns a paginated, author-diverse feed of other members' recent dynamics" do
+    members = Group.find(Group::AUTO_GROUPS[:trust_level_0])
+    category = Fabricate(:private_category, group: members)
+    SiteSetting.where_is_my_friends_dynamics_category_id = category.id
+    SiteSetting.default_categories_muted = category.id.to_s
+    authors = Array.new(11) { Fabricate(:user, refresh_auto_groups: true) }
+    dynamics =
+      authors.each_with_index.map do |author, index|
+        create_dynamic.call(
+          category: category,
+          author: author,
+          raw: "推荐流中的第 #{index + 1} 条动态正文",
+          created_at: (index + 1).minutes.ago
+        )
+      end
+    own_dynamic =
+      create_dynamic.call(
+        category: category,
+        author: user,
+        raw: "当前用户自己的动态不应进入他人推荐流",
+        created_at: 30.seconds.ago
+      )
+    ignored_author = Fabricate(:user, refresh_auto_groups: true)
+    ignored_dynamic =
+      create_dynamic.call(
+        category: category,
+        author: ignored_author,
+        raw: "被忽略成员的动态不应进入推荐流",
+        created_at: 2.minutes.ago
+      )
+    Fabricate(:ignored_user, user: user, ignored_user: ignored_author)
+
+    get "/where-is-my-friends/dynamics/feed.json"
+
+    first_page = response.parsed_body
+    expect(response.status).to eq(200)
+    expect(first_page.fetch("dynamics").length).to eq(10)
+    expect(first_page.fetch("dynamics").pluck("id")).to eq(
+      dynamics
+        .first(10)
+        .sort_by { |topic| [topic.created_at, topic.id] }
+        .reverse
+        .pluck(:id)
+    )
+    expect(
+      first_page.fetch("dynamics").pluck("author").pluck("id").uniq.length
+    ).to eq(10)
+    expect(first_page.fetch("dynamics").pluck("id")).not_to include(
+      own_dynamic.id,
+      ignored_dynamic.id
+    )
+    expect(first_page.fetch("has_more")).to eq(true)
+
+    get "/where-is-my-friends/dynamics/feed.json",
+        params: {
+          before_id: first_page.fetch("before_id")
+        }
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body.fetch("dynamics").pluck("id")).to eq(
+      [dynamics.last.id]
+    )
+    expect(response.parsed_body).to include(
+      "has_more" => false,
+      "before_id" => nil
+    )
+  end
+
+  it "fails closed when the homepage dynamics feed is disabled" do
+    members = Group.find(Group::AUTO_GROUPS[:trust_level_0])
+    category = Fabricate(:private_category, group: members)
+    SiteSetting.where_is_my_friends_dynamics_category_id = category.id
+    SiteSetting.default_categories_muted = category.id.to_s
+    SiteSetting.where_is_my_friends_dynamics_feed_enabled = false
+
+    get "/where-is-my-friends/dynamics/feed.json"
+
+    expect(response.status).to eq(404)
+  end
+
   it "keeps marked dynamics out of ordinary latest and user topic lists" do
     members = Group.find(Group::AUTO_GROUPS[:trust_level_0])
     category = Fabricate(:private_category, group: members)

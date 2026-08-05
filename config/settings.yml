@@ -63,6 +63,14 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
+  where_is_my_friends_dynamics_feed_enabled:
+    default: true
+    client: true
+    type: bool
+    description: "在首页显示个人动态推荐流和全部动态入口"
+    category: "where_is_my_friends"
+    translated: true
+
   where_is_my_friends_dynamics_member_preview_enabled:
     default: true
     client: true

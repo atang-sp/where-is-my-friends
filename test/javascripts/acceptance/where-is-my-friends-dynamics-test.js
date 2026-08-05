@@ -1,6 +1,7 @@
 import { getOwner } from "@ember/owner";
 import { click, currentURL, fillIn, visit } from "@ember/test-helpers";
 import { test } from "qunit";
+import emojiPicker from "discourse/tests/helpers/emoji-picker-helper";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 
 function dynamic(id, text = `Dynamic ${id}`) {
@@ -16,6 +17,7 @@ function dynamic(id, text = `Dynamic ${id}`) {
       username: "current-user",
       name: "Current User",
       profile_url: "/u/current-user",
+      dynamics_url: "/u/current-user/activity/dynamics",
       avatar_template: "/letter_avatar_proxy/v4/letter/c/1.png",
     },
   };
@@ -25,6 +27,9 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
   needs.settings({
     where_is_my_friends_enabled: true,
     where_is_my_friends_dynamics_enabled: true,
+    where_is_my_friends_dynamics_feed_enabled: true,
+    where_is_my_friends_dynamics_category_id: 1,
+    enable_emoji: true,
   });
   needs.user();
 
@@ -33,6 +38,7 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
   needs.hooks.beforeEach(() => {
     Object.assign(api, {
       feedRequests: [],
+      homepageFeedRequests: [],
       publishRequests: [],
       events: [],
       publishError: null,
@@ -40,6 +46,18 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
   });
 
   needs.pretender((server, helper) => {
+    server.get("/where-is-my-friends.json", () =>
+      helper.response({
+        state: "setup",
+        current_user: { id: 1, username: "current-user" },
+        location: null,
+        active_participants: { suppressed: true },
+        city_suggestions: [],
+        settings: {},
+        filterable_fields: [],
+      }),
+    );
+
     server.get("/where-is-my-friends/dynamics.json", (request) => {
       api.feedRequests.push(request.queryParams);
       if (request.queryParams.before_id) {
@@ -53,6 +71,15 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
         dynamics: [dynamic(2, "A safe link: https://example.com")],
         has_more: true,
         before_id: 2,
+      });
+    });
+
+    server.get("/where-is-my-friends/dynamics/feed.json", (request) => {
+      api.homepageFeedRequests.push(request.queryParams);
+      return helper.response({
+        dynamics: [dynamic(4, "A member shared a small win")],
+        has_more: false,
+        before_id: null,
       });
     });
 
@@ -88,7 +115,7 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
 
   test("disabled personal dynamics hide the profile entry", async function (assert) {
     getOwner(this).lookup(
-      "service:site-settings"
+      "service:site-settings",
     ).where_is_my_friends_dynamics_enabled = false;
 
     await visit("/u/eviltrout");
@@ -101,6 +128,7 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
 
     assert.dom("[data-test-personal-dynamics]").exists();
     assert.dom("[data-test-personal-dynamics-publisher]").exists();
+    assert.dom(".personal-dynamics__emoji-picker").exists();
     assert
       .dom("[data-test-personal-dynamics-publisher] input[type='file']")
       .doesNotExist();
@@ -109,27 +137,24 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
       .doesNotHaveAttribute("maxlength");
     assert.dom("[data-test-personal-dynamics-publish]").isDisabled();
 
+    await click(".personal-dynamics__emoji-picker");
+    await emojiPicker().select("grinning");
+    assert
+      .dom("[data-test-personal-dynamics-input]")
+      .hasValue(":grinning:");
+
     await fillIn("[data-test-personal-dynamics-input]", "1234567");
     assert.dom("[data-test-personal-dynamics-count]").hasText("7/500");
     assert.dom("[data-test-personal-dynamics-publish]").isDisabled();
 
-    await fillIn(
-      "[data-test-personal-dynamics-input]",
-      "👨‍👩‍👧‍👦 1234567"
-    );
+    await fillIn("[data-test-personal-dynamics-input]", "👨‍👩‍👧‍👦 1234567");
     assert.dom("[data-test-personal-dynamics-count]").hasText("9/500");
 
-    await fillIn(
-      "[data-test-personal-dynamics-input]",
-      "👨‍👩‍👧‍👦".repeat(500)
-    );
+    await fillIn("[data-test-personal-dynamics-input]", "👨‍👩‍👧‍👦".repeat(500));
     assert.dom("[data-test-personal-dynamics-count]").hasText("500/500");
     assert.dom("[data-test-personal-dynamics-publish]").isNotDisabled();
 
-    await fillIn(
-      "[data-test-personal-dynamics-input]",
-      "**12345678**\n\n"
-    );
+    await fillIn("[data-test-personal-dynamics-input]", "**12345678**\n\n");
     assert.dom("[data-test-personal-dynamics-count]").hasText("8/500");
 
     await fillIn("[data-test-personal-dynamics-input]", "A new update");
@@ -147,7 +172,7 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
 
   test("a disabled feature redirects without loading or measuring the dynamics page", async function (assert) {
     getOwner(this).lookup(
-      "service:site-settings"
+      "service:site-settings",
     ).where_is_my_friends_dynamics_enabled = false;
 
     await visit("/u/eviltrout/activity/dynamics");
@@ -177,7 +202,7 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
     await visit("/u/eviltrout/activity/dynamics");
     await fillIn(
       "[data-test-personal-dynamics-input]",
-      "Today includes an unsafe image ![image](upload://unsafe.png)"
+      "Today includes an unsafe image ![image](upload://unsafe.png)",
     );
     await click("[data-test-personal-dynamics-publish]");
 
@@ -193,5 +218,32 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
     await click("[data-test-personal-dynamics-publish]");
     assert.dom("[data-test-personal-dynamics-error]").doesNotExist();
     assert.dom("[data-test-personal-dynamic='3']").exists();
+  });
+
+  test("the homepage shows a dynamic feed and links to the browse page", async function (assert) {
+    await visit("/latest");
+
+    assert.dom("[data-test-personal-dynamics-homepage]").exists();
+    assert
+      .dom(
+        "[data-test-personal-dynamics-homepage] [data-test-personal-dynamic]",
+      )
+      .exists({ count: 1 });
+    assert.strictEqual(api.homepageFeedRequests.length, 1);
+    assert
+      .dom("[data-test-personal-dynamics-browse]")
+      .hasAttribute("href", "/where-is-my-friends/dynamics");
+  });
+
+  test("the browse page exposes other members' dynamics with pagination", async function (assert) {
+    await visit("/where-is-my-friends/dynamics");
+
+    assert.dom("[data-test-personal-dynamics-feed]").exists();
+    assert
+      .dom(
+        "[data-test-personal-dynamics-feed] [data-test-personal-dynamic-author]",
+      )
+      .hasText("Current User");
+    assert.strictEqual(api.homepageFeedRequests.length, 1);
   });
 });

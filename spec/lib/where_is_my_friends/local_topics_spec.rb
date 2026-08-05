@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-# rubocop:disable Discourse/Plugins/NamespaceMethods -- RSpec example-group helper.
-
 RSpec.describe WhereIsMyFriends::LocalTopics do
   fab!(:user)
   fab!(:category) { Fabricate(:category, minimum_required_tags: 2) }

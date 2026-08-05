@@ -14,7 +14,7 @@ export default {
     withPluginApi((api) => {
       api.registerNotificationTypeRenderer(
         "custom",
-        customActionNotificationRenderer
+        customActionNotificationRenderer,
       );
 
       api.addCommunitySectionLink({
@@ -35,6 +35,20 @@ export default {
         });
       }
 
+      if (
+        siteSettings.where_is_my_friends_dynamics_enabled &&
+        siteSettings.where_is_my_friends_dynamics_feed_enabled &&
+        siteSettings.where_is_my_friends_dynamics_category_id
+      ) {
+        api.addCommunitySectionLink({
+          name: "where-is-my-friends-dynamics",
+          route: "where-is-my-friends-dynamics",
+          title: i18n("where_is_my_friends.dynamics.feed_title"),
+          text: i18n("where_is_my_friends.dynamics.feed_title"),
+          icon: "message",
+        });
+      }
+
       api.addSaveableUserOption("where_is_my_friends_notify_city", {
         page: "notifications",
       });
@@ -43,7 +57,7 @@ export default {
       });
       api.addSaveableUserOption(
         "where_is_my_friends_accept_practice_invitations",
-        { page: "notifications" }
+        { page: "notifications" },
       );
     });
   },

@@ -180,6 +180,7 @@ zh_CN:
     where_is_my_friends_interest_tags: "在插件内置细分兴趣目录之外补充的论坛标签，最多 20 个"
     where_is_my_friends_dynamics_enabled: "启用仅登录会员可见的个人动态"
     where_is_my_friends_dynamics_homepage_enabled: "在首页社区发现面板中启用动态分组"
+    where_is_my_friends_dynamics_feed_enabled: "在首页显示个人动态推荐流和全部动态入口"
     where_is_my_friends_dynamics_member_preview_enabled: "在成员推荐卡中显示近期动态摘要"
     where_is_my_friends_dynamics_category_id: "仅登录会员可见且默认静音的个人动态分区"
     where_is_my_friends_practice_invitations_enabled: "启用严格一对一实践邀请"

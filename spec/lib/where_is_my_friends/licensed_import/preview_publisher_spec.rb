@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-# rubocop:disable Discourse/Plugins/NamespaceMethods -- RSpec example-group helpers.
-
 RSpec.describe WhereIsMyFriends::LicensedImport::PreviewPublisher do
   fab!(:category)
 

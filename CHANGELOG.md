@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.17.0 — 2026-08-05
+
+- Add the native Discourse emoji picker to the personal-dynamics publisher while
+  keeping images and attachments disabled.
+- Add a member-only, recent and author-diverse homepage dynamics feed with a
+  paginated browse-all page and a community navigation entry.
+
 ## 1.16.0 — 2026-08-05
 
 - Redeem short-lived, server-signed online Flying Chess completion claims after

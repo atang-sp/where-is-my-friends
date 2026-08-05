@@ -2,15 +2,15 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
+import didInsert from "@ember/render-modifiers/modifiers/did-insert";
 import { service } from "@ember/service";
-import { trustHTML } from "@ember/template";
+import EmojiPicker from "discourse/components/emoji-picker";
 import { ajax } from "discourse/lib/ajax";
 import { cook } from "discourse/lib/text";
 import { not } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
-import DDecoratedHtml from "discourse/ui-kit/d-decorated-html";
-import DRelativeDate from "discourse/ui-kit/d-relative-date";
 import { i18n } from "discourse-i18n";
+import PersonalDynamicsCard from "discourse/plugins/where-is-my-friends/discourse/components/personal-dynamics-card";
 
 const graphemeSegmenter =
   typeof Intl.Segmenter === "function"
@@ -33,38 +33,9 @@ function cookedVisibleText(cooked) {
   return fragment.textContent.replace(/\s+/g, " ").trim();
 }
 
-class DynamicCard extends Component {
-  get cooked() {
-    return trustHTML(this.args.dynamic.cooked ?? "");
-  }
-
-  <template>
-    <article
-      class="personal-dynamics__card"
-      data-test-personal-dynamic={{@dynamic.id}}
-    >
-      <DDecoratedHtml
-        @html={{this.cooked}}
-        @className="personal-dynamics__cooked"
-      />
-      <footer class="personal-dynamics__meta">
-        <span><DRelativeDate @date={{@dynamic.created_at}} /></span>
-        <span>{{i18n
-            "where_is_my_friends.dynamics.reply_count"
-            count=@dynamic.reply_count
-          }}</span>
-        <a
-          href={{@dynamic.url}}
-          data-test-personal-dynamic-open
-          {{on "click" @onOpen}}
-        >{{i18n "where_is_my_friends.dynamics.open_and_reply"}}</a>
-      </footer>
-    </article>
-  </template>
-}
-
 export default class PersonalDynamicsPage extends Component {
   @service currentUser;
+  @service siteSettings;
 
   @tracked dynamics = [];
   @tracked hasMore = false;
@@ -77,6 +48,7 @@ export default class PersonalDynamicsPage extends Component {
   @tracked error = null;
   @tracked publishNotice = null;
   lengthRequest = 0;
+  inputElement = null;
 
   constructor(owner, args) {
     super(owner, args);
@@ -96,10 +68,16 @@ export default class PersonalDynamicsPage extends Component {
     );
   }
 
+  get emojiEnabled() {
+    return Boolean(this.siteSettings.enable_emoji);
+  }
+
   @action
-  async updateRaw(event) {
-    this.raw = event.target.value;
-    const raw = this.raw;
+  captureInput(element) {
+    this.inputElement = element;
+  }
+
+  async updateLength(raw) {
     const request = ++this.lengthRequest;
     try {
       const cooked = await cook(raw);
@@ -111,8 +89,39 @@ export default class PersonalDynamicsPage extends Component {
         this.visibleLength = graphemeLength(raw.replace(/\s+/g, " ").trim());
       }
     }
+  }
+
+  @action
+  async updateRaw(event) {
+    this.raw = event.target.value;
+    this.inputElement = event.target;
+    await this.updateLength(this.raw);
     this.error = null;
     this.publishNotice = null;
+  }
+
+  @action
+  emojiSelected(emoji) {
+    if (!emoji) {
+      return;
+    }
+
+    const input = this.inputElement;
+    const start = input?.selectionStart ?? this.raw.length;
+    const end = input?.selectionEnd ?? start;
+    const token = `:${emoji}:`;
+    this.raw = `${this.raw.slice(0, start)}${token}${this.raw.slice(end)}`;
+    this.error = null;
+    this.publishNotice = null;
+    void this.updateLength(this.raw);
+
+    if (input) {
+      requestAnimationFrame(() => {
+        input.focus();
+        const caret = start + token.length;
+        input.setSelectionRange(caret, caret);
+      });
+    }
   }
 
   @action
@@ -244,19 +253,33 @@ export default class PersonalDynamicsPage extends Component {
             }}
             aria-describedby="personal-dynamics-guidance personal-dynamics-count"
             data-test-personal-dynamics-input
+            {{didInsert this.captureInput}}
             {{on "input" this.updateRaw}}
           ></textarea>
           <div class="personal-dynamics__publisher-meta">
             <p id="personal-dynamics-guidance">{{i18n
                 "where_is_my_friends.dynamics.publisher_guidance"
               }}</p>
-            <span
-              id="personal-dynamics-count"
-              data-test-personal-dynamics-count
-            >{{i18n
-                "where_is_my_friends.dynamics.character_count"
-                count=this.visibleLength
-              }}</span>
+            <div class="personal-dynamics__publisher-tools">
+              {{#if this.emojiEnabled}}
+                <EmojiPicker
+                  @didSelectEmoji={{this.emojiSelected}}
+                  @label={{i18n
+                    "where_is_my_friends.dynamics.emoji_picker"
+                  }}
+                  @btnClass="btn-default personal-dynamics__emoji-picker"
+                  @context="topic"
+                  @modalForMobile={{true}}
+                />
+              {{/if}}
+              <span
+                id="personal-dynamics-count"
+                data-test-personal-dynamics-count
+              >{{i18n
+                  "where_is_my_friends.dynamics.character_count"
+                  count=this.visibleLength
+                }}</span>
+            </div>
           </div>
           <DButton
             @action={{this.publish}}
@@ -291,7 +314,10 @@ export default class PersonalDynamicsPage extends Component {
       {{else if this.dynamics.length}}
         <div class="personal-dynamics__list">
           {{#each this.dynamics as |dynamic|}}
-            <DynamicCard @dynamic={{dynamic}} @onOpen={{this.trackOpen}} />
+            <PersonalDynamicsCard
+              @dynamic={{dynamic}}
+              @onOpen={{this.trackOpen}}
+            />
           {{/each}}
         </div>
         {{#if this.hasMore}}

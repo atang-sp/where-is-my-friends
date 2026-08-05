@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-# rubocop:disable Discourse/Plugins/NamespaceMethods -- RSpec example-group helper.
-
 require Rails.root.join(
           "plugins/where-is-my-friends/db/post_migrate/20260728020100_import_legacy_practice_matching_data.rb"
         )
