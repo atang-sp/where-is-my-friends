@@ -5,6 +5,11 @@ en:
     invalid_interests: "Choose 3 to 20 currently visible interests without exceeding any group limit."
     invalid_purpose: "Choose your current reason for using the community."
     invalid_recommendation: "That recommendation is no longer available."
+    flying_chess:
+      invalid_claim: "This game completion claim is invalid or expired."
+      already_claimed: "This seat has already been claimed, or your account already claimed this game."
+      claim_failed: "This game completion could not be saved."
+      profile_update_failed: "Your Flying Chess profile setting could not be updated."
     dynamics:
       unavailable: "Personal updates are not available."
       invalid_length: "Updates must contain 8 to 500 visible characters."
@@ -168,6 +173,9 @@ en:
       licensed_import_reason: "Licensed English import paused: %{reason}"
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"
+    where_is_my_friends_flying_chess_achievements_enabled: "Enable server-verified Flying Chess claims and profile achievements"
+    where_is_my_friends_flying_chess_claim_secret: "Shared secret used to verify room-server completion claims (at least 32 bytes)"
+    where_is_my_friends_flying_chess_game_url: "Flying Chess entry point shown on forum profiles"
     where_is_my_friends_interest_onboarding_enabled: "Enable first-use interest onboarding and personalized recommendations"
     where_is_my_friends_interest_tags: "Up to 20 forum tags to add alongside the plugin's built-in detailed interest catalogue"
     where_is_my_friends_dynamics_enabled: "Enable member-only personal updates"

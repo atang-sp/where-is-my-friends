@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.16.0
+# version: 1.17.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0.beta1
@@ -17,6 +17,7 @@ add_admin_route(
 register_asset "stylesheets/where-is-my-friends.scss"
 register_svg_icon "plug"
 register_svg_icon "floppy-disk"
+register_svg_icon "plane"
 
 require_relative "lib/where_is_my_friends/engine"
 
@@ -26,9 +27,11 @@ after_initialize do
     .join("plugins/where-is-my-friends/db/fixtures")
     .to_s
 
-  Rails.application.config.filter_parameters |= %i[api_key]
+  Rails.application.config.filter_parameters |= %i[api_key token claim_token]
 
   require_relative "lib/where_is_my_friends/interest_visibility"
+  require_relative "lib/where_is_my_friends/flying_chess"
+  require_relative "lib/where_is_my_friends/flying_chess/claim_token"
   if PostRevisor.ancestors.exclude?(WhereIsMyFriends::DynamicPostRevisor)
     PostRevisor.prepend(WhereIsMyFriends::DynamicPostRevisor)
   end
@@ -159,6 +162,20 @@ after_initialize do
     UserLocation.active_for_discovery.find_by(user_id: object.id)&.city
   end
 
+  add_to_serializer(:user, :where_is_my_friends_flying_chess) do
+    if SiteSetting.where_is_my_friends_enabled &&
+         SiteSetting.where_is_my_friends_flying_chess_achievements_enabled
+      profile = WhereIsMyFriendsFlyingChessProfile.find_by(user: object)
+      if profile&.visible_to?(scope.user)
+        WhereIsMyFriendsFlyingChessProfileSerializer.new(
+          profile,
+          scope: scope,
+          root: false
+        ).as_json
+      end
+    end
+  end
+
   add_to_serializer(
     :current_user,
     :where_is_my_friends_interest_onboarding_state
@@ -224,6 +241,24 @@ after_initialize do
     badge.system = false
   end
 
+  Badge.seed(:name) do |badge|
+    badge.name = WhereIsMyFriends::FlyingChess::FIRST_TAKEOFF_BADGE_NAME
+    badge.badge_type_id = BadgeType::Bronze
+    badge.icon = "plane"
+    badge.description = "完成第一局服务器确认的在线飞行棋"
+    badge.badge_grouping_id = BadgeGrouping::Community
+    badge.enabled = true
+    badge.listable = true
+    badge.target_posts = false
+    badge.auto_revoke = false
+    badge.system = false
+  end
+
+  on(:user_destroyed) do |user|
+    WhereIsMyFriendsFlyingChessCompletion.where(user_id: user.id).delete_all
+    WhereIsMyFriendsFlyingChessProfile.where(user_id: user.id).delete_all
+  end
+
   on(:where_is_my_friends_location_saved) do |user|
     badge = Badge.find_by(name: "Local Explorer")
     BadgeGranter.grant(badge, user) if badge&.enabled
@@ -254,6 +289,8 @@ after_initialize do
     get "/where-is-my-friends/interests" => "list#latest",
         :constraints => ->(request) { request.format.html? }
     get "/where-is-my-friends/dynamics" => "list#latest",
+        :constraints => ->(request) { request.format.html? }
+    get "/where-is-my-friends/flying-chess" => "list#latest",
         :constraints => ->(request) { request.format.html? }
     get "/admin/plugins/where-is-my-friends/ai-providers" =>
           "admin/plugins#show",

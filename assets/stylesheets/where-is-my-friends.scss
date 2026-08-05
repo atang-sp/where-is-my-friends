@@ -2255,3 +2255,84 @@
     flex-direction: column;
   }
 }
+
+.flying-chess-claim-page {
+  display: grid;
+  place-items: center;
+  min-height: 50vh;
+
+  &__card {
+    width: min(100%, 42rem);
+    box-sizing: border-box;
+    padding: 2rem;
+    border: 1px solid var(--primary-low);
+    border-radius: var(--d-border-radius-large);
+    background: var(--secondary);
+    box-shadow: 0 1rem 3rem rgb(0 0 0 / 8%);
+  }
+
+  &__eyebrow,
+  &__privacy {
+    color: var(--primary-medium);
+  }
+
+  &__eyebrow {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
+
+.flying-chess-profile {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--primary-low);
+  border-radius: var(--d-border-radius);
+  background: var(--primary-very-low);
+
+  h3,
+  p {
+    margin-block: 0 0.4rem;
+  }
+
+  &__eyebrow,
+  &__privacy {
+    color: var(--primary-medium);
+  }
+
+  &__eyebrow {
+    font-size: var(--font-down-1);
+    font-weight: 700;
+  }
+
+  &__badge {
+    display: inline-block;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    background: var(--tertiary-low);
+    color: var(--tertiary-high);
+    font-weight: 600;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+}
+
+@media (width <= 700px) {
+  .flying-chess-profile {
+    flex-direction: column;
+
+    &__actions {
+      justify-content: flex-start;
+    }
+  }
+}

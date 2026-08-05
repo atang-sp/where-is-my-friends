@@ -5,6 +5,11 @@ zh_CN:
     invalid_interests: "请选择 3 至 20 个当前可见的兴趣，并确保每个分类未超出上限"
     invalid_purpose: "请选择你当前使用论坛的主要目的"
     invalid_recommendation: "这条推荐已不可用"
+    flying_chess:
+      invalid_claim: "本局完成凭证无效或已过期"
+      already_claimed: "本局席位已被认领，或你的账号已经认领过本局"
+      claim_failed: "暂时无法保存本局完成记录"
+      profile_update_failed: "暂时无法更新飞行棋资料可见性"
     dynamics:
       unavailable: "个人动态当前不可用"
       invalid_length: "动态需包含 8 至 500 个可见字符"
@@ -168,6 +173,9 @@ zh_CN:
       licensed_import_reason: "英文精选任务已暂停：%{reason}"
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"
+    where_is_my_friends_flying_chess_achievements_enabled: "启用飞行棋服务端完成记录认领与个人资料展示"
+    where_is_my_friends_flying_chess_claim_secret: "验证飞行棋房间服务完成凭证的共享密钥（至少 32 字节）"
+    where_is_my_friends_flying_chess_game_url: "论坛个人资料卡中的飞行棋入口"
     where_is_my_friends_interest_onboarding_enabled: "启用首次兴趣引导和个性化推荐"
     where_is_my_friends_interest_tags: "在插件内置细分兴趣目录之外补充的论坛标签，最多 20 个"
     where_is_my_friends_dynamics_enabled: "启用仅登录会员可见的个人动态"

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# rubocop:disable RSpec/DescribeClass -- Request-level legacy-entry contract.
 
 RSpec.describe "Legacy practice matching entry" do
   if Discourse.plugins_by_name["discourse-plugin-matching"]

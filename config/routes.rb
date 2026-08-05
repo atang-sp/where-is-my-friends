@@ -28,6 +28,8 @@ WhereIsMyFriends::Engine.routes.draw do
   put "/legacy-practice-bookmarks/:id/dismiss" =>
         "legacy_practice_bookmarks#dismiss"
   post "/events" => "events#create"
+  post "/flying-chess/claims" => "flying_chess_claims#create"
+  put "/flying-chess/profile" => "flying_chess_claims#update_profile"
   get "/licensed-imports" => "licensed_imports#index"
   scope "/admin" do
     resources :ai_provider_profiles,
