@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.16.0 — 2026-08-05
+
+- Redeem short-lived, server-signed online Flying Chess completion claims after
+  login without changing anonymous room entry or requiring a forum account.
+- Record one completion per game and account with exact-repeat idempotency and
+  reject cross-account, cross-seat, expired, malformed, or tampered claims.
+- Add an optional profile achievement and first-takeoff badge with user-owned
+  visibility controls, badge revocation while hidden, and no nickname storage.
+
 ## 1.15.2 — 2026-08-05
 
 - Add a prominent self-only “Publish dynamic” action to each member's own
