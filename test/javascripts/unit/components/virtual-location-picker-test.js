@@ -11,8 +11,14 @@ module("Unit | where-is-my-friends | map provider", function () {
   });
 
   test("a selected commercial provider without its browser key falls back", function (assert) {
-    assert.strictEqual(resolveMapProvider({ map_provider: "amap" }), "openstreetmap");
-    assert.strictEqual(resolveMapProvider({ map_provider: "baidu" }), "openstreetmap");
+    assert.strictEqual(
+      resolveMapProvider({ map_provider: "amap" }),
+      "openstreetmap"
+    );
+    assert.strictEqual(
+      resolveMapProvider({ map_provider: "baidu" }),
+      "openstreetmap"
+    );
   });
 
   test("a commercial provider is used only with its matching browser key", function (assert) {
@@ -21,7 +27,10 @@ module("Unit | where-is-my-friends | map provider", function () {
       "amap"
     );
     assert.strictEqual(
-      resolveMapProvider({ map_provider: "baidu", baidu_api_key: "browser-key" }),
+      resolveMapProvider({
+        map_provider: "baidu",
+        baidu_api_key: "browser-key",
+      }),
       "baidu"
     );
   });

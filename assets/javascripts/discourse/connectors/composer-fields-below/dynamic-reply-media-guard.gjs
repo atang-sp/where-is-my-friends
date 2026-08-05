@@ -13,7 +13,7 @@ export default class DynamicReplyMediaGuard extends Component {
     const model = this.args.outletArgs?.model;
     return Boolean(
       model?.topic?.where_is_my_friends_dynamic ||
-        model?.where_is_my_friends_dynamic
+      model?.where_is_my_friends_dynamic
     );
   }
 

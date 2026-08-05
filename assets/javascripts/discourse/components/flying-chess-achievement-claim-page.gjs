@@ -35,7 +35,9 @@ export default class FlyingChessAchievementClaimPage extends Component {
   }
 
   captureClaim() {
-    const fragment = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const fragment = new URLSearchParams(
+      window.location.hash.replace(/^#/, "")
+    );
     const incoming = fragment.get("token");
     if (fragment.has("token")) {
       this.token =
@@ -127,9 +129,7 @@ export default class FlyingChessAchievementClaimPage extends Component {
           {{else if (not this.tokenAvailable)}}
             <p>{{i18n "where_is_my_friends.flying_chess.missing_claim"}}</p>
           {{else if (not this.currentUser)}}
-            <p>{{i18n
-                "where_is_my_friends.flying_chess.login_description"
-              }}</p>
+            <p>{{i18n "where_is_my_friends.flying_chess.login_description"}}</p>
             <DButton
               @label="where_is_my_friends.flying_chess.login"
               @action={{routeAction "showLogin"}}

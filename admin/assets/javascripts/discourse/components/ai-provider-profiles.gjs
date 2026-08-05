@@ -32,8 +32,7 @@ export default class AiProviderProfiles extends Component {
   constructor() {
     super(...arguments);
     this.profiles = this.args.initialState.profiles;
-    this.licensedImportEnabled =
-      this.args.initialState.licensed_import_enabled;
+    this.licensedImportEnabled = this.args.initialState.licensed_import_enabled;
   }
 
   get isChatCompletions() {
@@ -90,7 +89,9 @@ export default class AiProviderProfiles extends Component {
   async save(event) {
     event.preventDefault();
     this.saving = true;
-    const url = this.editingId ? `${API_ROOT}/${this.editingId}.json` : `${API_ROOT}.json`;
+    const url = this.editingId
+      ? `${API_ROOT}/${this.editingId}.json`
+      : `${API_ROOT}.json`;
 
     try {
       await ajax(url, {
@@ -126,7 +127,9 @@ export default class AiProviderProfiles extends Component {
       await ajax(`${API_ROOT}/${profile.id}/test.json`, { type: "POST" });
       await this.reload();
       this.toasts.success({
-        data: { message: i18n("where_is_my_friends.admin.ai_providers.test_passed") },
+        data: {
+          message: i18n("where_is_my_friends.admin.ai_providers.test_passed"),
+        },
         duration: "short",
       });
     } catch (error) {
@@ -144,7 +147,9 @@ export default class AiProviderProfiles extends Component {
       await ajax(`${API_ROOT}/${profile.id}/activate.json`, { type: "POST" });
       await this.reload();
       this.toasts.success({
-        data: { message: i18n("where_is_my_friends.admin.ai_providers.activated") },
+        data: {
+          message: i18n("where_is_my_friends.admin.ai_providers.activated"),
+        },
         duration: "short",
       });
     } catch (error) {
@@ -208,72 +213,78 @@ export default class AiProviderProfiles extends Component {
       <div class="ai-provider-profiles__list">
         {{#if this.profiles.length}}
           {{#each this.profiles as |profile|}}
-          <article
-            class="ai-provider-profiles__card"
-            data-provider-id={{profile.id}}
-          >
-            <div>
-              <h3>{{profile.name}}</h3>
-              <p>
-                {{i18n "where_is_my_friends.admin.ai_providers.generation"}}
-                ·
-                {{#if (eq profile.protocol "responses")}}
-                  {{i18n
-                    "where_is_my_friends.admin.ai_providers.protocol_responses"
-                  }}
-                {{else}}
-                  {{i18n
-                    "where_is_my_friends.admin.ai_providers.protocol_chat_completions"
-                  }}
-                {{/if}}
-                ·
-                {{profile.model}}
-              </p>
-              <p>{{profile.base_url}}</p>
-              <p>
-                {{#if profile.api_key_configured}}
-                  {{i18n "where_is_my_friends.admin.ai_providers.key_configured"}}
-                {{else}}
-                  {{i18n "where_is_my_friends.admin.ai_providers.key_missing"}}
-                {{/if}}
-                ·
-                {{#if profile.active}}
-                  {{i18n "where_is_my_friends.admin.ai_providers.active"}}
-                {{else if profile.verified}}
-                  {{i18n "where_is_my_friends.admin.ai_providers.verified"}}
-                {{else}}
-                  {{i18n "where_is_my_friends.admin.ai_providers.not_verified"}}
-                {{/if}}
-              </p>
-            </div>
-            <div class="ai-provider-profiles__actions">
-              <DButton
-                @action={{fn this.edit profile}}
-                @label="where_is_my_friends.admin.ai_providers.edit"
-                @icon="pencil"
-              />
-              <DButton
-                @action={{fn this.testProvider profile}}
-                @label="where_is_my_friends.admin.ai_providers.test"
-                @icon="plug"
-                @isLoading={{eq this.busyProfileId profile.id}}
-              />
-              <DButton
-                class="ai-provider-profiles__activate"
-                @action={{fn this.activate profile}}
-                @label="where_is_my_friends.admin.ai_providers.activate"
-                @icon="check"
-                @disabled={{or (not profile.verified) profile.active}}
-                @isLoading={{eq this.busyProfileId profile.id}}
-              />
-              <DButton
-                @action={{fn this.deleteProvider profile}}
-                @label="where_is_my_friends.admin.ai_providers.delete"
-                @icon="trash-can"
-                class="btn-danger"
-              />
-            </div>
-          </article>
+            <article
+              class="ai-provider-profiles__card"
+              data-provider-id={{profile.id}}
+            >
+              <div>
+                <h3>{{profile.name}}</h3>
+                <p>
+                  {{i18n "where_is_my_friends.admin.ai_providers.generation"}}
+                  ·
+                  {{#if (eq profile.protocol "responses")}}
+                    {{i18n
+                      "where_is_my_friends.admin.ai_providers.protocol_responses"
+                    }}
+                  {{else}}
+                    {{i18n
+                      "where_is_my_friends.admin.ai_providers.protocol_chat_completions"
+                    }}
+                  {{/if}}
+                  ·
+                  {{profile.model}}
+                </p>
+                <p>{{profile.base_url}}</p>
+                <p>
+                  {{#if profile.api_key_configured}}
+                    {{i18n
+                      "where_is_my_friends.admin.ai_providers.key_configured"
+                    }}
+                  {{else}}
+                    {{i18n
+                      "where_is_my_friends.admin.ai_providers.key_missing"
+                    }}
+                  {{/if}}
+                  ·
+                  {{#if profile.active}}
+                    {{i18n "where_is_my_friends.admin.ai_providers.active"}}
+                  {{else if profile.verified}}
+                    {{i18n "where_is_my_friends.admin.ai_providers.verified"}}
+                  {{else}}
+                    {{i18n
+                      "where_is_my_friends.admin.ai_providers.not_verified"
+                    }}
+                  {{/if}}
+                </p>
+              </div>
+              <div class="ai-provider-profiles__actions">
+                <DButton
+                  @action={{fn this.edit profile}}
+                  @label="where_is_my_friends.admin.ai_providers.edit"
+                  @icon="pencil"
+                />
+                <DButton
+                  @action={{fn this.testProvider profile}}
+                  @label="where_is_my_friends.admin.ai_providers.test"
+                  @icon="plug"
+                  @isLoading={{eq this.busyProfileId profile.id}}
+                />
+                <DButton
+                  class="ai-provider-profiles__activate"
+                  @action={{fn this.activate profile}}
+                  @label="where_is_my_friends.admin.ai_providers.activate"
+                  @icon="check"
+                  @disabled={{or (not profile.verified) profile.active}}
+                  @isLoading={{eq this.busyProfileId profile.id}}
+                />
+                <DButton
+                  @action={{fn this.deleteProvider profile}}
+                  @label="where_is_my_friends.admin.ai_providers.delete"
+                  @icon="trash-can"
+                  class="btn-danger"
+                />
+              </div>
+            </article>
           {{/each}}
         {{else}}
           <p class="ai-provider-profiles__empty">
@@ -293,11 +304,7 @@ export default class AiProviderProfiles extends Component {
 
         <label>
           {{i18n "where_is_my_friends.admin.ai_providers.name"}}
-          <input
-            value={{this.name}}
-            {{on "input" this.updateName}}
-            required
-          />
+          <input value={{this.name}} {{on "input" this.updateName}} required />
         </label>
         <label>
           {{i18n "where_is_my_friends.admin.ai_providers.protocol"}}
@@ -367,7 +374,9 @@ export default class AiProviderProfiles extends Component {
             required={{not this.editingId}}
           />
           {{#if this.editingId}}
-            <small>{{i18n "where_is_my_friends.admin.ai_providers.key_unchanged"}}</small>
+            <small>{{i18n
+                "where_is_my_friends.admin.ai_providers.key_unchanged"
+              }}</small>
           {{/if}}
         </label>
 

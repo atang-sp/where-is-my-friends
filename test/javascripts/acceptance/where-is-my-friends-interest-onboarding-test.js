@@ -199,22 +199,20 @@ function setupApi(needs, state) {
       });
     });
 
-    server.get("/where-is-my-friends/recommendations.json", (request) =>
-      {
-        state.recommendationRequests += 1;
-        state.lastRefresh = request.queryParams.refresh ?? null;
-        if (state.recommendationError) {
-          return helper.response(500, { errors: ["unavailable"] });
-        }
-        if (state.deferRecommendations) {
-          return new Promise((resolve) => {
-            state.resolveRecommendations = () =>
-              resolve(helper.response(state.model));
-          });
-        }
-        return helper.response(state.model);
+    server.get("/where-is-my-friends/recommendations.json", (request) => {
+      state.recommendationRequests += 1;
+      state.lastRefresh = request.queryParams.refresh ?? null;
+      if (state.recommendationError) {
+        return helper.response(500, { errors: ["unavailable"] });
       }
-    );
+      if (state.deferRecommendations) {
+        return new Promise((resolve) => {
+          state.resolveRecommendations = () =>
+            resolve(helper.response(state.model));
+        });
+      }
+      return helper.response(state.model);
+    });
 
     server.get("/where-is-my-friends/dynamics/recent.json", () => {
       state.recentDynamicsRequests += 1;
@@ -247,9 +245,8 @@ function setupApi(needs, state) {
       }
     );
 
-    server.get(
-      "/where-is-my-friends/legacy-practice-bookmarks.json",
-      () => helper.response({ bookmarks: state.legacyBookmarks })
+    server.get("/where-is-my-friends/legacy-practice-bookmarks.json", () =>
+      helper.response({ bookmarks: state.legacyBookmarks })
     );
 
     server.put(
@@ -270,23 +267,20 @@ function setupApi(needs, state) {
       () => helper.response({ bookmark: { state: "dismissed" } })
     );
 
-    server.post(
-      "/where-is-my-friends/practice-invitations.json",
-      (request) => {
-        state.invitationParams = new URLSearchParams(request.requestBody);
-        const invitation = {
-          id: 77,
-          status: "pending",
-          sender: { id: 1, username: "current-user" },
-          recipient: { id: 9, username: "alice", name: "Alice" },
-          interest: { id: 1, name: "ruby" },
-          note: state.invitationParams.get("note"),
-          preset_message: "Invite @alice to practice ruby.",
-        };
-        state.outgoing = [invitation];
-        return helper.response({ invitation });
-      }
-    );
+    server.post("/where-is-my-friends/practice-invitations.json", (request) => {
+      state.invitationParams = new URLSearchParams(request.requestBody);
+      const invitation = {
+        id: 77,
+        status: "pending",
+        sender: { id: 1, username: "current-user" },
+        recipient: { id: 9, username: "alice", name: "Alice" },
+        interest: { id: 1, name: "ruby" },
+        note: state.invitationParams.get("note"),
+        preset_message: "Invite @alice to practice ruby.",
+      };
+      state.outgoing = [invitation];
+      return helper.response({ invitation });
+    });
 
     server.put(
       "/where-is-my-friends/practice-invitations/:id/accept.json",
@@ -325,13 +319,10 @@ function setupApi(needs, state) {
       }
     );
 
-    server.post(
-      "/where-is-my-friends/recommendations/skip.json",
-      () => {
-        state.skipRequests += 1;
-        return helper.response({ state: "dismissed" });
-      }
-    );
+    server.post("/where-is-my-friends/recommendations/skip.json", () => {
+      state.skipRequests += 1;
+      return helper.response({ state: "dismissed" });
+    });
 
     server.post(
       "/where-is-my-friends/recommendations/dismiss.json",
@@ -345,13 +336,10 @@ function setupApi(needs, state) {
       }
     );
 
-    server.delete(
-      "/where-is-my-friends/recommendations/profile.json",
-      () => {
-        state.disableRequests += 1;
-        return helper.response({ state: "dismissed" });
-      }
-    );
+    server.delete("/where-is-my-friends/recommendations/profile.json", () => {
+      state.disableRequests += 1;
+      return helper.response({ state: "dismissed" });
+    });
 
     server.post("/where-is-my-friends/events.json", (request) => {
       state.events.push(
@@ -429,10 +417,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
 
   test("a completed member sees collapsed community discovery without loading recommendations", async function (assert) {
     api.model = homepageModel();
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
 
@@ -468,13 +455,16 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     const settings = getOwner(this).lookup("service:site-settings");
     settings.where_is_my_friends_dynamics_enabled = true;
     settings.where_is_my_friends_dynamics_homepage_enabled = true;
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
-    assert.strictEqual(api.recentDynamicsRequests, 0, "collapsed is zero-request");
+    assert.strictEqual(
+      api.recentDynamicsRequests,
+      0,
+      "collapsed is zero-request"
+    );
 
     await click("[data-test-community-toggle]");
     assert.strictEqual(
@@ -506,10 +496,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     const settings = getOwner(this).lookup("service:site-settings");
     settings.where_is_my_friends_dynamics_enabled = true;
     settings.where_is_my_friends_dynamics_homepage_enabled = true;
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -529,10 +518,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       url: "/t/recent-update/901",
       excerpt: "I am preparing a small speaking practice session.",
     };
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -572,10 +560,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
 
   test("first expansion loads and exposes only the discussion group", async function (assert) {
     api.model = homepageModel();
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -606,8 +593,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       (payload) => payload.get("event_name") === "recommendation_impression"
     );
     const expansion = api.eventPayloads.find(
-      (payload) =>
-        payload.get("event_name") === "recommendation_panel_expanded"
+      (payload) => payload.get("event_name") === "recommendation_panel_expanded"
     );
     assert.strictEqual(expansion?.get("surface"), "homepage");
     assert.strictEqual(expansion?.get("recommendation_group"), "topics");
@@ -628,10 +614,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
 
   test("group switches render and expose only the selected recommendations", async function (assert) {
     api.model = homepageModel();
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -645,7 +630,8 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-community-interest]").doesNotExist();
     assert.strictEqual(api.recommendationRequests, 1);
     assert.strictEqual(
-      api.events.filter((event) => event === "recommendation_impression").length,
+      api.events.filter((event) => event === "recommendation_impression")
+        .length,
       6
     );
 
@@ -659,7 +645,8 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-community-interest]").exists({ count: 2 });
     assert.strictEqual(api.recommendationRequests, 1);
     assert.strictEqual(
-      api.events.filter((event) => event === "recommendation_impression").length,
+      api.events.filter((event) => event === "recommendation_impression")
+        .length,
       8
     );
     assert.deepEqual(
@@ -687,10 +674,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
 
   test("collapse and reopen retain the selected loaded group", async function (assert) {
     api.model = homepageModel();
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -708,20 +694,19 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       .hasAttribute("aria-pressed", "true");
     assert.strictEqual(api.recommendationRequests, 1);
     assert.strictEqual(
-      api.events.filter((event) => event === "recommendation_impression").length,
+      api.events.filter((event) => event === "recommendation_impression")
+        .length,
       9,
       "reopening records the three cards that became visible again"
     );
     assert.strictEqual(
-      api.events.filter(
-        (event) => event === "recommendation_panel_expanded"
-      ).length,
+      api.events.filter((event) => event === "recommendation_panel_expanded")
+        .length,
       2
     );
     assert.strictEqual(
-      api.events.filter(
-        (event) => event === "recommendation_panel_collapsed"
-      ).length,
+      api.events.filter((event) => event === "recommendation_panel_collapsed")
+        .length,
       1
     );
     const collapsed = api.eventPayloads.find(
@@ -733,10 +718,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
 
   test("re-entering the homepage starts collapsed again", async function (assert) {
     api.model = homepageModel();
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -758,10 +742,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
 
   test("refresh reloads and re-exposes only the active group", async function (assert) {
     api.model = homepageModel();
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -772,7 +755,8 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-community-topic]").exists({ count: 3 });
     assert.dom("[data-test-community-person]").doesNotExist();
     assert.strictEqual(
-      api.events.filter((event) => event === "recommendation_impression").length,
+      api.events.filter((event) => event === "recommendation_impression")
+        .length,
       6
     );
     const refresh = api.eventPayloads.find(
@@ -784,10 +768,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
 
   test("member cards prioritize a related discussion and keep secondary actions", async function (assert) {
     api.model = homepageModel();
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -809,25 +792,20 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       .dom("[data-test-community-person-invite-action]")
       .hasClass("btn-flat");
 
-    await triggerTrackedLink(
-      "[data-test-community-person-primary-action]"
-    );
+    await triggerTrackedLink("[data-test-community-person-primary-action]");
     await triggerTrackedLink("[data-test-community-person-profile-action]");
     await triggerTrackedLink("[data-test-community-person-invite-action]");
 
-    assert.true(
-      api.events.includes("recommended_user_related_topic_opened")
-    );
+    assert.true(api.events.includes("recommended_user_related_topic_opened"));
     assert.true(api.events.includes("recommended_user_profile_opened"));
     assert.true(api.events.includes("recommended_user_invite_started"));
   });
 
   test("not interested updates only the visible group and shows its empty state", async function (assert) {
     api.model = homepageModel();
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -838,22 +816,17 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.strictEqual(api.dismissedParams.get("surface"), "homepage");
     assert.dom("[data-test-community-topic]").doesNotExist();
     assert.dom("[data-test-community-empty]").exists();
-    assert
-      .dom("[data-test-community-group='topics']")
-      .hasText("Discussions 0");
-    assert
-      .dom("[data-test-community-group='people']")
-      .hasText("Members 1");
+    assert.dom("[data-test-community-group='topics']").hasText("Discussions 0");
+    assert.dom("[data-test-community-group='people']").hasText("Members 1");
     assert.dom("[data-test-community-person]").doesNotExist();
   });
 
   test("recommendation errors stay inside the expanded panel and can be retried", async function (assert) {
     api.model = homepageModel();
     api.recommendationError = true;
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
@@ -878,22 +851,17 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       recommended_users: [],
       recommended_interests: [],
     };
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     await click("[data-test-community-toggle]");
 
     assert.dom("[data-test-community-content]").exists();
     assert.dom("[data-test-community-empty]").exists();
-    assert
-      .dom("[data-test-community-group='topics']")
-      .hasText("Discussions 0");
-    assert
-      .dom("[data-test-community-group='people']")
-      .hasText("Members 0");
+    assert.dom("[data-test-community-group='topics']").hasText("Discussions 0");
+    assert.dom("[data-test-community-group='people']").hasText("Members 0");
     assert
       .dom("[data-test-community-group='interests']")
       .hasText("Interests 0");
@@ -903,10 +871,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
   test("the expanded panel shows a compact skeleton while recommendations load", async function (assert) {
     api.model = homepageModel();
     api.deferRecommendations = true;
-    getOwner(this).lookup("service:current-user").set(
-      "where_is_my_friends_interest_onboarding_state",
-      "complete"
-    );
+    getOwner(this)
+      .lookup("service:current-user")
+      .set("where_is_my_friends_interest_onboarding_state", "complete");
 
     await visit("/");
     const expansion = click("[data-test-community-toggle]");
@@ -939,15 +906,9 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     await click("[data-test-purpose='learn']");
     await click("[data-test-save-interests]");
 
-    assert.deepEqual(
-      api.savedParams.getAll("interest_ids[]"),
-      ["1", "2", "3"]
-    );
+    assert.deepEqual(api.savedParams.getAll("interest_ids[]"), ["1", "2", "3"]);
     assert.strictEqual(api.savedParams.get("purpose"), "learn");
-    assert.strictEqual(
-      api.savedParams.get("show_interests_publicly"),
-      "false"
-    );
+    assert.strictEqual(api.savedParams.get("show_interests_publicly"), "false");
     assert.dom("[data-test-recommended-topic='101']").exists();
     assert.dom("[data-test-recommended-user='alice']").exists();
     assert.dom("[data-test-recommended-topic='101']").includesText("ruby");
@@ -1036,10 +997,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       "[data-test-practice-invitation-note]",
       "Bring one small kata."
     );
-    await fillIn(
-      "[data-test-practice-invitation-time]",
-      "2026-07-30T10:00"
-    );
+    await fillIn("[data-test-practice-invitation-time]", "2026-07-30T10:00");
     await click("[data-test-send-practice-invitation]");
 
     assert.strictEqual(api.invitationParams.get("recipient_id"), "9");
@@ -1151,10 +1109,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     await click("[data-test-edit-interests]");
     await click("[data-test-save-interests]");
 
-    assert.deepEqual(
-      api.savedParams.getAll("interest_ids[]"),
-      ["1", "2", "3"]
-    );
+    assert.deepEqual(api.savedParams.getAll("interest_ids[]"), ["1", "2", "3"]);
   });
 
   test("a failed save shows the server error and leaves the form editable", async function (assert) {

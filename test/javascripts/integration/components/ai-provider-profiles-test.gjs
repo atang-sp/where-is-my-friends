@@ -26,20 +26,22 @@ module("Integration | Component | ai-provider-profiles", function (hooks) {
     };
 
     await render(
-      <template>
-        <AiProviderProfiles @initialState={{initialState}} />
-      </template>
+      <template><AiProviderProfiles @initialState={{initialState}} /></template>
     );
 
     assert.dom("[data-provider-id='7']").includesText("Primary gateway");
     assert.dom("[data-provider-id='7']").includesText("supplier-model");
     assert.dom("[data-provider-id='7']").includesText("Configured");
-    assert.dom("[data-provider-id='7']").doesNotIncludeText("never-return-this");
-    assert.dom("[data-provider-id='7'] .ai-provider-profiles__activate").isDisabled();
+    assert
+      .dom("[data-provider-id='7']")
+      .doesNotIncludeText("never-return-this");
+    assert
+      .dom("[data-provider-id='7'] .ai-provider-profiles__activate")
+      .isDisabled();
     assert.dom(".ai-provider-profiles__form input[type='password']").exists();
-    assert.dom(".ai-provider-profiles__form").doesNotIncludeText(
-      "Safety moderation"
-    );
+    assert
+      .dom(".ai-provider-profiles__form")
+      .doesNotIncludeText("Safety moderation");
   });
 
   test("shows an explicit empty state before the first provider is added", async function (assert) {
@@ -54,8 +56,8 @@ module("Integration | Component | ai-provider-profiles", function (hooks) {
       </template>
     );
 
-    assert.dom(".ai-provider-profiles__empty").hasText(
-      "No AI providers are configured yet. Add one below."
-    );
+    assert
+      .dom(".ai-provider-profiles__empty")
+      .hasText("No AI providers are configured yet. Add one below.");
   });
 });

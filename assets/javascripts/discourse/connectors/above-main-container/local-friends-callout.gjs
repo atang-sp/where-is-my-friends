@@ -72,10 +72,10 @@ export default class LocalFriendsCallout extends Component {
   get shouldLoad() {
     return Boolean(
       this.currentUser &&
-        this.isTopicListRoute &&
-        (!this.isHomeRoute ||
-          this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.LOCAL) &&
-        !this.calloutCooldownActive
+      this.isTopicListRoute &&
+      (!this.isHomeRoute ||
+        this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.LOCAL) &&
+      !this.calloutCooldownActive
     );
   }
 
@@ -85,7 +85,8 @@ export default class LocalFriendsCallout extends Component {
         this.currentUser,
         "where_is_my_friends_interest_onboarding_state"
       ),
-      enabled: this.siteSettings.where_is_my_friends_interest_onboarding_enabled,
+      enabled:
+        this.siteSettings.where_is_my_friends_interest_onboarding_enabled,
     });
   }
 
@@ -109,8 +110,8 @@ export default class LocalFriendsCallout extends Component {
     const routeName = this.router.currentRouteName ?? "";
     return Boolean(
       routeName === "discovery.categories" ||
-        routeName.startsWith("category.") ||
-        this.router.currentRoute?.attributes?.category
+      routeName.startsWith("category.") ||
+      this.router.currentRoute?.attributes?.category
     );
   }
 
@@ -124,7 +125,7 @@ export default class LocalFriendsCallout extends Component {
     }
     return isWhereIsMyFriendsTargetCategory(
       this.router.currentRoute?.attributes?.category,
-      this.siteSettings,
+      this.siteSettings
     );
   }
 
@@ -411,121 +412,121 @@ export default class LocalFriendsCallout extends Component {
         {{else}}
           {{#unless this.dismissed}}
             {{#if this.compact}}
-            <section
-              class="local-friends-callout-banner local-friends-callout-banner--compact"
-              data-test-local-friends-callout
-              {{didInsert this.recordCalloutImpression}}
-              {{didUpdate this.recordCalloutImpression this.calloutSurface}}
-            >
-              <div class="local-friends-callout-banner__content">
-                <strong>{{i18n "where_is_my_friends.callout_title"}}</strong>
-              </div>
-              <LinkTo
-                @route="where-is-my-friends"
-                class="btn btn-primary btn-small"
-                data-test-local-friends-callout-cta
-                {{on "click" this.trackOpen}}
+              <section
+                class="local-friends-callout-banner local-friends-callout-banner--compact"
+                data-test-local-friends-callout
+                {{didInsert this.recordCalloutImpression}}
+                {{didUpdate this.recordCalloutImpression this.calloutSurface}}
               >
-                {{i18n "where_is_my_friends.callout_set_city"}}
-              </LinkTo>
-            </section>
+                <div class="local-friends-callout-banner__content">
+                  <strong>{{i18n "where_is_my_friends.callout_title"}}</strong>
+                </div>
+                <LinkTo
+                  @route="where-is-my-friends"
+                  class="btn btn-primary btn-small"
+                  data-test-local-friends-callout-cta
+                  {{on "click" this.trackOpen}}
+                >
+                  {{i18n "where_is_my_friends.callout_set_city"}}
+                </LinkTo>
+              </section>
             {{else}}
               <section
-              class="local-friends-callout-banner"
-              data-test-local-friends-callout
-              {{didInsert this.recordCalloutImpression}}
-              {{didUpdate this.recordCalloutImpression this.calloutSurface}}
-            >
-              <div class="local-friends-callout-banner__content">
-                {{#if this.justJoined}}
-                  <strong>{{i18n
-                      "where_is_my_friends.callout_joined_title"
-                    }}</strong>
-                  <p>{{i18n
-                      "where_is_my_friends.callout_joined_description"
-                      city=this.joinedCity
-                    }}</p>
-                {{else}}
-                  <strong>{{i18n "where_is_my_friends.callout_title"}}</strong>
-                  <p>{{#if this.hasSuggestion}}
-                      {{i18n
-                        "where_is_my_friends.callout_suggestion"
-                        city=this.city
-                      }}
-                    {{else}}
-                      {{i18n
-                        "where_is_my_friends.callout_setup_description"
-                      }}
-                    {{/if}}</p>
-                  <span
-                    data-test-local-friends-callout-proof
-                  >{{this.proof}}</span>
-                  {{#if this.calloutCities.length}}
-                    <div class="where-is-my-friends__city-grid">
-                      {{#each this.calloutCities as |entry|}}
-                        <a
-                          class="where-is-my-friends__city-card"
-                          href={{entry.url}}
-                          data-test-callout-city-card={{entry.city_key}}
-                          {{on "click" this.trackOpen}}
-                        >
-                          <strong>{{entry.city}}</strong>
-                          <span>{{i18n
-                              "where_is_my_friends.city_directory_counts"
-                              active=entry.recent_active_count
-                              joined=entry.joined_count
-                            }}</span>
-                        </a>
-                      {{/each}}
-                    </div>
+                class="local-friends-callout-banner"
+                data-test-local-friends-callout
+                {{didInsert this.recordCalloutImpression}}
+                {{didUpdate this.recordCalloutImpression this.calloutSurface}}
+              >
+                <div class="local-friends-callout-banner__content">
+                  {{#if this.justJoined}}
+                    <strong>{{i18n
+                        "where_is_my_friends.callout_joined_title"
+                      }}</strong>
+                    <p>{{i18n
+                        "where_is_my_friends.callout_joined_description"
+                        city=this.joinedCity
+                      }}</p>
+                  {{else}}
+                    <strong>{{i18n
+                        "where_is_my_friends.callout_title"
+                      }}</strong>
+                    <p>{{#if this.hasSuggestion}}
+                        {{i18n
+                          "where_is_my_friends.callout_suggestion"
+                          city=this.city
+                        }}
+                      {{else}}
+                        {{i18n "where_is_my_friends.callout_setup_description"}}
+                      {{/if}}</p>
+                    <span
+                      data-test-local-friends-callout-proof
+                    >{{this.proof}}</span>
+                    {{#if this.calloutCities.length}}
+                      <div class="where-is-my-friends__city-grid">
+                        {{#each this.calloutCities as |entry|}}
+                          <a
+                            class="where-is-my-friends__city-card"
+                            href={{entry.url}}
+                            data-test-callout-city-card={{entry.city_key}}
+                            {{on "click" this.trackOpen}}
+                          >
+                            <strong>{{entry.city}}</strong>
+                            <span>{{i18n
+                                "where_is_my_friends.city_directory_counts"
+                                active=entry.recent_active_count
+                                joined=entry.joined_count
+                              }}</span>
+                          </a>
+                        {{/each}}
+                      </div>
+                    {{/if}}
                   {{/if}}
-                {{/if}}
-                {{#if this.error}}
-                  <p
-                    class="local-friends-callout-banner__error"
-                    data-test-callout-error
+                  {{#if this.error}}
+                    <p
+                      class="local-friends-callout-banner__error"
+                      data-test-callout-error
+                    >
+                      {{this.error}}
+                    </p>
+                  {{/if}}
+                </div>
+
+                {{#unless this.calloutCities.length}}
+                  <form
+                    class="local-friends-callout-banner__setup"
+                    data-test-local-friends-callout-setup
+                    {{on "submit" this.saveCity}}
                   >
-                    {{this.error}}
-                  </p>
-                {{/if}}
-              </div>
+                    <input
+                      type="text"
+                      value={{this.city}}
+                      placeholder={{i18n
+                        "where_is_my_friends.callout_city_placeholder"
+                      }}
+                      autocomplete="address-level2"
+                      aria-label={{i18n "where_is_my_friends.city"}}
+                      data-test-callout-city-input
+                      {{on "input" this.updateCity}}
+                    />
+                    <DButton
+                      @action={{this.saveCity}}
+                      @label="where_is_my_friends.callout_save_city"
+                      @icon="location-dot"
+                      @disabled={{this.saving}}
+                      class="btn-primary"
+                      data-test-callout-save-city
+                    />
+                  </form>
+                {{/unless}}
 
-              {{#unless this.calloutCities.length}}
-                <form
-                  class="local-friends-callout-banner__setup"
-                  data-test-local-friends-callout-setup
-                  {{on "submit" this.saveCity}}
-                >
-                  <input
-                    type="text"
-                    value={{this.city}}
-                    placeholder={{i18n
-                      "where_is_my_friends.callout_city_placeholder"
-                    }}
-                    autocomplete="address-level2"
-                    aria-label={{i18n "where_is_my_friends.city"}}
-                    data-test-callout-city-input
-                    {{on "input" this.updateCity}}
-                  />
-                  <DButton
-                    @action={{this.saveCity}}
-                    @label="where_is_my_friends.callout_save_city"
-                    @icon="location-dot"
-                    @disabled={{this.saving}}
-                    class="btn-primary"
-                    data-test-callout-save-city
-                  />
-                </form>
-              {{/unless}}
-
-              <DButton
-                @action={{this.dismiss}}
-                @icon="xmark"
-                @ariaLabel="where_is_my_friends.callout_dismiss"
-                @title="where_is_my_friends.callout_dismiss"
-                class="btn-flat no-text local-friends-callout-banner__dismiss"
-                data-test-dismiss-local-friends
-              />
+                <DButton
+                  @action={{this.dismiss}}
+                  @icon="xmark"
+                  @ariaLabel="where_is_my_friends.callout_dismiss"
+                  @title="where_is_my_friends.callout_dismiss"
+                  class="btn-flat no-text local-friends-callout-banner__dismiss"
+                  data-test-dismiss-local-friends
+                />
               </section>
             {{/if}}
           {{/unless}}

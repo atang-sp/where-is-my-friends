@@ -6,10 +6,10 @@ export default class PersonalDynamicsHomepageFeedConnector extends Component {
   static shouldRender(_args, { currentUser, siteSettings }) {
     return Boolean(
       currentUser &&
-        siteSettings.where_is_my_friends_enabled &&
-        siteSettings.where_is_my_friends_dynamics_enabled &&
-        siteSettings.where_is_my_friends_dynamics_feed_enabled &&
-        siteSettings.where_is_my_friends_dynamics_category_id
+      siteSettings.where_is_my_friends_enabled &&
+      siteSettings.where_is_my_friends_dynamics_enabled &&
+      siteSettings.where_is_my_friends_dynamics_feed_enabled &&
+      siteSettings.where_is_my_friends_dynamics_category_id
     );
   }
 
@@ -27,8 +27,8 @@ export default class PersonalDynamicsHomepageFeedConnector extends Component {
     const routeName = this.router.currentRouteName ?? "";
     return Boolean(
       routeName === "discovery.categories" ||
-        routeName.startsWith("category.") ||
-        this.router.currentRoute?.attributes?.category
+      routeName.startsWith("category.") ||
+      this.router.currentRoute?.attributes?.category
     );
   }
 

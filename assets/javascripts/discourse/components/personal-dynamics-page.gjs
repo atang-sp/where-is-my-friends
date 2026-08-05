@@ -62,9 +62,7 @@ export default class PersonalDynamicsPage extends Component {
 
   get canPublish() {
     return (
-      !this.publishing &&
-      this.visibleLength >= 8 &&
-      this.visibleLength <= 500
+      !this.publishing && this.visibleLength >= 8 && this.visibleLength <= 500
     );
   }
 
@@ -141,18 +139,16 @@ export default class PersonalDynamicsPage extends Component {
       this.raw = "";
       this.visibleLength = 0;
       if (result.queued) {
-        this.publishNotice = i18n(
-          "where_is_my_friends.dynamics.queued_notice",
-        );
+        this.publishNotice = i18n("where_is_my_friends.dynamics.queued_notice");
       } else if (result.dynamic) {
         this.dynamics = [
           result.dynamic,
           ...this.dynamics.filter(
-            (dynamic) => dynamic.id !== result.dynamic.id,
+            (dynamic) => dynamic.id !== result.dynamic.id
           ),
         ];
         this.publishNotice = i18n(
-          "where_is_my_friends.dynamics.published_notice",
+          "where_is_my_friends.dynamics.published_notice"
         );
       }
     } catch (error) {
@@ -264,9 +260,7 @@ export default class PersonalDynamicsPage extends Component {
               {{#if this.emojiEnabled}}
                 <EmojiPicker
                   @didSelectEmoji={{this.emojiSelected}}
-                  @label={{i18n
-                    "where_is_my_friends.dynamics.emoji_picker"
-                  }}
+                  @label={{i18n "where_is_my_friends.dynamics.emoji_picker"}}
                   @btnClass="btn-default personal-dynamics__emoji-picker"
                   @context="topic"
                   @modalForMobile={{true}}

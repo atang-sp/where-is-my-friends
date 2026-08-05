@@ -72,7 +72,10 @@ export default class PersonalDynamicsFeedPage extends Component {
   }
 
   <template>
-    <section class="personal-dynamics personal-dynamics--feed" data-test-personal-dynamics-feed>
+    <section
+      class="personal-dynamics personal-dynamics--feed"
+      data-test-personal-dynamics-feed
+    >
       <header class="personal-dynamics__header">
         <p class="personal-dynamics__eyebrow">{{i18n
             "where_is_my_friends.dynamics.feed_eyebrow"
@@ -122,7 +125,10 @@ export default class PersonalDynamicsFeedPage extends Component {
           />
         {{/if}}
       {{else}}
-        <p class="personal-dynamics__empty" data-test-personal-dynamics-feed-empty>
+        <p
+          class="personal-dynamics__empty"
+          data-test-personal-dynamics-feed-empty
+        >
           {{i18n "where_is_my_friends.dynamics.feed_empty"}}
         </p>
       {{/if}}

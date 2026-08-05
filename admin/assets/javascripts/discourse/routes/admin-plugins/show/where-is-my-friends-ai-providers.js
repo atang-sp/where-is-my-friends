@@ -4,9 +4,7 @@ import { i18n } from "discourse-i18n";
 
 export default class AdminPluginsShowWhereIsMyFriendsAiProvidersRoute extends DiscourseRoute {
   model() {
-    return ajax(
-      "/where-is-my-friends/admin/ai-provider-profiles.json"
-    );
+    return ajax("/where-is-my-friends/admin/ai-provider-profiles.json");
   }
 
   titleToken() {

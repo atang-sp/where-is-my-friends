@@ -18,8 +18,7 @@ export default class FlyingChessProfile extends Component {
   @service siteSettings;
 
   @tracked
-  achievement =
-    this.args.outletArgs?.model?.where_is_my_friends_flying_chess;
+  achievement = this.args.outletArgs?.model?.where_is_my_friends_flying_chess;
   @tracked saving = false;
   @tracked error = null;
 
@@ -63,7 +62,9 @@ export default class FlyingChessProfile extends Component {
             "where_is_my_friends.flying_chess.completed_games"
             count=this.achievement.completed_games
           }}</p>
-        <span class="flying-chess-profile__badge">{{this.achievement.badge_name}}</span>
+        <span
+          class="flying-chess-profile__badge"
+        >{{this.achievement.badge_name}}</span>
         {{#if this.achievement.can_manage}}
           <p class="flying-chess-profile__privacy">{{if
               this.achievement.profile_visible
