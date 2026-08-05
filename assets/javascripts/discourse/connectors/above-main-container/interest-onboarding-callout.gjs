@@ -17,8 +17,8 @@ export default class InterestOnboardingCallout extends Component {
   static shouldRender(_args, { currentUser, siteSettings }) {
     return Boolean(
       currentUser &&
-        siteSettings.where_is_my_friends_enabled &&
-        siteSettings.where_is_my_friends_interest_onboarding_enabled
+      siteSettings.where_is_my_friends_enabled &&
+      siteSettings.where_is_my_friends_interest_onboarding_enabled
     );
   }
 
@@ -53,7 +53,8 @@ export default class InterestOnboardingCallout extends Component {
   get homepageEntry() {
     return homepageDiscoveryEntry({
       onboardingState: this.onboardingState,
-      enabled: this.siteSettings.where_is_my_friends_interest_onboarding_enabled,
+      enabled:
+        this.siteSettings.where_is_my_friends_interest_onboarding_enabled,
     });
   }
 
@@ -69,8 +70,8 @@ export default class InterestOnboardingCallout extends Component {
     const routeName = this.router.currentRouteName ?? "";
     return Boolean(
       routeName === "discovery.categories" ||
-        routeName.startsWith("category.") ||
-        this.router.currentRoute?.attributes?.category
+      routeName.startsWith("category.") ||
+      this.router.currentRoute?.attributes?.category
     );
   }
 
@@ -122,9 +123,7 @@ export default class InterestOnboardingCallout extends Component {
           <strong>{{i18n
               "where_is_my_friends.interests.callout_title"
             }}</strong>
-          <p>{{i18n
-              "where_is_my_friends.interests.callout_description"
-            }}</p>
+          <p>{{i18n "where_is_my_friends.interests.callout_description"}}</p>
         </div>
         <LinkTo
           @route="where-is-my-friends-interests"

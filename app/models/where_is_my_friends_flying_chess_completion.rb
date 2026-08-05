@@ -49,3 +49,27 @@ class WhereIsMyFriendsFlyingChessCompletion < ActiveRecord::Base
       winner? == claim.winner
   end
 end
+
+# == Schema Information
+#
+# Table name: where_is_my_friends_flying_chess_completions
+#
+#  id              :bigint           not null, primary key
+#  completed_at    :datetime         not null
+#  mode            :string(64)       not null
+#  place           :integer          not null
+#  ruleset_version :string(128)      not null
+#  winner          :boolean          default(FALSE), not null
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  claim_id        :string(128)      not null
+#  game_id         :string(128)      not null
+#  player_id       :string(128)      not null
+#  user_id         :bigint           not null
+#
+# Indexes
+#
+#  idx_wimf_fc_completions_claim      (claim_id) UNIQUE
+#  idx_wimf_fc_completions_seat       (game_id,player_id) UNIQUE
+#  idx_wimf_fc_completions_user_game  (user_id,game_id) UNIQUE
+#

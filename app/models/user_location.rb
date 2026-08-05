@@ -194,3 +194,42 @@ class UserLocation < ActiveRecord::Base
     6371 * Math.acos(cosine.clamp(-1.0, 1.0))
   end
 end
+
+# == Schema Information
+#
+# Table name: user_locations
+#
+#  id                  :bigint           not null, primary key
+#  city                :string
+#  city_joined_at      :datetime         not null
+#  city_key            :string
+#  discovery_mode      :string           default("city"), not null
+#  discovery_radius_km :integer
+#  enabled             :boolean          default(TRUE), not null
+#  expires_at          :datetime
+#  is_virtual          :boolean          default(FALSE), not null
+#  latitude            :float
+#  location_accuracy   :float
+#  location_source     :string           default("unknown")
+#  location_type       :string           default("real"), not null
+#  longitude           :float
+#  region              :string
+#  virtual_address     :text
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  user_id             :integer          not null
+#
+# Indexes
+#
+#  idx_user_locations_discovery                    (city_key,enabled,expires_at)
+#  index_user_locations_on_enabled                 (enabled)
+#  index_user_locations_on_is_virtual              (is_virtual)
+#  index_user_locations_on_latitude_and_longitude  (latitude,longitude)
+#  index_user_locations_on_location_source         (location_source)
+#  index_user_locations_on_location_type           (location_type)
+#  index_user_locations_on_user_id                 (user_id) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (user_id => users.id) ON DELETE => cascade
+#

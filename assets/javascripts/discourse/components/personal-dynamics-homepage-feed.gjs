@@ -155,10 +155,9 @@ export default class PersonalDynamicsHomepageFeed extends Component {
       {{else}}
         <div class="personal-dynamics-homepage__state">
           <span>{{i18n "where_is_my_friends.dynamics.feed_empty"}}</span>
-          <a
-            class="btn btn-primary"
-            href={{this.ownDynamicsUrl}}
-          >{{i18n "where_is_my_friends.dynamics.publish"}}</a>
+          <a class="btn btn-primary" href={{this.ownDynamicsUrl}}>{{i18n
+              "where_is_my_friends.dynamics.publish"
+            }}</a>
         </div>
       {{/if}}
     </section>

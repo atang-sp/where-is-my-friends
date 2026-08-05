@@ -138,7 +138,7 @@ export default class WhereIsMyFriendsPage extends Component {
             (user.distance_band ?? "same_city") === "same_city"
               ? null
               : i18n(
-                  `where_is_my_friends.distance_bands.${user.distance_band}`,
+                  `where_is_my_friends.distance_bands.${user.distance_band}`
                 ),
           action_url: useChat
             ? `/chat/new-message?recipients=${encodeURIComponent(user.username)}`

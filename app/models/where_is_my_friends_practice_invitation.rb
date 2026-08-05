@@ -71,3 +71,37 @@ class WhereIsMyFriendsPracticeInvitation < ActiveRecord::Base
     end
   end
 end
+
+# == Schema Information
+#
+# Table name: where_is_my_friends_practice_invitations
+#
+#  id            :bigint           not null, primary key
+#  interest_name :string           not null
+#  note          :text
+#  proposed_at   :datetime
+#  responded_at  :datetime
+#  source        :string           default("native"), not null
+#  status        :string           default("pending"), not null
+#  created_at    :datetime         not null
+#  updated_at    :datetime         not null
+#  pm_topic_id   :integer
+#  recipient_id  :integer          not null
+#  sender_id     :integer          not null
+#  tag_id        :integer
+#
+# Indexes
+#
+#  idx_wimf_practice_invites_pending_pair      (LEAST(sender_id, recipient_id), GREATEST(sender_id, recipient_id)) UNIQUE WHERE ((status)::text = 'pending'::text)
+#  idx_wimf_practice_invites_pm_topic          (pm_topic_id)
+#  idx_wimf_practice_invites_recipient_status  (recipient_id,status,created_at)
+#  idx_wimf_practice_invites_sender_created    (sender_id,created_at)
+#  idx_wimf_practice_invites_tag               (tag_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (pm_topic_id => topics.id) ON DELETE => nullify
+#  fk_rails_...  (recipient_id => users.id) ON DELETE => cascade
+#  fk_rails_...  (sender_id => users.id) ON DELETE => cascade
+#  fk_rails_...  (tag_id => tags.id) ON DELETE => nullify
+#

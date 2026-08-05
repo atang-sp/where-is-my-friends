@@ -14,9 +14,11 @@ export function resolveMapProvider(settings = {}) {
 }
 
 export function providerLabel(provider) {
-  return { amap: "高德地图", baidu: "百度地图", openstreetmap: "OpenStreetMap" }[
-    provider
-  ];
+  return {
+    amap: "高德地图",
+    baidu: "百度地图",
+    openstreetmap: "OpenStreetMap",
+  }[provider];
 }
 
 export class MapManager {
@@ -83,7 +85,10 @@ export class MapManager {
       throw new Error("Amap did not initialize");
     }
 
-    this.map = new amap.Map(container, { center: [longitude, latitude], zoom: 11 });
+    this.map = new amap.Map(container, {
+      center: [longitude, latitude],
+      zoom: 11,
+    });
     this.marker = new amap.Marker({ position: [longitude, latitude] });
     this.map.add(this.marker);
     this.map.on("click", ({ lnglat }) => this.select(lnglat.lat, lnglat.lng));

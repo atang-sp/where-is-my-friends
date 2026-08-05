@@ -60,13 +60,16 @@ export default class LocalFriendsProfile extends Component {
     {{#if this.hasContent}}
       <div class="local-friends-profile-city">
         {{#if this.city}}
-        <LinkTo
-          @route="where-is-my-friends"
-          class="local-friends-profile-city__link"
-          title={{i18n "where_is_my_friends.user_card_city_title" city=this.city}}
-        >
-          {{this.city}}
-        </LinkTo>
+          <LinkTo
+            @route="where-is-my-friends"
+            class="local-friends-profile-city__link"
+            title={{i18n
+              "where_is_my_friends.user_card_city_title"
+              city=this.city
+            }}
+          >
+            {{this.city}}
+          </LinkTo>
         {{/if}}
         {{#if this.publicInterests.length}}
           <div class="local-friends-public-interests">

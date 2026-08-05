@@ -102,3 +102,34 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     WhereIsMyFriends::FunnelMetrics.new(since: since, as_of: as_of).call
   end
 end
+
+# == Schema Information
+#
+# Table name: where_is_my_friends_events
+#
+#  id                   :bigint           not null, primary key
+#  algorithm_version    :string
+#  candidate_source     :string
+#  event_name           :string           not null
+#  has_dynamic_preview  :boolean
+#  location_mode        :string
+#  rank_bucket          :string
+#  recommendation_group :string
+#  result_bucket        :string
+#  surface              :string
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  user_id              :integer          not null
+#
+# Indexes
+#
+#  index_where_is_my_friends_events_on_event_name_and_created_at  (event_name,created_at)
+#  index_where_is_my_friends_events_on_user_id_and_created_at     (user_id,created_at)
+#  index_wimf_events_on_name_dynamic_preview_created_at           (event_name,has_dynamic_preview,created_at)
+#  index_wimf_events_on_name_surface_created_at                   (event_name,surface,created_at)
+#  index_wimf_events_on_name_surface_group_created_at             (event_name,surface,recommendation_group,created_at)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (user_id => users.id) ON DELETE => cascade
+#

@@ -14,7 +14,7 @@ export default {
     withPluginApi((api) => {
       api.registerNotificationTypeRenderer(
         "custom",
-        customActionNotificationRenderer,
+        customActionNotificationRenderer
       );
 
       api.addCommunitySectionLink({
@@ -57,7 +57,7 @@ export default {
       });
       api.addSaveableUserOption(
         "where_is_my_friends_accept_practice_invitations",
-        { page: "notifications" },
+        { page: "notifications" }
       );
     });
   },

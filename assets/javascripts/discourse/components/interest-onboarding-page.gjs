@@ -79,8 +79,7 @@ export default class InterestOnboardingPage extends Component {
   get interestGroups() {
     const query = this.interestSearch.trim().toLocaleLowerCase();
     const options = this.interestOptions.filter(
-      (interest) =>
-        !query || interest.name.toLocaleLowerCase().includes(query)
+      (interest) => !query || interest.name.toLocaleLowerCase().includes(query)
     );
     const configuredGroups = this.args.model.catalogue_groups ?? [];
     const fallbackGroups = [
@@ -107,8 +106,7 @@ export default class InterestOnboardingPage extends Component {
         const selectedCount = interests.filter((i) => i.selected).length;
         const isSingle = group.selection_mode === "single";
         const maxPerGroup = isSingle ? 1 : group.max_per_group;
-        const groupFull =
-          maxPerGroup != null && selectedCount >= maxPerGroup;
+        const groupFull = maxPerGroup != null && selectedCount >= maxPerGroup;
         return {
           ...group,
           interests,
@@ -166,13 +164,10 @@ export default class InterestOnboardingPage extends Component {
       return "";
     }
 
-    return i18n(
-      "where_is_my_friends.practice_invitations.preset_message",
-      {
-        username: this.invitationTarget.username,
-        interest: this.selectedInvitationInterest.name,
-      }
-    );
+    return i18n("where_is_my_friends.practice_invitations.preset_message", {
+      username: this.invitationTarget.username,
+      interest: this.selectedInvitationInterest.name,
+    });
   }
 
   @action
@@ -407,11 +402,7 @@ export default class InterestOnboardingPage extends Component {
 
   @action
   async sendInvitation() {
-    if (
-      this.loading ||
-      !this.invitationTarget ||
-      !this.invitationInterestId
-    ) {
+    if (this.loading || !this.invitationTarget || !this.invitationInterestId) {
       return;
     }
 
@@ -633,11 +624,7 @@ export default class InterestOnboardingPage extends Component {
       {{/if}}
 
       {{#if this.loading}}
-        <div
-          class="alert alert-info"
-          role="status"
-          data-test-interest-loading
-        >
+        <div class="alert alert-info" role="status" data-test-interest-loading>
           {{i18n "where_is_my_friends.interests.loading"}}
         </div>
       {{/if}}
@@ -670,7 +657,7 @@ export default class InterestOnboardingPage extends Component {
         @updateInvitationInterest={{this.updateInvitationInterest}}
         @updateInvitationNote={{this.updateInvitationNote}}
         @updateInvitationProposedAt={{this.updateInvitationProposedAt}}
-        />
+      />
       {{#if this.editing}}
         <InterestOnboardingEditor
           @canSave={{this.canSave}}

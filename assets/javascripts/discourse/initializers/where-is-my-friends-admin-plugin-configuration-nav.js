@@ -17,8 +17,7 @@ export default {
         {
           label: "where_is_my_friends.admin.ai_providers.title",
           route: "adminPlugins.show.where-is-my-friends-ai-providers",
-          description:
-            "where_is_my_friends.admin.ai_providers.nav_description",
+          description: "where_is_my_friends.admin.ai_providers.nav_description",
         },
       ]);
     });

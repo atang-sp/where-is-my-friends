@@ -39,13 +39,16 @@ export default class LocalFriendsCity extends Component {
     {{#if (or this.city this.publicInterests.length)}}
       <div class="local-friends-city-badge">
         {{#if this.city}}
-        <LinkTo
-          @route="where-is-my-friends"
-          class="local-friends-city-badge__link"
-          title={{i18n "where_is_my_friends.user_card_city_title" city=this.city}}
-        >
-          {{this.city}}
-        </LinkTo>
+          <LinkTo
+            @route="where-is-my-friends"
+            class="local-friends-city-badge__link"
+            title={{i18n
+              "where_is_my_friends.user_card_city_title"
+              city=this.city
+            }}
+          >
+            {{this.city}}
+          </LinkTo>
         {{/if}}
         {{#if this.publicInterests.length}}
           <div class="local-friends-public-interests">
