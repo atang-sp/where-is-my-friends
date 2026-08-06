@@ -23,6 +23,8 @@ RSpec.describe WhereIsMyFriends::FlyingChess::AchievementProfile::SetVisibility 
     let(:requested_visibility) { false }
 
     before do
+      SiteSetting.where_is_my_friends_enabled = true
+      SiteSetting.where_is_my_friends_flying_chess_achievements_enabled = true
       allow(WhereIsMyFriendsFlyingChessProfile).to receive(:find_by).with(
         user: acting_user
       ).and_return(profile)
@@ -41,6 +43,15 @@ RSpec.describe WhereIsMyFriends::FlyingChess::AchievementProfile::SetVisibility 
       let(:current_user) { nil }
 
       it { is_expected.to fail_to_find_a_model(:user) }
+    end
+
+    context "when achievements are disabled" do
+      before do
+        SiteSetting.where_is_my_friends_flying_chess_achievements_enabled =
+          false
+      end
+
+      it { is_expected.to fail_a_policy(:achievements_enabled) }
     end
 
     context "without an achievement profile" do

@@ -36,8 +36,17 @@ class UserLocation < ActiveRecord::Base
             },
             allow_nil: true
 
+  scope :with_discoverable_user,
+        -> do
+          joins(:user).merge(
+            User.activated.not_staged.not_suspended.not_silenced
+          )
+        end
   scope :active_for_discovery,
-        -> { where(enabled: true).where.not(city_key: [nil, ""]) }
+        -> do
+          where(enabled: true).where.not(city_key: [nil, ""])
+        end
+  scope :discoverable, -> { active_for_discovery.with_discoverable_user }
 
   def self.normalize_city(value)
     normalized = value.to_s.strip.gsub(/\s+/, " ").downcase

@@ -7,8 +7,13 @@ task "where_is_my_friends:create_announcement" => :environment do
     next
   end
 
-  stats = UserLocation.active_for_discovery
+  stats = UserLocation.discoverable
   total_members = stats.count
+  if WhereIsMyFriends::AggregatePrivacy.suppressed?(total_members)
+    puts "Not enough discoverable members to publish privacy-safe counts."
+    next
+  end
+
   city_count = stats.distinct.count(:city_key)
   base_url = Discourse.base_url
   link = "#{base_url}/where-is-my-friends"

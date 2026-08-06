@@ -11,7 +11,7 @@ module WhereIsMyFriends
     DIRECTORY_SECTION_LIMIT = 6
 
     def initialize(
-      scope: UserLocation.active_for_discovery,
+      scope: UserLocation.discoverable,
       city_lookup: CityCentroidLookup.instance,
       now: Time.zone.now
     )
@@ -34,7 +34,8 @@ module WhereIsMyFriends
             .sort_by do |entry|
               [-entry[:recent_active_count], rotation_key(entry[:city_key])]
             end
-            .first(limit),
+            .first(limit)
+            .map { |entry| protect_city_counts(entry) },
         growing:
           cities
             .select { |entry| entry[:new_member_count].positive? }
@@ -45,11 +46,12 @@ module WhereIsMyFriends
                 rotation_key(entry[:city_key])
               ]
             end
-            .first(limit),
+            .first(limit)
+            .map { |entry| protect_city_counts(entry) },
         cities:
           cities.sort_by do |entry|
             [-entry[:recent_active_count], -entry[:joined_count], entry[:city]]
-          end,
+          end.map { |entry| protect_city_counts(entry) },
         activity_window_days: (ACTIVE_WINDOW / 1.day).to_i,
         growth_window_days: (GROWTH_WINDOW / 1.day).to_i
       }
@@ -83,11 +85,20 @@ module WhereIsMyFriends
 
       {
         city:
-          city_entry.merge(
-            canonical: canonical,
-            region: @city_lookup.centroid_for(city_key)&.fetch(:region, nil)
+          protect_city_counts(
+            city_entry.merge(
+              canonical: canonical,
+              region: @city_lookup.centroid_for(city_key)&.fetch(:region, nil)
+            ),
+            keys: %i[recent_active_count joined_count]
           ),
-        radius_options: radius_options,
+        radius_options:
+          radius_options.map do |option|
+            protect_city_counts(
+              option,
+              keys: %i[recent_active_count joined_count]
+            )
+          end,
         recommended_radius_km: recommended_radius(radius_options),
         recommended_active_members: RECOMMENDED_ACTIVE_MEMBERS,
         nearby_cities:
@@ -144,6 +155,17 @@ module WhereIsMyFriends
     end
 
     private
+
+    def protect_city_counts(
+      entry,
+      keys: %i[recent_active_count joined_count new_member_count]
+    )
+      protected = AggregatePrivacy.protect_counts(entry, *keys)
+      displayed_keys = keys & %i[recent_active_count joined_count]
+      protected[:counts_suppressed] =
+        displayed_keys.any? { |key| protected[:"#{key}_suppressed"] }
+      protected
+    end
 
     def stats_for_keys(city_keys, exclude_user_id:)
       return {} if city_keys&.empty?
@@ -240,6 +262,12 @@ module WhereIsMyFriends
             -entry[:recent_active_count],
             entry[:city]
           ]
+        end
+        .map do |entry|
+          protect_city_counts(
+            entry,
+            keys: %i[recent_active_count joined_count new_member_count]
+          )
         end
     end
 

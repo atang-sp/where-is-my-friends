@@ -32,6 +32,7 @@ module WhereIsMyFriends
       render json:
                LocationDiscovery.new(
                  user: current_user,
+                 guardian: guardian,
                  origin: current_location,
                  raw_filters: params[:filters],
                  filterable_fields: FilterableFields.resolve
@@ -46,7 +47,7 @@ module WhereIsMyFriends
     def debug_stats
       raise Discourse::InvalidAccess unless current_user.admin?
 
-      active_locations = UserLocation.active_for_discovery
+      active_locations = UserLocation.discoverable
       window_days = report_window_days
       as_of = Time.current
       report =

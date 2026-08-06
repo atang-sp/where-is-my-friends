@@ -15,10 +15,12 @@ RSpec.describe Jobs::WhereIsMyFriendsWeeklyNearbyDigest do
 
   it "summarizes only recent joins in other cities inside the selected radius" do
     same_city = Fabricate(:user)
-    nearby_city = Fabricate(:user)
     far_city = Fabricate(:user)
     UserLocation.upsert_city_location(same_city.id, city: "上海")
-    UserLocation.upsert_city_location(nearby_city.id, city: "苏州")
+    3.times do
+      nearby_city = Fabricate(:user)
+      UserLocation.upsert_city_location(nearby_city.id, city: "苏州")
+    end
     UserLocation.upsert_city_location(far_city.id, city: "北京")
 
     expect { job.execute({}) }.to change { recipient.notifications.count }.by(1)
@@ -29,7 +31,28 @@ RSpec.describe Jobs::WhereIsMyFriendsWeeklyNearbyDigest do
       "where_is_my_friends" => true,
       "notification_source" => "nearby_weekly"
     )
-    expect(data["topic_title"]).to include("1")
+    expect(data["topic_title"]).to eq(
+      I18n.t(
+        "where_is_my_friends.notification.weekly_nearby_digest",
+        count: 3,
+        locale: recipient.effective_locale
+      )
+    )
+  end
+
+  it "does not expose a nearby count below the privacy threshold" do
+    nearby_city = Fabricate(:user)
+    UserLocation.upsert_city_location(nearby_city.id, city: "苏州")
+
+    job.execute({})
+
+    data = JSON.parse(recipient.notifications.last.data)
+    expect(data["topic_title"]).to eq(
+      I18n.t(
+        "where_is_my_friends.notification.weekly_nearby_digest_suppressed",
+        locale: recipient.effective_locale
+      )
+    )
   end
 
   it "skips members who disabled nearby weekly notifications" do

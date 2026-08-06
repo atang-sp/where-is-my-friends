@@ -27,9 +27,13 @@ module WhereIsMyFriends
     def recipients
       User
         .joins(:user_option)
-        .joins("INNER JOIN user_locations ON user_locations.user_id = users.id")
-        .merge(UserLocation.active_for_discovery)
-        .where(user_locations: { city_key: @city_key })
+        .where(
+          id:
+            UserLocation
+              .discoverable
+              .where(city_key: @city_key)
+              .select(:user_id)
+        )
         .where.not(users: { id: @joiner.id })
         .where(user_options: { where_is_my_friends_notify_city: true })
     end

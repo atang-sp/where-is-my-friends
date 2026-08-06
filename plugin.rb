@@ -5,7 +5,7 @@
 # version: 1.17.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
-# required_version: 2026.7.0.beta1
+# required_version: 2026.7.0-latest
 
 enabled_site_setting :where_is_my_friends_enabled
 add_admin_route(
@@ -155,16 +155,15 @@ after_initialize do
   ) { object.where_is_my_friends_accept_practice_invitations }
 
   add_to_serializer(:user_card, :where_is_my_friends_city) do
-    UserLocation.active_for_discovery.find_by(user_id: object.id)&.city
+    UserLocation.discoverable.find_by(user_id: object.id)&.city
   end
 
   add_to_serializer(:user, :where_is_my_friends_city) do
-    UserLocation.active_for_discovery.find_by(user_id: object.id)&.city
+    UserLocation.discoverable.find_by(user_id: object.id)&.city
   end
 
   add_to_serializer(:user, :where_is_my_friends_flying_chess) do
-    if SiteSetting.where_is_my_friends_enabled &&
-         SiteSetting.where_is_my_friends_flying_chess_achievements_enabled
+    if WhereIsMyFriends::FlyingChess.achievements_enabled?
       profile = WhereIsMyFriendsFlyingChessProfile.find_by(user: object)
       if profile&.visible_to?(scope.user)
         WhereIsMyFriendsFlyingChessProfileSerializer.new(
@@ -230,6 +229,20 @@ after_initialize do
   on(:user_destroyed) do |user|
     WhereIsMyFriendsFlyingChessCompletion.where(user_id: user.id).delete_all
     WhereIsMyFriendsFlyingChessProfile.where(user_id: user.id).delete_all
+  end
+
+  on_enabled_change do |old_value, new_value|
+    next if old_value == new_value
+
+    Jobs.enqueue(Jobs::WhereIsMyFriendsSynchronizeFlyingChessBadges)
+  end
+
+  on(:site_setting_changed) do |name, old_value, new_value|
+    next if old_value == new_value
+    next if name.to_sym !=
+              :where_is_my_friends_flying_chess_achievements_enabled
+
+    Jobs.enqueue(Jobs::WhereIsMyFriendsSynchronizeFlyingChessBadges)
   end
 
   on(:where_is_my_friends_location_saved) do |user|
