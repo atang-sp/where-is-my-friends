@@ -20,14 +20,11 @@ export default class InvitationInbox {
     this.inviteTo = inviteTo;
     this.intents = Object.freeze({
       initialize: this.initialize,
-      closeInvitation: this.closeInvitation,
-      openInvitation: this.openInvitation,
-      respondToInvitation: this.respondToInvitation,
-      respondToLegacyBookmark: this.respondToLegacyBookmark,
-      sendInvitation: this.sendInvitation,
-      updateInvitationInterest: this.updateInvitationInterest,
-      updateInvitationNote: this.updateInvitationNote,
-      updateInvitationProposedAt: this.updateInvitationProposedAt,
+      open: this.openInvitation,
+      close: this.closeInvitation,
+      changeDraft: this.changeDraft,
+      send: this.sendInvitation,
+      respond: this.respond,
     });
   }
 
@@ -37,16 +34,22 @@ export default class InvitationInbox {
       error: this.error,
       success: this.success,
       state: {
-        incomingInvitations: this.incomingInvitations,
-        invitationInterestId: this.invitationInterestId,
-        invitationInterests: this.invitationInterests,
-        invitationNote: this.invitationNote,
-        invitationPreview: this.invitationPreview,
-        invitationProposedAt: this.invitationProposedAt,
-        invitationTarget: this.invitationTarget,
-        legacyPracticeBookmarks: this.legacyPracticeBookmarks,
-        loading: this.loading,
-        outgoingInvitations: this.outgoingInvitations,
+        busy: this.loading,
+        legacy: {
+          bookmarks: this.legacyPracticeBookmarks,
+        },
+        composer: {
+          target: this.invitationTarget,
+          interestId: this.invitationInterestId,
+          interests: this.invitationInterests,
+          proposedAt: this.invitationProposedAt,
+          note: this.invitationNote,
+          preview: this.invitationPreview,
+        },
+        inbox: {
+          incoming: this.incomingInvitations,
+          outgoing: this.outgoingInvitations,
+        },
       },
     };
   }
@@ -111,18 +114,16 @@ export default class InvitationInbox {
   }
 
   @action
-  updateInvitationInterest(event) {
-    this.invitationInterestId = Number(event.target.value);
-  }
-
-  @action
-  updateInvitationProposedAt(event) {
-    this.invitationProposedAt = event.target.value;
-  }
-
-  @action
-  updateInvitationNote(event) {
-    this.invitationNote = event.target.value;
+  changeDraft(patch) {
+    if (Object.hasOwn(patch, "interestId")) {
+      this.invitationInterestId = Number(patch.interestId);
+    }
+    if (Object.hasOwn(patch, "proposedAt")) {
+      this.invitationProposedAt = patch.proposedAt;
+    }
+    if (Object.hasOwn(patch, "note")) {
+      this.invitationNote = patch.note;
+    }
   }
 
   @action
@@ -224,6 +225,14 @@ export default class InvitationInbox {
     } finally {
       this.loading = false;
     }
+  }
+
+  @action
+  respond(kind, entry, responseName) {
+    return {
+      invitation: this.respondToInvitation,
+      legacy: this.respondToLegacyBookmark,
+    }[kind]?.(entry, responseName);
   }
 
   async openInvitationFromQuery() {

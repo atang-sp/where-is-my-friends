@@ -121,8 +121,8 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
       expect(response.parsed_body.fetch("errors")).to be_present
     end
 
-    it "computes only the requested recommendation group with a smaller query budget" do
-      profile =
+    context "with a complete interest profile" do
+      fab!(:query_budget_profile) do
         WhereIsMyFriendsInterestProfile.create!(
           user: user,
           purpose: "learn",
@@ -130,50 +130,63 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
           recommendable: true,
           completed_at: Time.current
         )
-      [ruby_tag, design_tag, community_tag].each_with_index do |tag, position|
-        profile.interests.create!(tag: tag, position: position)
       end
-      topic =
+
+      fab!(:query_budget_ruby_interest) do
+        query_budget_profile.interests.create!(tag: ruby_tag, position: 0)
+      end
+      fab!(:query_budget_design_interest) do
+        query_budget_profile.interests.create!(tag: design_tag, position: 1)
+      end
+      fab!(:query_budget_community_interest) do
+        query_budget_profile.interests.create!(tag: community_tag, position: 2)
+      end
+      fab!(:query_budget_topic) do
         Fabricate(
           :topic,
           user: author,
           title: "A focused Ruby discussion",
           tags: [ruby_tag]
         )
+      end
 
-      get "/where-is-my-friends/recommendations.json"
-      get "/where-is-my-friends/recommendations.json",
-          params: {
-            group: "topics"
-          }
+      it "computes only the requested recommendation group with a smaller query budget" do
+        get "/where-is-my-friends/recommendations.json"
+        get "/where-is-my-friends/recommendations.json",
+            params: {
+              group: "topics"
+            }
 
-      group_queries =
-        ActiveRecord::Base.uncached do
-          track_sql_queries do
-            get "/where-is-my-friends/recommendations.json",
-                params: {
-                  group: "topics"
-                }
+        group_queries =
+          ActiveRecord::Base.uncached do
+            track_sql_queries do
+              get "/where-is-my-friends/recommendations.json",
+                  params: {
+                    group: "topics"
+                  }
+            end
           end
-        end
-      group_response = response.parsed_body
+        group_response = response.parsed_body
 
-      full_queries =
-        ActiveRecord::Base.uncached do
-          track_sql_queries { get "/where-is-my-friends/recommendations.json" }
-        end
+        full_queries =
+          ActiveRecord::Base.uncached do
+            track_sql_queries do
+              get "/where-is-my-friends/recommendations.json"
+            end
+          end
 
-      expect(group_response.keys).to contain_exactly(
-        "algorithm_version",
-        "state",
-        "recommendation_group",
-        "recommended_topics"
-      )
-      expect(group_response.fetch("recommendation_group")).to eq("topics")
-      expect(group_response.fetch("recommended_topics").pluck("id")).to include(
-        topic.id
-      )
-      expect(group_queries.length).to be < full_queries.length
+        expect(group_response.keys).to contain_exactly(
+          "algorithm_version",
+          "state",
+          "recommendation_group",
+          "recommended_topics"
+        )
+        expect(group_response.fetch("recommendation_group")).to eq("topics")
+        expect(
+          group_response.fetch("recommended_topics").pluck("id")
+        ).to include(query_budget_topic.id)
+        expect(group_queries.length).to be < full_queries.length
+      end
     end
 
     it "returns a grouped curated catalogue instead of deriving interests from recent topics" do

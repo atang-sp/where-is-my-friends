@@ -26,9 +26,18 @@ export default class InterestOnboardingPage extends Component {
     });
     this.invitations = new InvitationInbox({ inviteTo: this.args.inviteTo });
     this.resultsIntents = Object.freeze({
-      ...this.preferences.intents.results,
-      openInvitation: this.invitations.intents.openInvitation,
+      dismiss: this.preferences.intents.results.dismiss,
+      manage: this.manageResults,
+      trackOpen: this.preferences.intents.results.trackOpen,
     });
+  }
+
+  @action
+  manageResults(command, value) {
+    if (command === "invite") {
+      return this.invitations.intents.open(value);
+    }
+    return this.preferences.intents.results.manage(command);
   }
 
   @action

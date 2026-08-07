@@ -41,10 +41,10 @@ module("Unit | where-is-my-friends | location discovery workflow", function () {
     ]);
     assert.strictEqual(workflow.view.mode, "results");
     assert.strictEqual(workflow.view.discoveryState, "ready");
-    assert.true(workflow.view.results.hasUsers);
-    assert.true(workflow.view.results.resultsLimited);
+    assert.true(workflow.view.results.status.hasUsers);
+    assert.true(workflow.view.results.status.resultsLimited);
     assert.deepEqual(
-      workflow.view.results.displayCityGroups[0].users.map(
+      workflow.view.results.discovery.cityGroups[0].users.map(
         (user) => user.username
       ),
       ["friend"]
@@ -55,6 +55,37 @@ module("Unit | where-is-my-friends | location discovery workflow", function () {
       "mode",
       "results",
       "setup",
+    ]);
+    assert.deepEqual(Object.keys(workflow.view.results).sort(), [
+      "discovery",
+      "empty",
+      "localTopic",
+      "location",
+      "status",
+    ]);
+    assert.deepEqual(Object.keys(workflow.setupState).sort(), [
+      "directory",
+      "form",
+      "notifications",
+      "preview",
+      "proof",
+      "saving",
+    ]);
+    assert.deepEqual(Object.keys(workflow.intents.setup).sort(), [
+      "change",
+      "previewCity",
+      "save",
+      "trackLocalTopic",
+    ]);
+    assert.deepEqual(Object.keys(workflow.intents.results).sort(), [
+      "changeFilter",
+      "changeRadius",
+      "connect",
+      "copyInvite",
+      "manageLocation",
+      "openLocalTopic",
+      "setMemberFilter",
+      "toggleCityNotifications",
     ]);
     assert.strictEqual(workflow.intents, workflow.intents);
   });

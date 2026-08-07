@@ -53,20 +53,14 @@ export default class PreferenceRecommendationSession {
       initialize: this.initialize,
       edit: this.edit,
       editor: Object.freeze({
-        save: this.save,
-        selectPurpose: this.selectPurpose,
-        skip: this.skip,
+        changeDraft: this.changeDraft,
+        submit: this.submit,
         toggleInterest: this.toggleInterest,
-        updateInterestSearch: this.updateInterestSearch,
-        updatePublicInterests: this.updatePublicInterests,
-        updateRecommendable: this.updateRecommendable,
       }),
       results: Object.freeze({
-        disablePersonalization: this.disablePersonalization,
         dismiss: this.dismiss,
-        edit: this.edit,
-        trackTopicOpen: this.trackTopicOpen,
-        trackUserOpen: this.trackUserOpen,
+        manage: this.manage,
+        trackOpen: this.trackOpen,
       }),
     });
   }
@@ -85,27 +79,39 @@ export default class PreferenceRecommendationSession {
 
   get editorState() {
     return {
-      canSave: this.canSave,
-      catalogue: this.catalogue,
-      interestGroups: this.interestGroups,
-      interestSearch: this.interestSearch,
-      loading: this.loading,
-      maximumInterests: this.maximumInterests,
-      purposeOptions: this.purposeOptions,
-      recommendable: this.recommendable,
-      selectedInterestIds: this.selectedInterestIds,
-      showInterestsPublicly: this.showInterestsPublicly,
-      state: this.state,
+      catalogue: {
+        available: this.catalogue,
+        groups: this.interestGroups,
+        search: this.interestSearch,
+      },
+      selection: {
+        ids: this.selectedInterestIds,
+        maximum: this.maximumInterests,
+        canSave: this.canSave,
+      },
+      purpose: {
+        options: this.purposeOptions,
+      },
+      privacy: {
+        recommendable: this.recommendable,
+        showPublicly: this.showInterestsPublicly,
+      },
+      status: {
+        state: this.state,
+        loading: this.loading,
+      },
     };
   }
 
   get resultsState() {
     return {
-      hasRecommendations: this.hasRecommendations,
+      recommendations: {
+        hasRecommendations: this.hasRecommendations,
+        topics: this.recommendedTopics,
+        users: this.recommendedUsers,
+      },
       loading: this.loading,
-      practiceInvitationsEnabled: this.practiceInvitationsEnabled,
-      recommendedTopics: this.recommendedTopics,
-      recommendedUsers: this.recommendedUsers,
+      invitationsEnabled: this.practiceInvitationsEnabled,
     };
   }
 
@@ -244,24 +250,25 @@ export default class PreferenceRecommendationSession {
   }
 
   @action
-  updateInterestSearch(event) {
-    this.interestSearch = event.target.value;
-  }
-
-  @action
-  selectPurpose(purpose) {
-    this.purpose = purpose;
+  changeDraft(patch) {
+    if (Object.hasOwn(patch, "search")) {
+      this.interestSearch = patch.search;
+    }
+    if (Object.hasOwn(patch, "purpose")) {
+      this.purpose = patch.purpose;
+    }
+    if (Object.hasOwn(patch, "recommendable")) {
+      this.recommendable = patch.recommendable;
+    }
+    if (Object.hasOwn(patch, "showPublicly")) {
+      this.showInterestsPublicly = patch.showPublicly;
+    }
     this.error = null;
   }
 
   @action
-  updateRecommendable(event) {
-    this.recommendable = event.target.checked;
-  }
-
-  @action
-  updatePublicInterests(event) {
-    this.showInterestsPublicly = event.target.checked;
+  submit(command) {
+    return { save: this.save, skip: this.skip }[command]?.();
   }
 
   @action
@@ -320,6 +327,14 @@ export default class PreferenceRecommendationSession {
   @action
   edit() {
     this.editing = true;
+  }
+
+  @action
+  manage(command) {
+    return {
+      edit: this.edit,
+      disable: this.disablePersonalization,
+    }[command]?.();
   }
 
   @action
@@ -402,6 +417,14 @@ export default class PreferenceRecommendationSession {
       algorithmVersion: this.algorithmVersion,
       resultCount: this.recommendationResultCount,
     });
+  }
+
+  @action
+  trackOpen(kind, recommendation) {
+    return {
+      topic: this.trackTopicOpen,
+      user: this.trackUserOpen,
+    }[kind]?.(recommendation);
   }
 
   applyResponse(response) {

@@ -35,7 +35,7 @@ module("Unit | where-is-my-friends | interest workflows", function () {
     assert.false(invitations.view.loading);
     assert.strictEqual(preference.view.error, null);
     assert.false(preference.view.loading);
-    assert.true(preference.view.results.hasRecommendations);
+    assert.true(preference.view.results.recommendations.hasRecommendations);
     assert.deepEqual(Object.keys(preference.view).sort(), [
       "editing",
       "editor",
@@ -49,6 +49,42 @@ module("Unit | where-is-my-friends | interest workflows", function () {
       "loading",
       "state",
       "success",
+    ]);
+    assert.deepEqual(Object.keys(preference.view.results).sort(), [
+      "invitationsEnabled",
+      "loading",
+      "recommendations",
+    ]);
+    assert.deepEqual(Object.keys(preference.editorState).sort(), [
+      "catalogue",
+      "privacy",
+      "purpose",
+      "selection",
+      "status",
+    ]);
+    assert.deepEqual(Object.keys(preference.intents.editor).sort(), [
+      "changeDraft",
+      "submit",
+      "toggleInterest",
+    ]);
+    assert.deepEqual(Object.keys(preference.intents.results).sort(), [
+      "dismiss",
+      "manage",
+      "trackOpen",
+    ]);
+    assert.deepEqual(Object.keys(invitations.view.state).sort(), [
+      "busy",
+      "composer",
+      "inbox",
+      "legacy",
+    ]);
+    assert.deepEqual(Object.keys(invitations.intents).sort(), [
+      "changeDraft",
+      "close",
+      "initialize",
+      "open",
+      "respond",
+      "send",
     ]);
   });
 });

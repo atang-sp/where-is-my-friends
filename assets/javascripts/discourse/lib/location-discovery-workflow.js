@@ -84,28 +84,20 @@ export default class LocationDiscoveryWorkflow {
     this.intents = Object.freeze({
       initialize: this.initialize,
       setup: Object.freeze({
-        previewCurrentCity: this.previewCurrentCity,
-        previewSuggestedCity: this.previewSuggestedCity,
-        revealRegion: this.revealRegion,
-        saveCity: this.saveCity,
-        selectPreviewRadius: this.selectPreviewRadius,
-        toggleJoinNotifyCity: this.toggleJoinNotifyCity,
-        toggleJoinNotifyNearby: this.toggleJoinNotifyNearby,
-        trackLocalTopicCompose: this.trackLocalTopicCompose,
-        updateCity: this.updateCity,
-        updateRegion: this.updateRegion,
+        change: this.changeSetup,
+        previewCity: this.previewCity,
+        save: this.saveCity,
+        trackLocalTopic: this.trackLocalTopicCompose,
       }),
       results: Object.freeze({
         copyInvite: this.copyInvite,
-        editLocation: this.editLocation,
-        openAdvancedLocation: this.openAdvancedLocation,
-        removeLocation: this.removeLocation,
-        selectDiscoveryRadius: this.selectDiscoveryRadius,
-        selectFilter: this.selectFilter,
-        toggleNotifyCity: this.toggleNotifyCity,
-        trackConnection: this.trackConnection,
-        trackLocalTopicOpen: this.trackLocalTopicOpen,
-        updateMemberFilter: this.updateMemberFilter,
+        changeFilter: this.selectFilter,
+        changeRadius: this.selectDiscoveryRadius,
+        connect: this.trackConnection,
+        manageLocation: this.manageLocation,
+        openLocalTopic: this.trackLocalTopicOpen,
+        setMemberFilter: this.setMemberFilter,
+        toggleCityNotifications: this.toggleNotifyCity,
       }),
     });
   }
@@ -122,55 +114,73 @@ export default class LocationDiscoveryWorkflow {
 
   get setupState() {
     return {
-      autoCity: this.autoCity,
-      city: this.city,
-      cityDirectory: this.cityDirectory,
-      cityNormalizationHint: this.cityNormalizationHint,
-      cityOptions: this.cityOptions,
-      cityPreview: this.cityPreview,
-      hasCityDirectory: this.hasCityDirectory,
-      loading: this.loading,
-      networkPreview: this.networkPreview,
-      notifyCity: this.notifyCity,
-      notifyNearby: this.notifyNearby,
-      participantProof: this.participantProof,
-      previewJoinLabel: this.previewJoinLabel,
-      previewLoading: this.previewLoading,
-      previewRadiusButtons: this.previewRadiusButtons,
-      region: this.region,
-      showRegion: this.showRegion,
+      proof: this.participantProof,
+      directory: {
+        visible: this.hasCityDirectory,
+        value: this.cityDirectory,
+        options: this.cityOptions,
+      },
+      form: {
+        autoCity: this.autoCity,
+        city: this.city,
+        cityPreview: this.cityPreview,
+        normalizationHint: this.cityNormalizationHint,
+        region: this.region,
+        showRegion: this.showRegion,
+      },
+      preview: {
+        value: this.networkPreview,
+        loading: this.previewLoading,
+        radiusButtons: this.previewRadiusButtons,
+        joinLabel: this.previewJoinLabel,
+      },
+      notifications: {
+        city: this.notifyCity,
+        nearby: this.notifyNearby,
+      },
+      saving: this.loading,
     };
   }
 
   get resultsState() {
     return {
-      chatEnabled: this.chatEnabled,
-      discoveryRadiusButtons: this.discoveryRadiusButtons,
-      displayCityGroups: this.displayCityGroups,
-      expandedRadius: this.expandedRadius,
-      expandedRadiusKm: this.expandedRadiusKm,
-      filterGroups: this.filterGroups,
-      gpsFallback: this.gpsFallback,
-      hasActiveFilters: this.hasActiveFilters,
-      hasFilterableFields: this.hasFilterableFields,
-      hasUsers: this.hasUsers,
-      inviteFeedback: this.inviteFeedback,
-      isEmpty: this.isEmpty,
-      isLimited: this.isLimited,
-      loading: this.loading,
-      localTopicActionUrl: this.localTopicActionUrl,
-      location: this.location,
-      memberFilter: this.memberFilter,
-      nearbyCityCount: this.nearbyCityCount,
-      nearbyCityCountSuppressed: this.nearbyCityCountSuppressed,
-      notifyCity: this.notifyCity,
-      originalRadiusKm: this.originalRadiusKm,
-      participantProof: this.participantProof,
-      resultsLimited: this.resultsLimited,
-      resultsSummary: this.resultsSummary,
-      showMemberFilter: this.showMemberFilter,
-      virtualLocationEnabled:
-        this.model.settings?.virtual_location_enabled ?? false,
+      location: {
+        value: this.location,
+        radiusButtons: this.discoveryRadiusButtons,
+        gpsFallback: this.gpsFallback,
+        virtualEnabled: this.model.settings?.virtual_location_enabled ?? false,
+      },
+      status: {
+        loading: this.loading,
+        hasUsers: this.hasUsers,
+        isEmpty: this.isEmpty,
+        isLimited: this.isLimited,
+        resultsLimited: this.resultsLimited,
+        expandedRadius: this.expandedRadius,
+        originalRadiusKm: this.originalRadiusKm,
+        expandedRadiusKm: this.expandedRadiusKm,
+        summary: this.resultsSummary,
+      },
+      discovery: {
+        chatEnabled: this.chatEnabled,
+        cityGroups: this.displayCityGroups,
+        filterGroups: this.filterGroups,
+        hasActiveFilters: this.hasActiveFilters,
+        hasFilterableFields: this.hasFilterableFields,
+        memberFilter: this.memberFilter,
+        showMemberFilter: this.showMemberFilter,
+      },
+      empty: {
+        inviteFeedback: this.inviteFeedback,
+        nearbyCityCount: this.nearbyCityCount,
+        nearbyCityCountSuppressed: this.nearbyCityCountSuppressed,
+        notifyCity: this.notifyCity,
+        participantProof: this.participantProof,
+      },
+      localTopic: {
+        actionUrl: this.localTopicActionUrl,
+        city: this.location.city,
+      },
     };
   }
 
@@ -495,20 +505,34 @@ export default class LocationDiscoveryWorkflow {
   }
 
   @action
-  updateCity(event) {
-    this.city = event.target.value;
-    this.networkPreview = null;
-    this.selectedPreviewRadius = null;
+  changeSetup(patch) {
+    if (Object.hasOwn(patch, "city")) {
+      this.city = patch.city;
+      this.networkPreview = null;
+      this.selectedPreviewRadius = null;
+    }
+    if (Object.hasOwn(patch, "region")) {
+      this.region = patch.region;
+    }
+    if (Object.hasOwn(patch, "showRegion")) {
+      this.showRegion = patch.showRegion;
+    }
+    if (Object.hasOwn(patch, "notifyCity")) {
+      this.notifyCity = patch.notifyCity;
+    }
+    if (Object.hasOwn(patch, "notifyNearby")) {
+      this.notifyNearby = patch.notifyNearby;
+    }
+    if (Object.hasOwn(patch, "previewRadius")) {
+      this.selectedPreviewRadius = patch.previewRadius;
+    }
   }
 
   @action
-  previewCurrentCity() {
-    return this.loadCityPreview(this.city);
-  }
-
-  @action
-  previewSuggestedCity(city) {
-    this.city = city;
+  previewCity(city = this.city) {
+    if (city !== this.city) {
+      this.city = city;
+    }
     return this.loadCityPreview(city);
   }
 
@@ -540,23 +564,8 @@ export default class LocationDiscoveryWorkflow {
   }
 
   @action
-  selectPreviewRadius(radiusKm) {
-    this.selectedPreviewRadius = radiusKm;
-  }
-
-  @action
-  updateRegion(event) {
-    this.region = event.target.value;
-  }
-
-  @action
-  revealRegion() {
-    this.showRegion = true;
-  }
-
-  @action
-  updateMemberFilter(event) {
-    this.memberFilter = event.target.value;
+  setMemberFilter(value) {
+    this.memberFilter = value;
   }
 
   @action
@@ -689,6 +698,15 @@ export default class LocationDiscoveryWorkflow {
         onMap: () => this.schedule(() => this.openMapPicker()),
       },
     });
+  }
+
+  @action
+  manageLocation(command) {
+    return {
+      advanced: this.openAdvancedLocation,
+      edit: this.editLocation,
+      remove: this.removeLocation,
+    }[command]?.();
   }
 
   @action
@@ -833,16 +851,6 @@ export default class LocationDiscoveryWorkflow {
     } catch {
       this.notifyCity = !this.notifyCity;
     }
-  }
-
-  @action
-  toggleJoinNotifyCity() {
-    this.notifyCity = !this.notifyCity;
-  }
-
-  @action
-  toggleJoinNotifyNearby() {
-    this.notifyNearby = !this.notifyNearby;
   }
 
   errorMessage(error) {

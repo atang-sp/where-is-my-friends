@@ -11,7 +11,7 @@ export default <template>
         <p>{{i18n "where_is_my_friends.interests.results_description"}}</p>
       </div>
       <DButton
-        @action={{@on.edit}}
+        @action={{fn @on.manage "edit"}}
         @label="where_is_my_friends.interests.edit"
         @icon="pencil"
         class="btn-flat"
@@ -19,15 +19,15 @@ export default <template>
       />
     </div>
 
-    {{#if @state.hasRecommendations}}
-      {{#if @state.recommendedTopics.length}}
+    {{#if @state.recommendations.hasRecommendations}}
+      {{#if @state.recommendations.topics.length}}
         <h3>{{i18n "where_is_my_friends.interests.recommended_topics"}}</h3>
         <div class="interest-onboarding__topic-grid">
-          {{#each @state.recommendedTopics as |topic|}}
+          {{#each @state.recommendations.topics as |topic|}}
             <article data-test-recommended-topic={{topic.id}}>
               <a
                 href={{topic.url}}
-                {{on "click" (fn @on.trackTopicOpen topic)}}
+                {{on "click" (fn @on.trackOpen "topic" topic)}}
               >
                 <h4>{{topic.fancy_title}}</h4>
               </a>
@@ -50,15 +50,15 @@ export default <template>
         </div>
       {{/if}}
 
-      {{#if @state.recommendedUsers.length}}
+      {{#if @state.recommendations.users.length}}
         <h3>{{i18n "where_is_my_friends.interests.recommended_people"}}</h3>
         <div class="interest-onboarding__people-grid">
-          {{#each @state.recommendedUsers as |user|}}
+          {{#each @state.recommendations.users as |user|}}
             <article data-test-recommended-user={{user.username}}>
               <div>
                 <a
                   href={{user.profile_url}}
-                  {{on "click" (fn @on.trackUserOpen user)}}
+                  {{on "click" (fn @on.trackOpen "user" user)}}
                 >
                   <h4>{{if user.name user.name user.username}}</h4>
                   <span>@{{user.username}}</span>
@@ -81,16 +81,16 @@ export default <template>
                     <li>
                       <a
                         href={{topic.url}}
-                        {{on "click" (fn @on.trackUserOpen user)}}
+                        {{on "click" (fn @on.trackOpen "user" user)}}
                       >{{topic.title}}</a>
                     </li>
                   {{/each}}
                 </ul>
               {{/if}}
-              {{#if @state.practiceInvitationsEnabled}}
+              {{#if @state.invitationsEnabled}}
                 {{#if user.invitation_interests.length}}
                   <DButton
-                    @action={{fn @on.openInvitation user}}
+                    @action={{fn @on.manage "invite" user}}
                     @label="where_is_my_friends.practice_invitations.invite"
                     @icon="user-plus"
                     @disabled={{@state.loading}}
@@ -121,7 +121,7 @@ export default <template>
       <summary>{{i18n "where_is_my_friends.interests.settings"}}</summary>
       <p>{{i18n "where_is_my_friends.interests.disable_description"}}</p>
       <DButton
-        @action={{@on.disablePersonalization}}
+        @action={{fn @on.manage "disable"}}
         @label="where_is_my_friends.interests.disable"
         @icon="trash-can"
         @disabled={{@state.loading}}
