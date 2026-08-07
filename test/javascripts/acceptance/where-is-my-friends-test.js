@@ -13,7 +13,7 @@ const CALLOUT_STORAGE_KEY = "local-friends-callout-state";
 
 function setupApi(needs, state) {
   needs.pretender((server, helper) => {
-    server.get("/where-is-my-friends.json", () => {
+    const locationResponse = () => {
       state.locationRequests += 1;
       return helper.response(
         state.initial ?? {
@@ -26,7 +26,15 @@ function setupApi(needs, state) {
           filterable_fields: [],
         }
       );
-    });
+    };
+    server.get("/where-is-my-friends.json", locationResponse);
+    server.get("/where-is-my-friends/callout.json", locationResponse);
+    server.get("/where-is-my-friends/location-presence.json", () =>
+      helper.response({
+        has_location: Boolean(state.initial?.location),
+        profile_location: state.initial?.profile_location ?? null,
+      })
+    );
 
     server.post("/where-is-my-friends/locations.json", (request) => {
       if (state.saveError) {

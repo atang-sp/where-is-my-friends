@@ -9,11 +9,11 @@ import LocalTopicsPanel from "./local-topics-panel";
 export default <template>
   <section
     class="where-is-my-friends__location-summary"
-    data-test-location-mode={{@location.discovery_mode}}
+    data-test-location-mode={{@state.location.discovery_mode}}
   >
     <div>
       <span>{{i18n "where_is_my_friends.your_city"}}</span>
-      <strong>{{@location.city}}</strong>
+      <strong>{{@state.location.city}}</strong>
     </div>
     <div
       class="where-is-my-friends__radius"
@@ -22,11 +22,11 @@ export default <template>
       data-test-discovery-radius
     >
       <span>{{i18n "where_is_my_friends.discovery_radius"}}</span>
-      {{#each @discoveryRadiusButtons as |option|}}
+      {{#each @state.discoveryRadiusButtons as |option|}}
         <DButton
-          @action={{fn @selectDiscoveryRadius option.radius}}
+          @action={{fn @on.selectDiscoveryRadius option.radius}}
           @translatedLabel={{option.label}}
-          @disabled={{@loading}}
+          @disabled={{@state.loading}}
           class={{if option.selected "btn-primary" "btn-flat"}}
           data-test-discovery-radius-option={{option.radius}}
         />
@@ -40,9 +40,9 @@ export default <template>
           "where_is_my_friends.location_settings"
         }}</summary>
       <div class="where-is-my-friends__location-actions">
-        {{#if @model.settings.virtual_location_enabled}}
+        {{#if @state.virtualLocationEnabled}}
           <DButton
-            @action={{@openAdvancedLocation}}
+            @action={{@on.openAdvancedLocation}}
             @label="where_is_my_friends.advanced_location"
             @icon="map-location-dot"
             class="btn-flat"
@@ -50,14 +50,14 @@ export default <template>
           />
         {{/if}}
         <DButton
-          @action={{@editLocation}}
+          @action={{@on.editLocation}}
           @label="where_is_my_friends.update_city"
           @icon="pencil"
           class="btn-flat"
           data-test-update-location
         />
         <DButton
-          @action={{@removeLocation}}
+          @action={{@on.removeLocation}}
           @label="where_is_my_friends.remove_location"
           @icon="trash-can"
           class="btn-danger"
@@ -67,13 +67,13 @@ export default <template>
     </details>
   </section>
 
-  {{#if @gpsFallback}}
+  {{#if @state.gpsFallback}}
     <p class="alert alert-info" data-test-gps-fallback>{{i18n
         "where_is_my_friends.gps_city_fallback"
       }}</p>
   {{/if}}
 
-  {{#if @loading}}
+  {{#if @state.loading}}
     <div class="where-is-my-friends__loading" role="status">
       {{i18n "where_is_my_friends.loading_results"}}
     </div>
@@ -82,31 +82,31 @@ export default <template>
       <article data-test-result-skeleton></article>
       <article data-test-result-skeleton></article>
     </div>
-  {{else if @hasUsers}}
-    {{#if @resultsLimited}}
+  {{else if @state.hasUsers}}
+    {{#if @state.resultsLimited}}
       <p class="alert alert-info" data-test-results-limited>{{i18n
           "where_is_my_friends.results_limited"
         }}</p>
     {{/if}}
     <section class="where-is-my-friends__results">
-      {{#if @expandedRadius}}
+      {{#if @state.expandedRadius}}
         <p class="alert alert-info" data-test-expanded-radius>
           {{i18n
             "where_is_my_friends.expanded_radius_notice"
-            original_radius=@originalRadiusKm
-            expanded_radius=@expandedRadiusKm
+            original_radius=@state.originalRadiusKm
+            expanded_radius=@state.expandedRadiusKm
           }}
         </p>
       {{/if}}
       <div class="where-is-my-friends__results-heading">
-        <h2 data-test-results-summary>{{@resultsSummary}}</h2>
+        <h2 data-test-results-summary>{{@state.resultsSummary}}</h2>
       </div>
-      {{#if @hasFilterableFields}}
+      {{#if @state.hasFilterableFields}}
         <div
           class="where-is-my-friends__attribute-filters"
           data-test-attribute-filters
         >
-          {{#each @filterGroups as |group|}}
+          {{#each @state.filterGroups as |group|}}
             <div
               class="where-is-my-friends__filter-group"
               data-test-filter-group={{group.key}}
@@ -121,9 +121,9 @@ export default <template>
               >
                 {{#each group.buttons as |btn|}}
                   <DButton
-                    @action={{fn @selectFilter group.key btn.value}}
+                    @action={{fn @on.selectFilter group.key btn.value}}
                     @translatedLabel={{btn.label}}
-                    @disabled={{@loading}}
+                    @disabled={{@state.loading}}
                     class={{if btn.selected "btn-primary" "btn-flat"}}
                     data-test-filter-option={{if btn.value btn.value "all"}}
                   />
@@ -133,22 +133,22 @@ export default <template>
           {{/each}}
         </div>
       {{/if}}
-      {{#if @showMemberFilter}}
+      {{#if @state.showMemberFilter}}
         <label class="where-is-my-friends__filter">
           <span>{{i18n "where_is_my_friends.filter_members"}}</span>
           <input
             type="search"
-            value={{@memberFilter}}
+            value={{@state.memberFilter}}
             aria-label={{i18n "where_is_my_friends.filter_members"}}
             placeholder={{i18n
               "where_is_my_friends.filter_members_placeholder"
             }}
             data-test-member-filter
-            {{on "input" @updateMemberFilter}}
+            {{on "input" @on.updateMemberFilter}}
           />
         </label>
       {{/if}}
-      {{#each @displayCityGroups as |group|}}
+      {{#each @state.displayCityGroups as |group|}}
         <section
           class="where-is-my-friends__city-group"
           data-test-city-group={{group.city_key}}
@@ -227,7 +227,7 @@ export default <template>
                       username=user.username
                     }}
                     data-test-profile-link={{user.username}}
-                    {{on "click" (fn @trackConnection "profile_clicked")}}
+                    {{on "click" (fn @on.trackConnection "profile_clicked")}}
                   >{{i18n "where_is_my_friends.view_profile"}}</LinkTo>
                   {{#if user.action_url}}
                     <a
@@ -238,10 +238,10 @@ export default <template>
                         username=user.username
                       }}
                       data-test-message-link={{user.username}}
-                      {{on "click" (fn @trackConnection "message_started")}}
+                      {{on "click" (fn @on.trackConnection "message_started")}}
                     >{{i18n
                         (if
-                          @chatEnabled
+                          @state.chatEnabled
                           "where_is_my_friends.start_chat"
                           "where_is_my_friends.send_message"
                         )
@@ -258,55 +258,61 @@ export default <template>
         data-test-presence-note
       >{{i18n "where_is_my_friends.presence_privacy_note"}}</p>
     </section>
-  {{else if @isLimited}}
+  {{else if @state.isLimited}}
     <section class="where-is-my-friends__empty" data-test-limited-state>
       <h2>{{i18n "where_is_my_friends.results_limited_title"}}</h2>
       <p>{{i18n "where_is_my_friends.results_limited"}}</p>
     </section>
-  {{else if @isEmpty}}
+  {{else if @state.isEmpty}}
     <section class="where-is-my-friends__empty" data-test-empty-state>
-      {{#if @hasActiveFilters}}
+      {{#if @state.hasActiveFilters}}
         <p class="alert alert-info" data-test-filter-empty-hint>{{i18n
             "where_is_my_friends.no_results_with_filters"
           }}</p>
       {{/if}}
-      <h2>{{i18n "where_is_my_friends.empty_title" city=@location.city}}</h2>
-      <p>{{@participantProof}}</p>
+      <h2>{{i18n
+          "where_is_my_friends.empty_title"
+          city=@state.location.city
+        }}</h2>
+      <p>{{@state.participantProof}}</p>
       <p>{{i18n
           "where_is_my_friends.global_stats_pioneer"
-          city=@location.city
+          city=@state.location.city
         }}</p>
-      {{#if @nearbyCityCountSuppressed}}
+      {{#if @state.nearbyCityCountSuppressed}}
         <p
           class="where-is-my-friends__nearby-count"
           data-test-nearby-city-count
         >{{i18n "where_is_my_friends.empty_nearby_count_suppressed"}}</p>
-      {{else if @nearbyCityCount}}
+      {{else if @state.nearbyCityCount}}
         <p
           class="where-is-my-friends__nearby-count"
           data-test-nearby-city-count
         >{{i18n
             "where_is_my_friends.empty_nearby_count"
-            count=@nearbyCityCount
+            count=@state.nearbyCityCount
           }}</p>
       {{/if}}
       <label class="where-is-my-friends__notify-toggle" data-test-notify-toggle>
         <input
           type="checkbox"
-          checked={{@notifyCity}}
-          {{on "change" @toggleNotifyCity}}
+          checked={{@state.notifyCity}}
+          {{on "change" @on.toggleNotifyCity}}
         />
-        {{i18n "where_is_my_friends.empty_notify_prompt" city=@location.city}}
+        {{i18n
+          "where_is_my_friends.empty_notify_prompt"
+          city=@state.location.city
+        }}
       </label>
       <DButton
-        @action={{@copyInvite}}
+        @action={{@on.copyInvite}}
         @label="where_is_my_friends.copy_invite"
         @icon="link"
         class="btn"
         data-test-copy-invite
       />
-      {{#if @inviteFeedback}}
-        <p role="status" data-test-invite-feedback>{{@inviteFeedback}}</p>
+      {{#if @state.inviteFeedback}}
+        <p role="status" data-test-invite-feedback>{{@state.inviteFeedback}}</p>
       {{/if}}
       <p data-test-empty-invitation>{{i18n
           "where_is_my_friends.empty_invitation"
@@ -318,9 +324,9 @@ export default <template>
     <span>{{i18n "where_is_my_friends.safety_copy"}}</span>
   </aside>
   <LocalTopicsPanel
-    @actionUrl={{@localTopicActionUrl}}
-    @city={{@location.city}}
+    @actionUrl={{@state.localTopicActionUrl}}
+    @city={{@state.location.city}}
     @compose={{false}}
-    @onAction={{@trackLocalTopicOpen}}
+    @onAction={{@on.trackLocalTopicOpen}}
   />
 </template>

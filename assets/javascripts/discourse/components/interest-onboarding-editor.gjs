@@ -6,7 +6,7 @@ import { i18n } from "discourse-i18n";
 
 export default <template>
   <section class="interest-onboarding__form" data-test-interest-onboarding-form>
-    {{#if @catalogue.length}}
+    {{#if @state.catalogue.length}}
       <fieldset>
         <legend>{{i18n
             "where_is_my_friends.interests.choose_interests"
@@ -16,21 +16,21 @@ export default <template>
           <span>{{i18n "where_is_my_friends.interests.search_label"}}</span>
           <input
             type="search"
-            value={{@interestSearch}}
+            value={{@state.interestSearch}}
             placeholder={{i18n
               "where_is_my_friends.interests.search_placeholder"
             }}
             data-test-interest-search
-            {{on "input" @updateInterestSearch}}
+            {{on "input" @on.updateInterestSearch}}
           />
         </label>
 
-        {{#if @interestGroups.length}}
+        {{#if @state.interestGroups.length}}
           <div
             class="interest-onboarding__interest-groups"
             data-test-interest-options
           >
-            {{#each @interestGroups as |group|}}
+            {{#each @state.interestGroups as |group|}}
               <section
                 class="interest-onboarding__interest-group
                   {{if
@@ -73,10 +73,10 @@ export default <template>
                 >
                   {{#each group.interests as |interest|}}
                     <DButton
-                      @action={{fn @toggleInterest interest.id}}
+                      @action={{fn @on.toggleInterest interest.id}}
                       @translatedLabel={{interest.name}}
                       @icon={{if interest.selected "check" "plus"}}
-                      @disabled={{@loading}}
+                      @disabled={{@state.loading}}
                       class={{if interest.selected "btn-primary" "btn-default"}}
                       aria-pressed={{if interest.selected "true" "false"}}
                       data-test-interest={{interest.name}}
@@ -97,19 +97,19 @@ export default <template>
           data-test-interest-count
         >{{i18n
             "where_is_my_friends.interests.selection_count"
-            count=@selectedInterestIds.size
-            maximum=@maximumInterests
+            count=@state.selectedInterestIds.size
+            maximum=@state.maximumInterests
           }}</p>
       </fieldset>
 
       <fieldset>
         <legend>{{i18n "where_is_my_friends.interests.choose_purpose"}}</legend>
         <div class="interest-onboarding__chips" data-test-purpose-options>
-          {{#each @purposeOptions as |option|}}
+          {{#each @state.purposeOptions as |option|}}
             <DButton
-              @action={{fn @selectPurpose option.id}}
+              @action={{fn @on.selectPurpose option.id}}
               @translatedLabel={{option.label}}
-              @disabled={{@loading}}
+              @disabled={{@state.loading}}
               class={{if option.selected "btn-primary" "btn-default"}}
               aria-pressed={{if option.selected "true" "false"}}
               data-test-purpose={{option.id}}
@@ -123,18 +123,18 @@ export default <template>
         <label>
           <input
             type="checkbox"
-            checked={{@recommendable}}
+            checked={{@state.recommendable}}
             data-test-recommendable
-            {{on "change" @updateRecommendable}}
+            {{on "change" @on.updateRecommendable}}
           />
           <span>{{i18n "where_is_my_friends.interests.recommendable"}}</span>
         </label>
         <label>
           <input
             type="checkbox"
-            checked={{@showInterestsPublicly}}
+            checked={{@state.showInterestsPublicly}}
             data-test-public-interests
-            {{on "change" @updatePublicInterests}}
+            {{on "change" @on.updatePublicInterests}}
           />
           <span>{{i18n "where_is_my_friends.interests.public_interests"}}</span>
         </label>
@@ -143,18 +143,18 @@ export default <template>
 
       <div class="interest-onboarding__form-actions">
         <DButton
-          @action={{@save}}
+          @action={{@on.save}}
           @label="where_is_my_friends.interests.save"
           @icon="sparkles"
-          @disabled={{not @canSave}}
+          @disabled={{not @state.canSave}}
           class="btn-primary"
           data-test-save-interests
         />
-        {{#if (eq @state "pending")}}
+        {{#if (eq @state.state "pending")}}
           <DButton
-            @action={{@skip}}
+            @action={{@on.skip}}
             @label="where_is_my_friends.interests.skip"
-            @disabled={{@loading}}
+            @disabled={{@state.loading}}
             class="btn-flat"
             data-test-skip-interests
           />
@@ -165,9 +165,9 @@ export default <template>
         {{i18n "where_is_my_friends.interests.catalogue_empty"}}
       </div>
       <DButton
-        @action={{@skip}}
+        @action={{@on.skip}}
         @label="where_is_my_friends.interests.skip"
-        @disabled={{@loading}}
+        @disabled={{@state.loading}}
         class="btn-flat"
         data-test-skip-interests
       />

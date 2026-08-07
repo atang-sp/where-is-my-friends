@@ -19,6 +19,11 @@ module WhereIsMyFriends
     MEMBER_ACTIVE_WINDOW = 90.days
     RECENT_BEHAVIOR_WINDOW = 30.days
     ALGORITHM_VERSION = "participation_v1"
+    GROUP_METHODS = {
+      "topics" => :recommended_topics,
+      "people" => :recommended_users,
+      "interests" => :recommended_interests
+    }.freeze
     TOPIC_WEIGHTS = {
       interest: 32,
       behavior: 18,
@@ -45,10 +50,25 @@ module WhereIsMyFriends
     def initialize(user, diversity_seed: nil)
       @user = user
       @guardian = Guardian.new(user)
+      @member_selection =
+        ViewerAwareMemberSelection.new(viewer: user, guardian: @guardian)
       @diversity_seed = diversity_seed.to_s.first(32)
     end
 
-    def call(profile:)
+    def call(profile:, group: nil)
+      group = group.to_s.presence
+      return full_payload(profile) if group.blank?
+
+      method_name = GROUP_METHODS.fetch(group)
+      {
+        :algorithm_version => ALGORITHM_VERSION,
+        :state => profile.state,
+        :recommendation_group => group,
+        method_name => send(method_name, profile)
+      }
+    end
+
+    def full_payload(profile)
       {
         algorithm_version: ALGORITHM_VERSION,
         state: profile.state,
@@ -194,19 +214,18 @@ module WhereIsMyFriends
           base_profile_scope.where(user_id: contributions.keys)
         )
       excluded_ids = relationship_exclusions
-      users =
-        User
-          .where(id: profile_scope.select(:user_id))
-          .activated
-          .not_staged
-          .not_suspended
-          .not_silenced
+      user_scope =
+        ViewerAwareMemberSelection
+          .eligible_users(User.where(id: profile_scope.select(:user_id)))
           .where("last_seen_at >= ?", MEMBER_ACTIVE_WINDOW.ago)
           .where.not(id: excluded_ids)
           .includes(:user_profile, :user_option, :user_stat)
           .order(last_seen_at: :desc)
-          .limit(MAX_MEMBER_CANDIDATES)
-          .select { |candidate| @guardian.can_see_profile?(candidate) }
+      users =
+        @member_selection.select(
+          scope: user_scope,
+          limit: MAX_MEMBER_CANDIDATES
+        ).items
       eligible_profiles =
         profile_scope
           .where(user_id: users.map(&:id))

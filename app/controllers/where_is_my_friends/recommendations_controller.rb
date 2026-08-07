@@ -2,18 +2,43 @@
 
 module WhereIsMyFriends
   class RecommendationsController < ::ApplicationController
+    TARGET_RECOMMENDATIONS = {
+      "topic" => {
+        group: "topics",
+        key: :recommended_topics
+      },
+      "user" => {
+        group: "people",
+        key: :recommended_users
+      },
+      "interest" => {
+        group: "interests",
+        key: :recommended_interests
+      }
+    }.freeze
+
     requires_plugin "where-is-my-friends"
 
     before_action :ensure_logged_in
     before_action :ensure_feature_enabled
 
     def index
+      group = params[:group].presence
+      if group && !RecommendationEngine::GROUP_METHODS.key?(group)
+        return(
+          render_json_error(
+            I18n.t("where_is_my_friends.invalid_recommendation"),
+            status: 422
+          )
+        )
+      end
+
       profile = current_profile
       render json:
                RecommendationEngine.new(
                  current_user,
                  diversity_seed: params[:refresh]
-               ).call(profile: profile)
+               ).call(profile: profile, group: group)
     end
 
     def update_profile
@@ -90,21 +115,28 @@ module WhereIsMyFriends
       profile = current_profile
       target_type = params[:target_type].to_s
       target_id = params[:target_id].to_i
-      payload = RecommendationEngine.new(current_user).call(profile: profile)
-      recommendation_key =
-        {
-          "topic" => :recommended_topics,
-          "user" => :recommended_users,
-          "interest" => :recommended_interests
-        }[
-          target_type
-        ]
+      recommendation = TARGET_RECOMMENDATIONS[target_type]
+      requested_group = params[:group].presence
+      if recommendation.nil? ||
+           (
+             requested_group.present? &&
+               requested_group != recommendation[:group]
+           )
+        return(
+          render_json_error(
+            I18n.t("where_is_my_friends.invalid_recommendation"),
+            status: 422
+          )
+        )
+      end
+
+      engine = RecommendationEngine.new(current_user)
+      payload = engine.call(profile: profile, group: recommendation[:group])
       visible_ids =
-        if recommendation_key &&
-             WhereIsMyFriendsRecommendationDismissal::TARGET_TYPES.include?(
-               target_type
-             )
-          payload.fetch(recommendation_key).pluck(:id)
+        if WhereIsMyFriendsRecommendationDismissal::TARGET_TYPES.include?(
+             target_type
+           )
+          payload.fetch(recommendation[:key]).pluck(:id)
         else
           []
         end
@@ -127,7 +159,7 @@ module WhereIsMyFriends
         recommendation_event_metadata(target_type: target_type)
       )
 
-      render json: RecommendationEngine.new(current_user).call(profile: profile)
+      render json: engine.call(profile: profile, group: requested_group)
     end
 
     private
@@ -191,10 +223,7 @@ module WhereIsMyFriends
 
     def recommendation_event_metadata(target_type: nil)
       metadata = {}
-      recommendation_group =
-        { "topic" => "topics", "user" => "people", "interest" => "interests" }[
-          target_type
-        ]
+      recommendation_group = TARGET_RECOMMENDATIONS.dig(target_type, :group)
       metadata[
         :recommendation_group
       ] = recommendation_group if recommendation_group

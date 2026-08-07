@@ -24,6 +24,12 @@ RSpec.describe WhereIsMyFriends::LocationsController do
   end
 
   it "requires login for every data endpoint" do
+    get "/where-is-my-friends/callout.json"
+    expect(response.status).to eq(403)
+
+    get "/where-is-my-friends/location-presence.json"
+    expect(response.status).to eq(403)
+
     get "/where-is-my-friends/locations/nearby.json"
     expect(response.status).to eq(403)
 
@@ -237,6 +243,64 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "amap_api_key" => "amap-browser-key"
       )
       expect(settings).not_to have_key("baidu_api_key")
+    end
+  end
+
+  describe "consumer-specific location projections" do
+    before do
+      sign_in(user)
+      user.user_profile.update!(location: "杭州")
+      UserLocation.upsert_city_location(user.id, city: "上海")
+    end
+
+    it "returns only location presence to the composer with a lower query budget" do
+      get "/where-is-my-friends.json"
+      get "/where-is-my-friends/location-presence.json"
+
+      page_queries =
+        ActiveRecord::Base.uncached do
+          track_sql_queries { get "/where-is-my-friends.json" }
+        end
+      presence_queries =
+        ActiveRecord::Base.uncached do
+          track_sql_queries do
+            get "/where-is-my-friends/location-presence.json"
+          end
+        end
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body).to eq(
+        "has_location" => true,
+        "profile_location" => "杭州"
+      )
+      expect(presence_queries.length).to be < page_queries.length
+    end
+
+    it "returns only homepage callout data with a lower query budget" do
+      get "/where-is-my-friends.json"
+      get "/where-is-my-friends/callout.json"
+
+      page_queries =
+        ActiveRecord::Base.uncached do
+          track_sql_queries { get "/where-is-my-friends.json" }
+        end
+      callout_queries =
+        ActiveRecord::Base.uncached do
+          track_sql_queries { get "/where-is-my-friends/callout.json" }
+        end
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body.keys).to contain_exactly(
+        "state",
+        "location",
+        "profile_location",
+        "active_participants",
+        "city_directory",
+        "new_nearby_count",
+        "new_nearby_count_suppressed"
+      )
+      expect(response.parsed_body.dig("location", "city")).to eq("上海")
+      expect(callout_queries.length).to be < page_queries.length
     end
   end
 
@@ -515,7 +579,8 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       UserLocation.upsert_city_location(user.id, city: "上海")
 
       (
-        10 * WhereIsMyFriends::LocationDiscovery::PROFILE_SCAN_MULTIPLIER
+        10 *
+          WhereIsMyFriends::ViewerAwareMemberSelection::DEFAULT_SCAN_MULTIPLIER
       ).times do
         hidden_user =
           Fabricate(:user, trust_level: 2, last_seen_at: 1.minute.ago)

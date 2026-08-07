@@ -6,6 +6,7 @@ RSpec.describe WhereIsMyFriends::MemberJoinedNotifier do
 
   before do
     SiteSetting.where_is_my_friends_enabled = true
+    SiteSetting.hide_new_user_profiles = false
     UserLocation.upsert_city_location(recipient.id, city: "上海")
   end
 
@@ -30,6 +31,15 @@ RSpec.describe WhereIsMyFriends::MemberJoinedNotifier do
 
   it "skips recipients who disabled city notifications" do
     recipient.user_option.update!(where_is_my_friends_notify_city: false)
+
+    expect {
+      described_class.notify!(joiner: joiner, city: "上海", city_key: "上海")
+    }.not_to change { recipient.notifications.count }
+  end
+
+  it "skips a recipient who cannot see the joining member's profile" do
+    SiteSetting.allow_users_to_hide_profile = true
+    joiner.user_option.update!(hide_profile: true)
 
     expect {
       described_class.notify!(joiner: joiner, city: "上海", city_key: "上海")

@@ -9,6 +9,7 @@ import { ajax } from "discourse/lib/ajax";
 import { eq } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
+import { createClientTelemetry } from "discourse/plugins/where-is-my-friends/discourse/lib/client-telemetry";
 
 export default class CommunityDiscoveryPanel extends Component {
   @service currentUser;
@@ -21,8 +22,10 @@ export default class CommunityDiscoveryPanel extends Component {
   @tracked error = false;
   @tracked expanded = false;
   @tracked activeGroup = "topics";
+  @tracked loadedGroups = new Set();
 
   refreshSequence = 0;
+  telemetry = createClientTelemetry({ surface: "homepage" });
 
   get topics() {
     return (this.model?.recommended_topics ?? []).slice(0, 3);
@@ -46,12 +49,28 @@ export default class CommunityDiscoveryPanel extends Component {
     );
   }
 
+  get topicsGroupCount() {
+    return this.loadedGroups.has("topics") ? this.topics.length : "…";
+  }
+
+  get peopleGroupCount() {
+    return this.loadedGroups.has("people") ? this.people.length : "…";
+  }
+
+  get interestsGroupCount() {
+    return this.loadedGroups.has("interests") ? this.interests.length : "…";
+  }
+
+  get dynamicsGroupCount() {
+    return this.dynamicsLoaded ? this.recentDynamics.length : "…";
+  }
+
   get ownDynamicsUrl() {
     return `/u/${this.currentUser.username}/activity/dynamics`;
   }
 
   get resultCount() {
-    return this.topics.length + this.people.length + this.interests.length;
+    return this.activeRecommendations.length;
   }
 
   get activeHasResults() {
@@ -75,25 +94,26 @@ export default class CommunityDiscoveryPanel extends Component {
   @action
   async toggle() {
     this.expanded = !this.expanded;
-    void this.recordEvent(
+    void this.telemetry.record(
       this.expanded
         ? "recommendation_panel_expanded"
         : "recommendation_panel_collapsed",
-      null,
-      this.activeGroup
+      { recommendationGroup: this.activeGroup }
     );
     if (this.expanded) {
-      if (this.model) {
+      if (this.loadedGroups.has(this.activeGroup)) {
         this.queueImpressions();
       } else {
-        await this.loadRecommendations();
+        await this.loadRecommendations(null, this.activeGroup);
       }
     }
   }
 
   @action
   async refresh() {
-    void this.recordEvent("recommendation_refreshed", null, this.activeGroup);
+    void this.telemetry.record("recommendation_refreshed", {
+      recommendationGroup: this.activeGroup,
+    });
     if (this.activeGroup === "dynamics") {
       await this.loadRecentDynamics(true);
       return;
@@ -109,13 +129,19 @@ export default class CommunityDiscoveryPanel extends Component {
     }
 
     this.activeGroup = group;
-    void this.recordEvent("recommendation_group_selected", null, group);
+    void this.telemetry.record("recommendation_group_selected", {
+      recommendationGroup: group,
+    });
     if (group === "dynamics") {
       if (this.dynamicsLoaded) {
-        void this.recordEvent("recent_dynamics_viewed", null, "dynamics");
+        void this.telemetry.record("recent_dynamics_viewed", {
+          recommendationGroup: "dynamics",
+        });
       } else {
         await this.loadRecentDynamics();
       }
+    } else if (!this.loadedGroups.has(group)) {
+      await this.loadRecommendations(null, group);
     } else {
       this.queueImpressions();
     }
@@ -131,13 +157,14 @@ export default class CommunityDiscoveryPanel extends Component {
     this.error = false;
     let succeeded = false;
     try {
-      this.model = await ajax(
+      const response = await ajax(
         "/where-is-my-friends/recommendations/dismiss.json",
         {
           type: "POST",
           data: {
             target_type: targetType,
             target_id: recommendation.id,
+            group: this.activeGroup,
             surface: "homepage",
             candidate_source: recommendation.candidate_source,
             rank: recommendation.rank,
@@ -145,6 +172,7 @@ export default class CommunityDiscoveryPanel extends Component {
           },
         }
       );
+      this.model = { ...this.model, ...response };
       succeeded = true;
     } catch {
       this.error = true;
@@ -158,24 +186,36 @@ export default class CommunityDiscoveryPanel extends Component {
 
   @action
   trackOpen(eventName, recommendation) {
-    void this.recordEvent(eventName, recommendation);
+    void this.telemetry.record(eventName, {
+      recommendationGroup: this.activeGroup,
+      recommendation,
+      algorithmVersion: this.model?.algorithm_version,
+      resultCount: this.resultCount,
+    });
   }
 
   @action
   trackDynamicOpen(eventName, recommendation = null) {
-    void this.recordEvent(eventName, recommendation, "dynamics");
+    void this.telemetry.record(eventName, {
+      recommendationGroup: "dynamics",
+      recommendation,
+    });
   }
 
-  async loadRecommendations(refresh = null) {
+  async loadRecommendations(refresh = null, group = this.activeGroup) {
     this.loading = true;
     this.error = false;
     let succeeded = false;
     try {
-      const options = refresh === null ? {} : { data: { refresh } };
-      this.model = await ajax(
-        "/where-is-my-friends/recommendations.json",
-        options
-      );
+      const data = { group };
+      if (refresh !== null) {
+        data.refresh = refresh;
+      }
+      const response = await ajax("/where-is-my-friends/recommendations.json", {
+        data,
+      });
+      this.model = { ...this.model, ...response };
+      this.loadedGroups = new Set([...this.loadedGroups, group]);
       succeeded = true;
     } catch {
       this.error = true;
@@ -198,7 +238,9 @@ export default class CommunityDiscoveryPanel extends Component {
       const result = await ajax("/where-is-my-friends/dynamics/recent.json");
       this.recentDynamics = (result.dynamics ?? []).slice(0, 3);
       this.dynamicsLoaded = true;
-      void this.recordEvent("recent_dynamics_viewed", null, "dynamics");
+      void this.telemetry.record("recent_dynamics_viewed", {
+        recommendationGroup: "dynamics",
+      });
     } catch {
       this.error = true;
     } finally {
@@ -214,46 +256,19 @@ export default class CommunityDiscoveryPanel extends Component {
     if (
       !this.expanded ||
       this.loading ||
-      !this.model ||
+      !this.loadedGroups.has(this.activeGroup) ||
       this.activeGroup === "dynamics"
     ) {
       return;
     }
 
     for (const recommendation of this.activeRecommendations) {
-      void this.recordEvent("recommendation_impression", recommendation);
-    }
-  }
-
-  async recordEvent(
-    eventName,
-    recommendation = null,
-    recommendationGroup = this.activeGroup
-  ) {
-    const data = {
-      event_name: eventName,
-      surface: "homepage",
-      recommendation_group: recommendationGroup,
-    };
-    if (recommendation) {
-      Object.assign(data, {
-        candidate_source: recommendation.candidate_source,
-        rank: recommendation.rank,
-        algorithm_version: this.model?.algorithm_version,
-        result_count: this.resultCount,
+      void this.telemetry.record("recommendation_impression", {
+        recommendationGroup: this.activeGroup,
+        recommendation,
+        algorithmVersion: this.model?.algorithm_version,
+        resultCount: this.resultCount,
       });
-      if (recommendationGroup === "people") {
-        data.has_dynamic_preview = Boolean(recommendation.latest_dynamic);
-      }
-    }
-
-    try {
-      await ajax("/where-is-my-friends/events.json", {
-        type: "POST",
-        data,
-      });
-    } catch {
-      // Measurement must never block community discovery.
     }
   }
 
@@ -354,7 +369,7 @@ export default class CommunityDiscoveryPanel extends Component {
                 @action={{fn this.selectGroup "topics"}}
                 @translatedLabel={{i18n
                   "where_is_my_friends.community_discovery.topics_group"
-                  count=this.topics.length
+                  count=this.topicsGroupCount
                 }}
                 @ariaPressed={{eq this.activeGroup "topics"}}
                 class={{if
@@ -368,7 +383,7 @@ export default class CommunityDiscoveryPanel extends Component {
                 @action={{fn this.selectGroup "people"}}
                 @translatedLabel={{i18n
                   "where_is_my_friends.community_discovery.people_group"
-                  count=this.people.length
+                  count=this.peopleGroupCount
                 }}
                 @ariaPressed={{eq this.activeGroup "people"}}
                 class={{if
@@ -382,7 +397,7 @@ export default class CommunityDiscoveryPanel extends Component {
                 @action={{fn this.selectGroup "interests"}}
                 @translatedLabel={{i18n
                   "where_is_my_friends.community_discovery.interests_group"
-                  count=this.interests.length
+                  count=this.interestsGroupCount
                 }}
                 @ariaPressed={{eq this.activeGroup "interests"}}
                 class={{if
@@ -397,7 +412,7 @@ export default class CommunityDiscoveryPanel extends Component {
                   @action={{fn this.selectGroup "dynamics"}}
                   @translatedLabel={{i18n
                     "where_is_my_friends.community_discovery.dynamics_group"
-                    count=this.recentDynamics.length
+                    count=this.dynamicsGroupCount
                   }}
                   @ariaPressed={{eq this.activeGroup "dynamics"}}
                   class={{if

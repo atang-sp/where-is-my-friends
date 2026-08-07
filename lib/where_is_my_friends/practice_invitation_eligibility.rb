@@ -8,6 +8,8 @@ module WhereIsMyFriends
       @sender = sender
       @recipient = recipient
       @guardian = Guardian.new(sender)
+      @member_selection =
+        ViewerAwareMemberSelection.new(viewer: sender, guardian: @guardian)
     end
 
     def available?
@@ -72,13 +74,11 @@ module WhereIsMyFriends
     end
 
     def recipient_available?
-      @recipient.active? && !@recipient.staged? && !@recipient.suspended? &&
-        !@recipient.silenced? && @guardian.can_see_profile?(@recipient)
+      @member_selection.visible?(@recipient)
     end
 
     def sender_available?
-      @sender.active? && !@sender.staged? && !@sender.suspended? &&
-        !@sender.silenced?
+      @member_selection.account_eligible?(@sender)
     end
 
     def recipient_accepts_invitations?

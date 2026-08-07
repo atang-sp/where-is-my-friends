@@ -5,7 +5,7 @@ import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 
 export default <template>
-  {{#if @legacyPracticeBookmarks.length}}
+  {{#if @state.legacyPracticeBookmarks.length}}
     <section class="interest-onboarding__legacy-bookmarks">
       <div>
         <p class="interest-onboarding__eyebrow">{{i18n
@@ -17,7 +17,7 @@ export default <template>
           }}</p>
       </div>
       <div class="interest-onboarding__legacy-bookmark-list">
-        {{#each @legacyPracticeBookmarks as |bookmark|}}
+        {{#each @state.legacyPracticeBookmarks as |bookmark|}}
           <article data-test-legacy-practice-bookmark={{bookmark.id}}>
             <div>
               <h3>@{{bookmark.target.username}}</h3>
@@ -33,17 +33,21 @@ export default <template>
                 }}</p>
               <div class="interest-onboarding__invitation-actions">
                 <DButton
-                  @action={{fn @respondToLegacyBookmark bookmark "reconfirm"}}
+                  @action={{fn
+                    @on.respondToLegacyBookmark
+                    bookmark
+                    "reconfirm"
+                  }}
                   @label="where_is_my_friends.legacy_practice_bookmarks.reconfirm"
                   @icon="check"
-                  @disabled={{@loading}}
+                  @disabled={{@state.loading}}
                   class="btn-primary"
                   data-test-reconfirm-legacy-practice={{bookmark.id}}
                 />
                 <DButton
-                  @action={{fn @respondToLegacyBookmark bookmark "dismiss"}}
+                  @action={{fn @on.respondToLegacyBookmark bookmark "dismiss"}}
                   @label="where_is_my_friends.legacy_practice_bookmarks.dismiss"
-                  @disabled={{@loading}}
+                  @disabled={{@state.loading}}
                   class="btn-flat"
                   data-test-dismiss-legacy-practice={{bookmark.id}}
                 />
@@ -64,7 +68,7 @@ export default <template>
     </section>
   {{/if}}
 
-  {{#if @invitationTarget}}
+  {{#if @state.invitationTarget}}
     <section
       class="interest-onboarding__invitation-form"
       data-test-practice-invitation-form
@@ -75,7 +79,7 @@ export default <template>
           }}</p>
         <h2>{{i18n
             "where_is_my_friends.practice_invitations.form_title"
-            username=@invitationTarget.username
+            username=@state.invitationTarget.username
           }}</h2>
         <p>{{i18n
             "where_is_my_friends.practice_invitations.one_to_one_notice"
@@ -87,11 +91,11 @@ export default <template>
             "where_is_my_friends.practice_invitations.interest"
           }}</span>
         <select
-          value={{@invitationInterestId}}
+          value={{@state.invitationInterestId}}
           data-test-practice-invitation-interest
-          {{on "change" @updateInvitationInterest}}
+          {{on "change" @on.updateInvitationInterest}}
         >
-          {{#each @invitationInterests as |interest|}}
+          {{#each @state.invitationInterests as |interest|}}
             <option value={{interest.id}}>{{interest.name}}</option>
           {{/each}}
         </select>
@@ -103,9 +107,9 @@ export default <template>
           }}</span>
         <input
           type="datetime-local"
-          value={{@invitationProposedAt}}
+          value={{@state.invitationProposedAt}}
           data-test-practice-invitation-time
-          {{on "input" @updateInvitationProposedAt}}
+          {{on "input" @on.updateInvitationProposedAt}}
         />
       </label>
 
@@ -113,9 +117,9 @@ export default <template>
         <span>{{i18n "where_is_my_friends.practice_invitations.note"}}</span>
         <textarea
           maxlength="500"
-          value={{@invitationNote}}
+          value={{@state.invitationNote}}
           data-test-practice-invitation-note
-          {{on "input" @updateInvitationNote}}
+          {{on "input" @on.updateInvitationNote}}
         ></textarea>
       </label>
 
@@ -123,22 +127,22 @@ export default <template>
         class="interest-onboarding__invitation-preview"
         data-test-practice-invitation-preview
       >
-        {{@invitationPreview}}
+        {{@state.invitationPreview}}
       </p>
 
       <div class="interest-onboarding__form-actions">
         <DButton
-          @action={{@sendInvitation}}
+          @action={{@on.sendInvitation}}
           @label="where_is_my_friends.practice_invitations.send"
           @icon="paper-plane"
-          @disabled={{@loading}}
+          @disabled={{@state.loading}}
           class="btn-primary"
           data-test-send-practice-invitation
         />
         <DButton
-          @action={{@closeInvitation}}
+          @action={{@on.closeInvitation}}
           @label="where_is_my_friends.practice_invitations.cancel"
-          @disabled={{@loading}}
+          @disabled={{@state.loading}}
           class="btn-flat"
           data-test-cancel-practice-invitation
         />
@@ -146,11 +150,11 @@ export default <template>
     </section>
   {{/if}}
 
-  {{#if @incomingInvitations.length}}
+  {{#if @state.incomingInvitations.length}}
     <section class="interest-onboarding__invitations">
       <h2>{{i18n "where_is_my_friends.practice_invitations.incoming"}}</h2>
       <div class="interest-onboarding__invitation-list">
-        {{#each @incomingInvitations as |invitation|}}
+        {{#each @state.incomingInvitations as |invitation|}}
           <article data-test-incoming-invitation={{invitation.id}}>
             <h3>@{{invitation.sender.username}}</h3>
             <p>{{invitation.preset_message}}</p>
@@ -166,24 +170,24 @@ export default <template>
             {{#if (eq invitation.status "pending")}}
               <div class="interest-onboarding__invitation-actions">
                 <DButton
-                  @action={{fn @respondToInvitation invitation "accept"}}
+                  @action={{fn @on.respondToInvitation invitation "accept"}}
                   @label="where_is_my_friends.practice_invitations.accept"
                   @icon="check"
-                  @disabled={{@loading}}
+                  @disabled={{@state.loading}}
                   class="btn-primary"
                   data-test-accept-practice-invitation={{invitation.id}}
                 />
                 <DButton
-                  @action={{fn @respondToInvitation invitation "decline"}}
+                  @action={{fn @on.respondToInvitation invitation "decline"}}
                   @label="where_is_my_friends.practice_invitations.decline"
-                  @disabled={{@loading}}
+                  @disabled={{@state.loading}}
                   class="btn-default"
                   data-test-decline-practice-invitation={{invitation.id}}
                 />
                 <DButton
-                  @action={{fn @respondToInvitation invitation "ignore"}}
+                  @action={{fn @on.respondToInvitation invitation "ignore"}}
                   @label="where_is_my_friends.practice_invitations.ignore"
-                  @disabled={{@loading}}
+                  @disabled={{@state.loading}}
                   class="btn-flat"
                   data-test-ignore-practice-invitation={{invitation.id}}
                 />
@@ -208,12 +212,12 @@ export default <template>
     </section>
   {{/if}}
 
-  {{#if @outgoingInvitations.length}}
+  {{#if @state.outgoingInvitations.length}}
     <details class="interest-onboarding__outgoing-invitations">
       <summary>{{i18n
           "where_is_my_friends.practice_invitations.outgoing"
         }}</summary>
-      {{#each @outgoingInvitations as |invitation|}}
+      {{#each @state.outgoingInvitations as |invitation|}}
         <p data-test-outgoing-invitation={{invitation.id}}>
           @{{invitation.recipient.username}}
           ·

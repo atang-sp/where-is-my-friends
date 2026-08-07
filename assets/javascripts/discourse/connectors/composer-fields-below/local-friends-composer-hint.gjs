@@ -60,8 +60,8 @@ export default class LocalFriendsComposerHint extends Component {
     }
 
     try {
-      const data = await ajax("/where-is-my-friends.json");
-      if (!data.location) {
+      const data = await ajax("/where-is-my-friends/location-presence.json");
+      if (!data.has_location) {
         this.userCity = data.profile_location || null;
         this.visible = true;
       }

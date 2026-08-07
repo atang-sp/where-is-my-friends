@@ -10,7 +10,15 @@ module WhereIsMyFriends
     before_action :ensure_plugin_enabled
 
     def index
-      render json: LocationOverview.new(user: current_user).call
+      render json: location_overview.call(projection: :page)
+    end
+
+    def callout
+      render json: location_overview.call(projection: :callout)
+    end
+
+    def presence
+      render json: location_overview.call(projection: :presence)
     end
 
     def create
@@ -64,6 +72,10 @@ module WhereIsMyFriends
     end
 
     private
+
+    def location_overview
+      LocationOverview.new(user: current_user)
+    end
 
     def current_location
       UserLocation.active_for_discovery.find_by(user_id: current_user.id)

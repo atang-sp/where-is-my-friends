@@ -11,19 +11,19 @@ export default <template>
     <p
       class="where-is-my-friends__participant-proof"
       data-test-participant-proof
-    >{{@participantProof}}</p>
-    {{#if @hasCityDirectory}}
+    >{{@state.participantProof}}</p>
+    {{#if @state.hasCityDirectory}}
       <div class="where-is-my-friends__directory">
-        {{#if @cityDirectory.active.length}}
+        {{#if @state.cityDirectory.active.length}}
           <section data-test-city-directory-active>
             <h3>{{i18n "where_is_my_friends.active_cities"}}</h3>
             <div class="where-is-my-friends__city-grid">
-              {{#each @cityDirectory.active as |entry|}}
+              {{#each @state.cityDirectory.active as |entry|}}
                 <button
                   type="button"
                   class="where-is-my-friends__city-card"
                   data-test-city-card={{entry.city_key}}
-                  {{on "click" (fn @previewSuggestedCity entry.city)}}
+                  {{on "click" (fn @on.previewSuggestedCity entry.city)}}
                 >
                   <strong>{{entry.city}}</strong>
                   <span>
@@ -42,16 +42,16 @@ export default <template>
             </div>
           </section>
         {{/if}}
-        {{#if @cityDirectory.growing.length}}
+        {{#if @state.cityDirectory.growing.length}}
           <section data-test-city-directory-growing>
             <h3>{{i18n "where_is_my_friends.growing_cities"}}</h3>
             <div class="where-is-my-friends__city-grid">
-              {{#each @cityDirectory.growing as |entry|}}
+              {{#each @state.cityDirectory.growing as |entry|}}
                 <button
                   type="button"
                   class="where-is-my-friends__city-card"
                   data-test-city-card={{entry.city_key}}
-                  {{on "click" (fn @previewSuggestedCity entry.city)}}
+                  {{on "click" (fn @on.previewSuggestedCity entry.city)}}
                 >
                   <strong>{{entry.city}}</strong>
                   <span>
@@ -78,89 +78,89 @@ export default <template>
     <input
       id="where-is-my-friends-city"
       type="text"
-      value={{@city}}
+      value={{@state.city}}
       list="where-is-my-friends-city-suggestions"
       autocomplete="address-level2"
       placeholder={{i18n "where_is_my_friends.city_placeholder"}}
       data-test-city-input
-      {{on "input" @updateCity}}
+      {{on "input" @on.updateCity}}
     />
     <datalist id="where-is-my-friends-city-suggestions">
-      {{#each @cityOptions as |suggestion|}}
+      {{#each @state.cityOptions as |suggestion|}}
         <option value={{suggestion.city}}></option>
       {{/each}}
     </datalist>
-    {{#if @autoCity}}
+    {{#if @state.autoCity}}
       <p
         class="where-is-my-friends__auto-city-hint"
         data-test-auto-city-hint
-      >{{i18n "where_is_my_friends.auto_city_hint" city=@autoCity}}</p>
+      >{{i18n "where_is_my_friends.auto_city_hint" city=@state.autoCity}}</p>
     {{/if}}
-    {{#if @cityPreview}}
+    {{#if @state.cityPreview}}
       <p
         class="where-is-my-friends__city-preview"
         data-test-city-preview
-      >{{@cityPreview}}</p>
+      >{{@state.cityPreview}}</p>
     {{/if}}
-    {{#if @cityNormalizationHint}}
+    {{#if @state.cityNormalizationHint}}
       <p
         class="where-is-my-friends__city-hint"
         data-test-city-hint
-      >{{@cityNormalizationHint}}</p>
+      >{{@state.cityNormalizationHint}}</p>
     {{/if}}
-    {{#if @showRegion}}
+    {{#if @state.showRegion}}
       <label for="where-is-my-friends-region">{{i18n
           "where_is_my_friends.region_optional"
         }}</label>
       <input
         id="where-is-my-friends-region"
         type="text"
-        value={{@region}}
+        value={{@state.region}}
         autocomplete="address-level1"
         data-test-region-field
-        {{on "input" @updateRegion}}
+        {{on "input" @on.updateRegion}}
       />
     {{else}}
       <DButton
-        @action={{@revealRegion}}
+        @action={{@on.revealRegion}}
         @label="where_is_my_friends.add_region"
         @icon="plus"
         class="btn-flat where-is-my-friends__add-region"
         data-test-toggle-region
       />
     {{/if}}
-    {{#if @hasCityDirectory}}
+    {{#if @state.hasCityDirectory}}
       <DButton
-        @action={{@previewCurrentCity}}
+        @action={{@on.previewCurrentCity}}
         @label="where_is_my_friends.preview_city"
         @icon="magnifying-glass-location"
-        @disabled={{@previewLoading}}
+        @disabled={{@state.previewLoading}}
         class="btn-primary"
         data-test-preview-city
       />
-      {{#if @networkPreview}}
+      {{#if @state.networkPreview}}
         <section
           class="where-is-my-friends__network-preview"
           data-test-city-network-preview
         >
-          <h3>{{@networkPreview.city.city}}</h3>
+          <h3>{{@state.networkPreview.city.city}}</h3>
           <p>
-            {{#if @networkPreview.city.counts_suppressed}}
+            {{#if @state.networkPreview.city.counts_suppressed}}
               {{i18n "where_is_my_friends.aggregate_counts_suppressed"}}
             {{else}}
               {{i18n
                 "where_is_my_friends.preview_city_counts"
-                active=@networkPreview.city.recent_active_count
-                joined=@networkPreview.city.joined_count
+                active=@state.networkPreview.city.recent_active_count
+                joined=@state.networkPreview.city.joined_count
               }}
             {{/if}}
           </p>
-          {{#unless @networkPreview.city.canonical}}
+          {{#unless @state.networkPreview.city.canonical}}
             <p class="alert alert-info">{{i18n
                 "where_is_my_friends.unverified_city_notice"
               }}</p>
           {{/unless}}
-          {{#if @previewRadiusButtons.length}}
+          {{#if @state.previewRadiusButtons.length}}
             <div
               class="where-is-my-friends__preview-radii"
               role="group"
@@ -168,9 +168,9 @@ export default <template>
                 "where_is_my_friends.recommended_activity_range"
               }}
             >
-              {{#each @previewRadiusButtons as |option|}}
+              {{#each @state.previewRadiusButtons as |option|}}
                 <DButton
-                  @action={{fn @selectPreviewRadius option.radius_km}}
+                  @action={{fn @on.selectPreviewRadius option.radius_km}}
                   @translatedLabel={{option.label}}
                   class={{if option.selected "btn-primary" "btn-flat"}}
                   data-test-preview-radius={{option.radius_km}}
@@ -178,10 +178,10 @@ export default <template>
               {{/each}}
             </div>
           {{/if}}
-          {{#if @networkPreview.nearby_cities.length}}
+          {{#if @state.networkPreview.nearby_cities.length}}
             <div class="where-is-my-friends__preview-nearby">
               <h4>{{i18n "where_is_my_friends.nearby_city_network"}}</h4>
-              {{#each @networkPreview.nearby_cities as |nearby|}}
+              {{#each @state.networkPreview.nearby_cities as |nearby|}}
                 <p data-test-preview-nearby-city={{nearby.city_key}}>
                   <strong>{{nearby.city}}</strong>
                   <span>
@@ -203,12 +203,12 @@ export default <template>
               {{/each}}
             </div>
           {{/if}}
-          {{#if @networkPreview.local_topic_compose_url}}
+          {{#if @state.networkPreview.local_topic_compose_url}}
             <LocalTopicsPanel
-              @actionUrl={{@networkPreview.local_topic_compose_url}}
-              @city={{@networkPreview.city.city}}
+              @actionUrl={{@state.networkPreview.local_topic_compose_url}}
+              @city={{@state.networkPreview.city.city}}
               @compose={{true}}
-              @onAction={{@trackLocalTopicCompose}}
+              @onAction={{@on.trackLocalTopicCompose}}
             />
           {{/if}}
           <fieldset class="where-is-my-friends__join-notifications">
@@ -216,27 +216,27 @@ export default <template>
             <label>
               <input
                 type="checkbox"
-                checked={{@notifyCity}}
+                checked={{@state.notifyCity}}
                 data-test-join-notify-city
-                {{on "change" @toggleJoinNotifyCity}}
+                {{on "change" @on.toggleJoinNotifyCity}}
               />
               {{i18n "where_is_my_friends.notify_city_members"}}
             </label>
             <label>
               <input
                 type="checkbox"
-                checked={{@notifyNearby}}
+                checked={{@state.notifyNearby}}
                 data-test-join-notify-nearby
-                {{on "change" @toggleJoinNotifyNearby}}
+                {{on "change" @on.toggleJoinNotifyNearby}}
               />
               {{i18n "where_is_my_friends.notify_nearby_members"}}
             </label>
           </fieldset>
           <DButton
-            @action={{@saveCity}}
-            @translatedLabel={{@previewJoinLabel}}
+            @action={{@on.saveCity}}
+            @translatedLabel={{@state.previewJoinLabel}}
             @icon="location-dot"
-            @disabled={{@loading}}
+            @disabled={{@state.loading}}
             class="btn-primary"
             data-test-join-city
             data-test-save-city
@@ -249,27 +249,27 @@ export default <template>
         <label>
           <input
             type="checkbox"
-            checked={{@notifyCity}}
+            checked={{@state.notifyCity}}
             data-test-join-notify-city
-            {{on "change" @toggleJoinNotifyCity}}
+            {{on "change" @on.toggleJoinNotifyCity}}
           />
           {{i18n "where_is_my_friends.notify_city_members"}}
         </label>
         <label>
           <input
             type="checkbox"
-            checked={{@notifyNearby}}
+            checked={{@state.notifyNearby}}
             data-test-join-notify-nearby
-            {{on "change" @toggleJoinNotifyNearby}}
+            {{on "change" @on.toggleJoinNotifyNearby}}
           />
           {{i18n "where_is_my_friends.notify_nearby_members"}}
         </label>
       </fieldset>
       <DButton
-        @action={{@saveCity}}
+        @action={{@on.saveCity}}
         @label="where_is_my_friends.save_city"
         @icon="location-dot"
-        @disabled={{@loading}}
+        @disabled={{@state.loading}}
         class="btn-primary"
         data-test-save-city
       />

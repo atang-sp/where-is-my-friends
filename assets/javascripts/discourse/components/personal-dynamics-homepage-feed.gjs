@@ -6,6 +6,7 @@ import { ajax } from "discourse/lib/ajax";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import PersonalDynamicsCard from "discourse/plugins/where-is-my-friends/discourse/components/personal-dynamics-card";
+import { createClientTelemetry } from "discourse/plugins/where-is-my-friends/discourse/lib/client-telemetry";
 
 export default class PersonalDynamicsHomepageFeed extends Component {
   @service currentUser;
@@ -17,6 +18,10 @@ export default class PersonalDynamicsHomepageFeed extends Component {
   @tracked loadingMore = false;
   @tracked error = null;
   viewRecorded = false;
+  telemetry = createClientTelemetry({
+    surface: "homepage",
+    recommendationGroup: "dynamics",
+  });
 
   constructor(owner, args) {
     super(owner, args);
@@ -40,7 +45,7 @@ export default class PersonalDynamicsHomepageFeed extends Component {
 
   @action
   trackOpen() {
-    void this.recordEvent("dynamic_opened");
+    void this.telemetry.record("dynamic_opened");
   }
 
   @action
@@ -65,7 +70,7 @@ export default class PersonalDynamicsHomepageFeed extends Component {
       this.beforeId = result.before_id;
       if (!append && !this.viewRecorded) {
         this.viewRecorded = true;
-        void this.recordEvent("recent_dynamics_viewed");
+        void this.telemetry.record("recent_dynamics_viewed");
       }
     } catch {
       this.error = i18n("where_is_my_friends.dynamics.feed_load_error");
@@ -73,21 +78,6 @@ export default class PersonalDynamicsHomepageFeed extends Component {
       if (!append) {
         this.loading = false;
       }
-    }
-  }
-
-  async recordEvent(eventName) {
-    try {
-      await ajax("/where-is-my-friends/events.json", {
-        type: "POST",
-        data: {
-          event_name: eventName,
-          surface: "homepage",
-          recommendation_group: "dynamics",
-        },
-      });
-    } catch {
-      // Measurement must never block the homepage feed.
     }
   }
 

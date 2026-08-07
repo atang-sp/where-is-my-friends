@@ -173,6 +173,24 @@ function homepageModel() {
   };
 }
 
+function recommendationGroupModel(model, group) {
+  if (!group) {
+    return model;
+  }
+
+  const key = {
+    topics: "recommended_topics",
+    people: "recommended_users",
+    interests: "recommended_interests",
+  }[group];
+  return {
+    algorithm_version: model.algorithm_version,
+    state: model.state,
+    recommendation_group: group,
+    [key]: model[key] ?? [],
+  };
+}
+
 async function triggerTrackedLink(selector) {
   const element = find(selector);
   const event = new element.ownerDocument.defaultView.MouseEvent("click", {
@@ -186,7 +204,7 @@ async function triggerTrackedLink(selector) {
 
 function setupApi(needs, state) {
   needs.pretender((server, helper) => {
-    server.get("/where-is-my-friends.json", () => {
+    const locationResponse = () => {
       state.locationRequests += 1;
       return helper.response({
         state: "setup",
@@ -197,10 +215,14 @@ function setupApi(needs, state) {
         settings: {},
         filterable_fields: [],
       });
-    });
+    };
+    server.get("/where-is-my-friends.json", locationResponse);
+    server.get("/where-is-my-friends/callout.json", locationResponse);
 
     server.get("/where-is-my-friends/recommendations.json", (request) => {
       state.recommendationRequests += 1;
+      const group = request.queryParams.group ?? null;
+      state.recommendationGroups.push(group);
       state.lastRefresh = request.queryParams.refresh ?? null;
       if (state.recommendationError) {
         return helper.response(500, { errors: ["unavailable"] });
@@ -208,10 +230,12 @@ function setupApi(needs, state) {
       if (state.deferRecommendations) {
         return new Promise((resolve) => {
           state.resolveRecommendations = () =>
-            resolve(helper.response(state.model));
+            resolve(
+              helper.response(recommendationGroupModel(state.model, group))
+            );
         });
       }
-      return helper.response(state.model);
+      return helper.response(recommendationGroupModel(state.model, group));
     });
 
     server.get("/where-is-my-friends/dynamics/recent.json", () => {
@@ -222,13 +246,18 @@ function setupApi(needs, state) {
       return helper.response({ dynamics: state.recentDynamics });
     });
 
-    server.get("/where-is-my-friends/practice-invitations.json", () =>
-      helper.response({
+    server.get("/where-is-my-friends/practice-invitations.json", () => {
+      if (state.invitationLoadError) {
+        return helper.response(503, {
+          errors: [state.invitationLoadError],
+        });
+      }
+      return helper.response({
         incoming: state.incoming,
         outgoing: state.outgoing,
         accepting_invitations: true,
-      })
-    );
+      });
+    });
 
     server.get(
       "/where-is-my-friends/practice-invitations/availability.json",
@@ -328,11 +357,12 @@ function setupApi(needs, state) {
       "/where-is-my-friends/recommendations/dismiss.json",
       (request) => {
         state.dismissedParams = new URLSearchParams(request.requestBody);
+        const group = state.dismissedParams.get("group");
         state.model = {
           ...completedModel(),
           recommended_topics: [],
         };
-        return helper.response(state.model);
+        return helper.response(recommendationGroupModel(state.model, group));
       }
     );
 
@@ -375,6 +405,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       events: [],
       eventPayloads: [],
       recommendationRequests: 0,
+      recommendationGroups: [],
       recentDynamicsRequests: 0,
       recentDynamicsError: false,
       recentDynamics: [],
@@ -385,6 +416,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       lastRefresh: null,
       incoming: [],
       outgoing: [],
+      invitationLoadError: null,
       invitationParams: null,
       acceptRequests: 0,
       availabilityRequests: 0,
@@ -572,6 +604,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
       .hasAttribute("aria-expanded", "true")
       .hasText("Collapse");
     assert.strictEqual(api.recommendationRequests, 1);
+    assert.deepEqual(api.recommendationGroups, ["topics"]);
     assert.dom("[data-test-community-content]").exists();
     assert
       .dom("[data-test-community-group='topics']")
@@ -580,11 +613,11 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert
       .dom("[data-test-community-group='people']")
       .hasAttribute("aria-pressed", "false")
-      .hasText("Members 3");
+      .hasText("Members …");
     assert
       .dom("[data-test-community-group='interests']")
       .hasAttribute("aria-pressed", "false")
-      .hasText("Interests 2");
+      .hasText("Interests …");
     assert.dom("[data-test-community-topic]").exists({ count: 3 });
     assert.dom("[data-test-community-person]").doesNotExist();
     assert.dom("[data-test-community-interest]").doesNotExist();
@@ -604,7 +637,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
           payload.get("surface") === "homepage" &&
           payload.get("recommendation_group") === "topics" &&
           payload.get("algorithm_version") === "participation_v1" &&
-          payload.get("result_count") === "8" &&
+          payload.get("result_count") === "3" &&
           payload.get("target_id") === null &&
           payload.get("topic_id") === null
       ),
@@ -628,7 +661,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-community-topic]").doesNotExist();
     assert.dom("[data-test-community-person]").exists({ count: 3 });
     assert.dom("[data-test-community-interest]").doesNotExist();
-    assert.strictEqual(api.recommendationRequests, 1);
+    assert.strictEqual(api.recommendationRequests, 2);
     assert.strictEqual(
       api.events.filter((event) => event === "recommendation_impression")
         .length,
@@ -643,7 +676,12 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-community-topic]").doesNotExist();
     assert.dom("[data-test-community-person]").doesNotExist();
     assert.dom("[data-test-community-interest]").exists({ count: 2 });
-    assert.strictEqual(api.recommendationRequests, 1);
+    assert.strictEqual(api.recommendationRequests, 3);
+    assert.deepEqual(api.recommendationGroups, [
+      "topics",
+      "people",
+      "interests",
+    ]);
     assert.strictEqual(
       api.events.filter((event) => event === "recommendation_impression")
         .length,
@@ -684,7 +722,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     await click("[data-test-community-toggle]");
 
     assert.dom("[data-test-community-content]").doesNotExist();
-    assert.strictEqual(api.recommendationRequests, 1);
+    assert.strictEqual(api.recommendationRequests, 2);
 
     await click("[data-test-community-toggle]");
 
@@ -692,7 +730,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert
       .dom("[data-test-community-group='people']")
       .hasAttribute("aria-pressed", "true");
-    assert.strictEqual(api.recommendationRequests, 1);
+    assert.strictEqual(api.recommendationRequests, 2);
     assert.strictEqual(
       api.events.filter((event) => event === "recommendation_impression")
         .length,
@@ -751,6 +789,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     await click("[data-test-community-refresh]");
 
     assert.strictEqual(api.recommendationRequests, 2);
+    assert.deepEqual(api.recommendationGroups, ["topics", "topics"]);
     assert.strictEqual(api.lastRefresh, "1");
     assert.dom("[data-test-community-topic]").exists({ count: 3 });
     assert.dom("[data-test-community-person]").doesNotExist();
@@ -817,7 +856,7 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-community-topic]").doesNotExist();
     assert.dom("[data-test-community-empty]").exists();
     assert.dom("[data-test-community-group='topics']").hasText("Discussions 0");
-    assert.dom("[data-test-community-group='people']").hasText("Members 1");
+    assert.dom("[data-test-community-group='people']").hasText("Members …");
     assert.dom("[data-test-community-person]").doesNotExist();
   });
 
@@ -861,10 +900,10 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-community-content]").exists();
     assert.dom("[data-test-community-empty]").exists();
     assert.dom("[data-test-community-group='topics']").hasText("Discussions 0");
-    assert.dom("[data-test-community-group='people']").hasText("Members 0");
+    assert.dom("[data-test-community-group='people']").hasText("Members …");
     assert
       .dom("[data-test-community-group='interests']")
-      .hasText("Interests 0");
+      .hasText("Interests …");
     assert.false(api.events.includes("recommendation_impression"));
   });
 
@@ -1128,6 +1167,20 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert.dom("[data-test-interest-onboarding-form]").exists();
     assert.dom("[data-test-save-interests]").isEnabled();
   });
+
+  test("an invitation load failure leaves recommendations usable", async function (assert) {
+    api.model = completedModel();
+    api.invitationLoadError = "Invitations are temporarily unavailable.";
+
+    await visit("/where-is-my-friends/interests");
+
+    assert
+      .dom("[data-test-practice-invitation-error]")
+      .hasText("Invitations are temporarily unavailable.");
+    assert.dom("[data-test-interest-error]").doesNotExist();
+    assert.dom("[data-test-recommended-topic='101']").exists();
+    assert.dom("[data-test-edit-interests]").isEnabled();
+  });
 });
 
 acceptance(
@@ -1144,7 +1197,7 @@ acceptance(
 
     let locationRequests = 0;
     needs.pretender((server, helper) => {
-      server.get("/where-is-my-friends.json", () => {
+      const locationResponse = () => {
         locationRequests += 1;
         return helper.response({
           state: "setup",
@@ -1155,7 +1208,9 @@ acceptance(
           settings: {},
           filterable_fields: [],
         });
-      });
+      };
+      server.get("/where-is-my-friends.json", locationResponse);
+      server.get("/where-is-my-friends/callout.json", locationResponse);
       server.post("/where-is-my-friends/events.json", () =>
         helper.response({ success: "OK" })
       );

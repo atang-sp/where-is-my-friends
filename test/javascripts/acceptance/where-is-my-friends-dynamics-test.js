@@ -46,7 +46,7 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
   });
 
   needs.pretender((server, helper) => {
-    server.get("/where-is-my-friends.json", () =>
+    const locationResponse = () =>
       helper.response({
         state: "setup",
         current_user: { id: 1, username: "current-user" },
@@ -55,8 +55,9 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
         city_suggestions: [],
         settings: {},
         filterable_fields: [],
-      })
-    );
+      });
+    server.get("/where-is-my-friends.json", locationResponse);
+    server.get("/where-is-my-friends/callout.json", locationResponse);
 
     server.get("/where-is-my-friends/dynamics.json", (request) => {
       api.feedRequests.push(request.queryParams);
