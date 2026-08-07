@@ -17,6 +17,7 @@ users = {
     }
   },
   shanghai_two: {
+    trust_level: TrustLevel[2],
     location: {
       city: "上海市",
       region: "上海"

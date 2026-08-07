@@ -26,11 +26,17 @@ export default <template>
                   {{on "click" (fn @previewSuggestedCity entry.city)}}
                 >
                   <strong>{{entry.city}}</strong>
-                  <span>{{i18n
-                      "where_is_my_friends.city_directory_counts"
-                      active=entry.recent_active_count
-                      joined=entry.joined_count
-                    }}</span>
+                  <span>
+                    {{#if entry.counts_suppressed}}
+                      {{i18n "where_is_my_friends.aggregate_counts_suppressed"}}
+                    {{else}}
+                      {{i18n
+                        "where_is_my_friends.city_directory_counts"
+                        active=entry.recent_active_count
+                        joined=entry.joined_count
+                      }}
+                    {{/if}}
+                  </span>
                 </button>
               {{/each}}
             </div>
@@ -48,11 +54,17 @@ export default <template>
                   {{on "click" (fn @previewSuggestedCity entry.city)}}
                 >
                   <strong>{{entry.city}}</strong>
-                  <span>{{i18n
-                      "where_is_my_friends.city_directory_counts"
-                      active=entry.recent_active_count
-                      joined=entry.joined_count
-                    }}</span>
+                  <span>
+                    {{#if entry.counts_suppressed}}
+                      {{i18n "where_is_my_friends.aggregate_counts_suppressed"}}
+                    {{else}}
+                      {{i18n
+                        "where_is_my_friends.city_directory_counts"
+                        active=entry.recent_active_count
+                        joined=entry.joined_count
+                      }}
+                    {{/if}}
+                  </span>
                 </button>
               {{/each}}
             </div>
@@ -132,11 +144,17 @@ export default <template>
           data-test-city-network-preview
         >
           <h3>{{@networkPreview.city.city}}</h3>
-          <p>{{i18n
-              "where_is_my_friends.preview_city_counts"
-              active=@networkPreview.city.recent_active_count
-              joined=@networkPreview.city.joined_count
-            }}</p>
+          <p>
+            {{#if @networkPreview.city.counts_suppressed}}
+              {{i18n "where_is_my_friends.aggregate_counts_suppressed"}}
+            {{else}}
+              {{i18n
+                "where_is_my_friends.preview_city_counts"
+                active=@networkPreview.city.recent_active_count
+                joined=@networkPreview.city.joined_count
+              }}
+            {{/if}}
+          </p>
           {{#unless @networkPreview.city.canonical}}
             <p class="alert alert-info">{{i18n
                 "where_is_my_friends.unverified_city_notice"
@@ -166,12 +184,21 @@ export default <template>
               {{#each @networkPreview.nearby_cities as |nearby|}}
                 <p data-test-preview-nearby-city={{nearby.city_key}}>
                   <strong>{{nearby.city}}</strong>
-                  <span>{{i18n
-                      "where_is_my_friends.nearby_city_counts"
-                      distance=nearby.approximate_distance_km
-                      active=nearby.recent_active_count
-                      joined=nearby.joined_count
-                    }}</span>
+                  <span>
+                    {{#if nearby.counts_suppressed}}
+                      {{i18n
+                        "where_is_my_friends.nearby_city_counts_suppressed"
+                        distance=nearby.approximate_distance_km
+                      }}
+                    {{else}}
+                      {{i18n
+                        "where_is_my_friends.nearby_city_counts"
+                        distance=nearby.approximate_distance_km
+                        active=nearby.recent_active_count
+                        joined=nearby.joined_count
+                      }}
+                    {{/if}}
+                  </span>
                 </p>
               {{/each}}
             </div>

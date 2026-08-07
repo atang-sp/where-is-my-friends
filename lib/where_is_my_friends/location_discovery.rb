@@ -2,8 +2,11 @@
 
 module WhereIsMyFriends
   class LocationDiscovery
-    def initialize(user:, origin:, raw_filters:, filterable_fields:)
+    PROFILE_SCAN_MULTIPLIER = 3
+
+    def initialize(user:, guardian:, origin:, raw_filters:, filterable_fields:)
       @user = user
+      @guardian = guardian
       @origin = origin
       @raw_filters = raw_filters
       @filterable_fields = filterable_fields
@@ -14,18 +17,23 @@ module WhereIsMyFriends
 
       radius = @origin.effective_discovery_radius_km
       filters = validated_filters
-      users, city_groups, expanded = discover_nearby(radius, filters)
+      users, city_groups, results_limited = discover_nearby(radius, filters)
+      expanded = false
 
       if users.empty? && radius < 200
-        users, city_groups, = discover_nearby(200, filters)
+        users, city_groups, expanded_results_limited =
+          discover_nearby(200, filters)
+        results_limited ||= expanded_results_limited
         expanded = true if users.any?
       end
 
+      return limited_result(radius) if users.empty? && results_limited
       return empty_result(radius) if users.empty?
 
       result = { state: "ready", users: users, city_groups: city_groups }.merge(
         local_topic_snapshot(radius)
       )
+      result[:results_limited] = true if results_limited
       if expanded
         result[:expanded_radius] = true
         result[:original_radius_km] = radius
@@ -45,10 +53,10 @@ module WhereIsMyFriends
 
       locations =
         UserLocation
-          .active_for_discovery
+          .discoverable
           .where(city_key: nearby_keys)
           .where.not(user_id: @user.id)
-          .includes(user: %i[user_option user_profile])
+          .includes(user: %i[user_option user_profile user_stat])
           .joins(:user)
 
       filters.each_with_index do |(key, value), index|
@@ -67,15 +75,18 @@ module WhereIsMyFriends
           )
       end
 
-      locations =
-        locations.order(
-          Arel.sql(
-            "CASE WHEN users.last_seen_at >= #{ActiveRecord::Base.connection.quote(90.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST"
-          )
-        ).limit(
-          UserLocation.discovery_limit(
-            SiteSetting.where_is_my_friends_max_users_display
-          )
+      limit =
+        UserLocation.discovery_limit(
+          SiteSetting.where_is_my_friends_max_users_display
+        )
+      locations, results_limited =
+        visible_locations(
+          locations.order(
+            Arel.sql(
+              "CASE WHEN users.last_seen_at >= #{ActiveRecord::Base.connection.quote(90.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST, users.id ASC"
+            )
+          ),
+          limit: limit
         )
 
       fields = @filterable_fields
@@ -101,18 +112,64 @@ module WhereIsMyFriends
           serialized_users: users
         )
 
-      [users, groups, false]
+      [users, groups, results_limited]
     end
 
     def empty_result(radius)
+      nearby_keys =
+        CityCentroidLookup.instance.city_keys_within_radius(
+          @origin.city_key,
+          radius
+        ) - [@origin.city_key]
       nearby_city_count =
         UserLocation
-          .active_for_discovery
-          .where.not(city_key: @origin.city_key)
+          .discoverable
+          .where(city_key: nearby_keys)
           .where.not(user_id: @user.id)
           .count
+      protected_count =
+        if nearby_city_count.zero?
+          { nearby_city_count: 0, nearby_city_count_suppressed: false }
+        else
+          AggregatePrivacy.protect_counts(
+            { nearby_city_count: nearby_city_count },
+            :nearby_city_count
+          )
+        end
 
-      { state: "empty", users: [], nearby_city_count: nearby_city_count }.merge(
+      { state: "empty", users: [] }.merge(protected_count).merge(
+        local_topic_snapshot(radius)
+      )
+    end
+
+    def visible_locations(scope, limit:)
+      visible = []
+      offset = 0
+      scan_budget = limit * PROFILE_SCAN_MULTIPLIER
+      scan_truncated = false
+
+      while offset < scan_budget
+        batch_limit = [limit, scan_budget - offset].min
+        batch = scope.offset(offset).limit(batch_limit).to_a
+        break if batch.empty?
+
+        visible.concat(
+          batch.select { |location| @guardian.can_see_profile?(location.user) }
+        )
+        break if visible.length >= limit || batch.length < batch_limit
+
+        offset += batch.length
+        if offset >= scan_budget
+          scan_truncated = scope.offset(offset).exists?
+          break
+        end
+      end
+
+      [visible.first(limit), scan_truncated]
+    end
+
+    def limited_result(radius)
+      { state: "limited", users: [], results_limited: true }.merge(
         local_topic_snapshot(radius)
       )
     end

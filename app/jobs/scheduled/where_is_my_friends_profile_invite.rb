@@ -16,9 +16,13 @@ module Jobs
 
     def candidates
       User
+        .real
+        .activated
+        .not_staged
+        .not_suspended
+        .not_silenced
         .joins(:user_profile)
         .where.not(user_profiles: { location: [nil, ""] })
-        .where(active: true)
         .where("users.id NOT IN (SELECT user_id FROM user_locations)")
         .where(
           "users.id NOT IN (SELECT user_id FROM user_custom_fields WHERE name = ?)",
@@ -31,15 +35,15 @@ module Jobs
       city = user.user_profile.location.strip
       nearby_count =
         UserLocation
-          .active_for_discovery
+          .discoverable
           .where(city_key: UserLocation.normalize_city(city))
           .count
 
       body =
         I18n.t(
-          "where_is_my_friends.notification.profile_location_invite",
+          profile_location_invite_key(nearby_count),
           city: city,
-          count: [nearby_count, 1].max,
+          count: nearby_count,
           locale: user.effective_locale
         )
 
@@ -65,6 +69,16 @@ module Jobs
       )
     rescue StandardError
       # Individual failures must not abort the batch.
+    end
+
+    def profile_location_invite_key(nearby_count)
+      if nearby_count.zero?
+        "where_is_my_friends.notification.profile_location_invite_empty"
+      elsif WhereIsMyFriends::AggregatePrivacy.suppressed?(nearby_count)
+        "where_is_my_friends.notification.profile_location_invite_suppressed"
+      else
+        "where_is_my_friends.notification.profile_location_invite"
+      end
     end
   end
 end

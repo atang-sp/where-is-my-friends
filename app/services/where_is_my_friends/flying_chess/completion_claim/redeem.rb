@@ -43,8 +43,7 @@ module WhereIsMyFriends
         end
 
         def claims_enabled
-          SiteSetting.where_is_my_friends_enabled &&
-            SiteSetting.where_is_my_friends_flying_chess_achievements_enabled &&
+          FlyingChess.achievements_enabled? &&
             SiteSetting
               .where_is_my_friends_flying_chess_claim_secret
               .to_s

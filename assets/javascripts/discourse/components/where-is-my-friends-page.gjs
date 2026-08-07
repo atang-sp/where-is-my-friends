@@ -36,6 +36,8 @@ export default class WhereIsMyFriendsPage extends Component {
   @tracked notifyCity;
   @tracked notifyNearby;
   @tracked nearbyCityCount = 0;
+  @tracked nearbyCityCountSuppressed = false;
+  @tracked resultsLimited = false;
   @tracked expandedRadius = false;
   @tracked originalRadiusKm = null;
   @tracked expandedRadiusKm = null;
@@ -72,6 +74,10 @@ export default class WhereIsMyFriendsPage extends Component {
 
   get isEmpty() {
     return this.discoveryState === "empty";
+  }
+
+  get isLimited() {
+    return this.discoveryState === "limited";
   }
 
   get availableUsers() {
@@ -306,11 +312,15 @@ export default class WhereIsMyFriendsPage extends Component {
     return (this.networkPreview?.radius_options ?? []).map((option) => ({
       ...option,
       selected: option.radius_km === this.selectedPreviewRadius,
-      label: i18n("where_is_my_friends.preview_radius_summary", {
-        radius: option.radius_km,
-        active: option.recent_active_count,
-        joined: option.joined_count,
-      }),
+      label: option.counts_suppressed
+        ? i18n("where_is_my_friends.preview_radius_counts_suppressed", {
+            radius: option.radius_km,
+          })
+        : i18n("where_is_my_friends.preview_radius_summary", {
+            radius: option.radius_km,
+            active: option.recent_active_count,
+            joined: option.joined_count,
+          }),
     }));
   }
 
@@ -511,10 +521,18 @@ export default class WhereIsMyFriendsPage extends Component {
       this.users = response.users ?? [];
       this.cityGroups = response.city_groups ?? [];
       this.nearbyCityCount = response.nearby_city_count ?? 0;
+      this.nearbyCityCountSuppressed =
+        response.nearby_city_count_suppressed ?? false;
+      this.resultsLimited = response.results_limited ?? false;
       this.expandedRadius = response.expanded_radius ?? false;
       this.originalRadiusKm = response.original_radius_km ?? null;
       this.expandedRadiusKm = response.expanded_radius_km ?? null;
-      this.discoveryState = this.availableUsers.length > 0 ? "ready" : "empty";
+      this.discoveryState =
+        this.availableUsers.length > 0
+          ? "ready"
+          : this.resultsLimited
+            ? "limited"
+            : "empty";
       void this.recordEvent("results_viewed", {
         location_mode: this.location?.discovery_mode ?? "city",
         result_count: this.availableUsers.length,
@@ -793,17 +811,20 @@ export default class WhereIsMyFriendsPage extends Component {
           @hasUsers={{this.hasUsers}}
           @inviteFeedback={{this.inviteFeedback}}
           @isEmpty={{this.isEmpty}}
+          @isLimited={{this.isLimited}}
           @loading={{this.loading}}
           @localTopicActionUrl={{this.localTopicActionUrl}}
           @location={{this.location}}
           @memberFilter={{this.memberFilter}}
           @nearbyCityCount={{this.nearbyCityCount}}
+          @nearbyCityCountSuppressed={{this.nearbyCityCountSuppressed}}
           @notifyCity={{this.notifyCity}}
           @openAdvancedLocation={{this.openAdvancedLocation}}
           @originalRadiusKm={{this.originalRadiusKm}}
           @participantProof={{this.participantProof}}
           @removeLocation={{this.removeLocation}}
           @resultsSummary={{this.resultsSummary}}
+          @resultsLimited={{this.resultsLimited}}
           @selectDiscoveryRadius={{this.selectDiscoveryRadius}}
           @selectFilter={{this.selectFilter}}
           @showMemberFilter={{this.showMemberFilter}}

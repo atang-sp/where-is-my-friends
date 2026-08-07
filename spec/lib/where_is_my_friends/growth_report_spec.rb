@@ -1,6 +1,19 @@
 # frozen_string_literal: true
 
 RSpec.describe WhereIsMyFriends::GrowthReport do
+  def content_supply_without(topics, since:, as_of:)
+    original_created_at = topics.to_h { |topic| [topic.id, topic.created_at] }
+    Topic.where(id: original_created_at.keys).update_all(
+      created_at: as_of + 1.day
+    )
+
+    described_class.new(since:, as_of:).call.fetch(:content_supply)
+  ensure
+    original_created_at&.each do |topic_id, created_at|
+      Topic.where(id: topic_id).update_all(created_at: created_at)
+    end
+  end
+
   context "with public-topic supply" do
     let(:as_of) { Time.zone.parse("2026-08-10 12:00:00") }
 
@@ -59,9 +72,24 @@ RSpec.describe WhereIsMyFriends::GrowthReport do
     end
 
     it "reports mature public-topic supply and human responses" do
-      report = described_class.new(since: as_of - 30.days, as_of: as_of).call
+      since = as_of - 30.days
+      baseline_supply =
+        content_supply_without(
+          [replied_topic, unanswered_topic, recent_topic],
+          since: since,
+          as_of: as_of
+        )
+      supply =
+        described_class
+          .new(since: since, as_of: as_of)
+          .call
+          .fetch(:content_supply)
 
-      expect(report.fetch(:content_supply)).to eq(
+      additive_metrics =
+        supply
+          .except(:seven_day_human_response_rate)
+          .to_h { |key, value| [key, value - baseline_supply.fetch(key)] }
+      expect(additive_metrics).to eq(
         public_topics_created: 3,
         human_topics_created: 3,
         imported_topics_created: 0,
@@ -69,8 +97,13 @@ RSpec.describe WhereIsMyFriends::GrowthReport do
         unique_human_repliers: 1,
         mature_topics: 2,
         in_progress_topics: 1,
-        mature_topics_with_human_response: 1,
-        seven_day_human_response_rate: 0.5
+        mature_topics_with_human_response: 1
+      )
+      expect(supply.fetch(:seven_day_human_response_rate)).to eq(
+        (
+          (baseline_supply.fetch(:mature_topics_with_human_response) + 1).to_f /
+            (baseline_supply.fetch(:mature_topics) + 2)
+        ).round(4)
       )
     end
   end
@@ -95,13 +128,25 @@ RSpec.describe WhereIsMyFriends::GrowthReport do
     end
 
     it "separates licensed imports from human-created topics" do
+      since = as_of - 30.days
+      baseline_supply =
+        content_supply_without([imported_topic], since: since, as_of: as_of)
       supply =
         described_class
-          .new(since: as_of - 30.days, as_of: as_of)
+          .new(since: since, as_of: as_of)
           .call
           .fetch(:content_supply)
 
-      expect(supply).to include(
+      expect(
+        supply
+          .slice(
+            :public_topics_created,
+            :human_topics_created,
+            :imported_topics_created,
+            :unique_human_topic_authors
+          )
+          .to_h { |key, value| [key, value - baseline_supply.fetch(key)] }
+      ).to eq(
         public_topics_created: 1,
         human_topics_created: 0,
         imported_topics_created: 1,

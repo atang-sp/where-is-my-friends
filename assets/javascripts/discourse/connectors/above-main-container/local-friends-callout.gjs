@@ -471,11 +471,19 @@ export default class LocalFriendsCallout extends Component {
                             {{on "click" this.trackOpen}}
                           >
                             <strong>{{entry.city}}</strong>
-                            <span>{{i18n
-                                "where_is_my_friends.city_directory_counts"
-                                active=entry.recent_active_count
-                                joined=entry.joined_count
-                              }}</span>
+                            <span>
+                              {{#if entry.counts_suppressed}}
+                                {{i18n
+                                  "where_is_my_friends.aggregate_counts_suppressed"
+                                }}
+                              {{else}}
+                                {{i18n
+                                  "where_is_my_friends.city_directory_counts"
+                                  active=entry.recent_active_count
+                                  joined=entry.joined_count
+                                }}
+                              {{/if}}
+                            </span>
                           </a>
                         {{/each}}
                       </div>

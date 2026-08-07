@@ -18,6 +18,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 城市优先：本地发现只需填写城市，保存后自动加载同城成员。
 - 可选精确模式：GPS 或地图只用于生成“约 5 公里内 / 5–20 公里 / 20 公里以上”等距离范围。
 - 连接闭环：成员卡片可进入主页、发私信；空状态可搜索本地话题。
+- 飞行棋成就：房间服务签发完成凭证，登录成员可选择是否认领并控制成就是否显示在论坛资料中；子功能关闭时认领和资料更新接口均不可用。
 - 明确状态：覆盖首次设置、加载、结果、空结果和错误状态。
 - 控制权：用户可更新城市或立即删除位置；位置不会由插件自动过期，分析事件仍在 90 天后删除。
 - 隐私统计：只记录白名单事件、位置模式和粗粒度结果桶；事件 90 天后删除。
@@ -68,19 +69,24 @@ bundle exec rake db:migrate
 
 重启 Discourse 后，在管理后台确认 `where_is_my_friends_enabled`、`where_is_my_friends_interest_onboarding_enabled` 与 `where_is_my_friends_practice_invitations_enabled` 已启用。插件会安装内置细分兴趣目录；管理员还可额外配置最多 20 个论坛标签。目录关系和话题映射维护在 `config/interest_catalogue.yml`。
 
+飞行棋成就默认关闭。启用前需把房间服务和论坛配置为同一个至少 32 字节的 `where_is_my_friends_flying_chess_claim_secret`，再启用 `where_is_my_friends_flying_chess_achievements_enabled`；只开放静态游戏页面并不会产生可认领的服务端完成凭证。论坛只接受房间服务在权威完赛后签发的短期凭证，玩家不能用浏览器自行声明完成记录。
+
 个人动态必须先由管理员创建只授予 `trust_level_0` 完整权限、加入 `default_categories_muted` 的受限分区，再设置 `where_is_my_friends_dynamics_category_id`。四个动态入口开关默认开启，但在分区校验通过前接口仍会 fail closed。上线验收、匿名验证和数据保留回滚见 [个人动态上线手册](docs/plans/2026-08-03-personal-dynamics-rollout.md)。该流程不创建标签。
 
 若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
 
 许可英文精选的模型供应商可在插件管理页配置 Responses API 或 OpenAI-compatible Chat Completions 的 Base URL、模型和 API 密钥；Chat Completions 可选择严格 JSON Schema，或供应商兼容性更广的 JSON object 加本地严格校验。同一个模型网关负责范围分类、翻译和独立复核，不需要单独的 OpenAI Moderation 凭据。供应商密钥可直接在后台轮换，无需环境变量或重建；旧的 DeepSeek/OpenAI 供应商密钥环境变量不会被读取。许可来源包括 Interpersonal Skills Stack Exchange 完整问答，以及程序白名单中的 Wikipedia 成人 SP 教育章节；后者会实时验证站点许可并署名到固定修订版本。首次启用必须保持 `licensed_import_dry_run=true`；完整配置、三天预览、人工抽查、公开发布、自动暂停和事故处理步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
 
-本版本在 Discourse `2026.7.0-latest`（commit `7c06c152`）上开发和验证，插件元数据要求 Discourse `2026.7.0.beta1` 或更高版本。
+插件元数据要求 Discourse `2026.7.0-latest` 或更高版本。持续集成会完整运行官方插件工作流两次：受保护分支已强制的 `ci / …` 状态固定到已验证的最低支持核心快照 `7c06c1528ed9571d7407fa32259d77e1853c64d5`（该快照自身版本即为 `2026.7.0-latest`），另一个 `latest` job 跟随最新核心。这样最低版本兼容性失败会直接阻塞现有必需检查，而不是只作提示。由于这一版本线没有对应的 beta Git 标签，CI 使用不可变提交来定义可重现的兼容性下限。
 
 ## 设置
 
 | 设置 | 默认值 | 说明 |
 | --- | --- | --- |
 | `where_is_my_friends_enabled` | `true` | 启用插件 |
+| `where_is_my_friends_flying_chess_achievements_enabled` | `false` | 启用服务端验证的飞行棋完成记录认领、资料展示和徽章同步；关闭时两个写接口均返回不可用 |
+| `where_is_my_friends_flying_chess_claim_secret` | 空 | 房间服务与论坛共享的凭证验证密钥，至少 32 字节且不会发送到浏览器 |
+| `where_is_my_friends_flying_chess_game_url` | `https://atang-sp.github.io/flying-chess/online.html` | 论坛资料卡中的飞行棋入口 URL |
 | `where_is_my_friends_interest_onboarding_enabled` | `true` | 启用一次性兴趣冷启动和个性化推荐 |
 | `where_is_my_friends_interest_tags` | 空 | 在内置兴趣目录之外补充的论坛标签，最多 20 个 |
 | `where_is_my_friends_dynamics_enabled` | `true` | 启用个人 Activity 动态页和发布接口；分区不合格时仍 fail closed |
@@ -139,6 +145,8 @@ OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的�
 | `PUT` | `/where-is-my-friends/legacy-practice-bookmarks/:id/reconfirm.json` | 仅重新确认书签，不发送邀请 |
 | `PUT` | `/where-is-my-friends/legacy-practice-bookmarks/:id/dismiss.json` | 移除旧意向书签 |
 | `POST` | `/where-is-my-friends/events.json` | 写入白名单漏斗或无目标 ID 的粗粒度推荐曝光/行动事件 |
+| `POST` | `/where-is-my-friends/flying-chess/claims.json` | 认领房间服务签发的单次完成凭证；需要主插件、成就子功能和有效共享密钥均已启用 |
+| `PUT` | `/where-is-my-friends/flying-chess/profile.json` | 当前用户设置自己的飞行棋成就资料是否公开；成就子功能关闭时不可用 |
 | `GET` | `/where-is-my-friends/debug-stats.json` | 管理员聚合诊断 |
 | `GET` | `/where-is-my-friends/licensed-imports.json` | 管理员预览、失败原因、token 用量与互动门槛状态；不返回密钥或英文原文 |
 

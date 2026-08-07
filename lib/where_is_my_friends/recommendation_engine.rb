@@ -362,14 +362,11 @@ module WhereIsMyFriends
 
       topics = candidates.map(&:first).uniq(&:id)
       active_member_count = active_contributor_count(topics)
-      privacy_threshold =
-        SiteSetting.where_is_my_friends_aggregate_privacy_threshold.to_i.clamp(
-          2,
-          20
+      protected_count =
+        AggregatePrivacy.protect_counts(
+          { active_member_count: active_member_count },
+          :active_member_count
         )
-      active_member_count_suppressed = active_member_count < privacy_threshold
-      visible_active_member_count = active_member_count
-      visible_active_member_count = nil if active_member_count_suppressed
       {
         id: tag.id,
         name: tag.name,
@@ -379,8 +376,9 @@ module WhereIsMyFriends
         topic_count: topics.length,
         new_topic_count:
           topics.count { |topic| topic.created_at >= 1.week.ago },
-        active_member_count: visible_active_member_count,
-        active_member_count_suppressed: active_member_count_suppressed
+        active_member_count: protected_count[:active_member_count],
+        active_member_count_suppressed:
+          protected_count[:active_member_count_suppressed]
       }
     end
 

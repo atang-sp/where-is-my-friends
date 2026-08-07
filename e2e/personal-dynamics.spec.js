@@ -43,9 +43,9 @@ test.describe.serial("Personal dynamics against real Discourse", () => {
     const input = page.locator("[data-test-personal-dynamics-input]");
     const raw = `${crypto.randomUUID()} ${crypto.randomUUID()} I am planning a small English speaking practice this weekend.`;
     await input.fill(raw);
-    await expect(page.locator("[data-test-personal-dynamics-count]")).toHaveText(
-      `${Array.from(raw).length}/500`
-    );
+    await expect(
+      page.locator("[data-test-personal-dynamics-count]")
+    ).toHaveText(`${Array.from(raw).length}/500`);
     await page.locator("[data-test-personal-dynamics-publish]").click();
 
     const card = page.locator("[data-test-personal-dynamic]").first();
@@ -66,9 +66,9 @@ test.describe.serial("Personal dynamics against real Discourse", () => {
     await expect(
       page.locator("[data-test-personal-dynamics-publisher]")
     ).toHaveCount(0);
-    await expect(page.locator("[data-test-personal-dynamic]").first()).toContainText(
-      "English speaking practice"
-    );
+    await expect(
+      page.locator("[data-test-personal-dynamic]").first()
+    ).toContainText("English speaking practice");
     await page.locator("[data-test-personal-dynamic-open]").first().click();
     await expect(page).toHaveURL(dynamicUrl);
 
@@ -127,9 +127,9 @@ test.describe.serial("Personal dynamics against real Discourse", () => {
     expect(recentRequests).toBe(0);
     await page.locator("[data-test-community-group='dynamics']").click();
 
-    await expect(page.locator("[data-test-community-dynamic]").first()).toContainText(
-      "English speaking practice"
-    );
+    await expect(
+      page.locator("[data-test-community-dynamic]").first()
+    ).toContainText("English speaking practice");
     expect(recentRequests).toBe(1);
   });
 
@@ -142,12 +142,10 @@ test.describe.serial("Personal dynamics against real Discourse", () => {
     await page.locator("[data-test-community-toggle]").click();
     await page.locator("[data-test-community-group='people']").click();
 
-    const member = page.locator(
-      "[data-test-community-person='dynamics_one']"
-    );
-    await expect(member.locator("[data-test-community-person-dynamic]")).toContainText(
-      "English speaking practice"
-    );
+    const member = page.locator("[data-test-community-person='dynamics_one']");
+    await expect(
+      member.locator("[data-test-community-person-dynamic]")
+    ).toContainText("English speaking practice");
     await expect(
       member.locator("[data-test-community-person-profile-action]")
     ).toBeVisible();

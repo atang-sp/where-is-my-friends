@@ -138,7 +138,11 @@ RSpec.describe WhereIsMyFriendsFlyingChessProfile do
       )
     end
 
-    before { SiteSetting.enable_badges = true }
+    before do
+      SiteSetting.enable_badges = true
+      SiteSetting.where_is_my_friends_enabled = true
+      SiteSetting.where_is_my_friends_flying_chess_achievements_enabled = true
+    end
 
     context "with a public profile and no badge" do
       it "grants the badge" do
@@ -223,6 +227,30 @@ RSpec.describe WhereIsMyFriendsFlyingChessProfile do
         expect { synchronize_badge }.not_to change {
           UserBadge.where(user:, badge:).count
         }
+      end
+    end
+
+    context "with disabled Flying Chess achievements and an existing badge" do
+      fab!(:user_badge) do
+        Fabricate(
+          :user_badge,
+          user:,
+          badge:
+            Badge.find_by!(
+              name: WhereIsMyFriends::FlyingChess::FIRST_TAKEOFF_BADGE_NAME
+            )
+        )
+      end
+
+      before do
+        SiteSetting.where_is_my_friends_flying_chess_achievements_enabled =
+          false
+      end
+
+      it "revokes the badge" do
+        expect { synchronize_badge }.to change {
+          UserBadge.where(user:, badge:).count
+        }.by(-1)
       end
     end
 

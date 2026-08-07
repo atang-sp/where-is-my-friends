@@ -168,8 +168,11 @@ zh_CN:
     notification:
       member_joined_description: "也加入了 %{city} 的同城发现"
       profile_location_invite: "你的资料显示你在 %{city}——你知道附近有 %{count} 位论坛成员吗？加入同城朋友，与他们建立连接！"
+      profile_location_invite_suppressed: "你的资料显示你在 %{city}——附近已有论坛成员加入同城朋友。加入后即可与他们建立连接！"
+      profile_location_invite_empty: "你的资料显示你在 %{city}。加入同城朋友，帮助附近的人彼此发现！"
       monthly_digest: "上个月有 %{count} 位新成员加入了你附近的同城发现"
       weekly_nearby_digest: "本周附近城市新加入 %{count} 位成员"
+      weekly_nearby_digest_suppressed: "本周附近城市有新成员加入"
       licensed_import_reason: "英文精选任务已暂停：%{reason}"
   site_settings:
     where_is_my_friends_enabled: "启用城市优先的本地成员发现"

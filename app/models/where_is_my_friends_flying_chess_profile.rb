@@ -42,7 +42,7 @@ class WhereIsMyFriendsFlyingChessProfile < ActiveRecord::Base
         )
       user_badge = UserBadge.find_by(badge:, user:) if badge
 
-      if profile_visible?
+      if WhereIsMyFriends::FlyingChess.achievements_enabled? && profile_visible?
         BadgeGranter.grant(badge, user) if badge&.enabled? && !user_badge
       elsif user_badge
         BadgeGranter.revoke(user_badge)

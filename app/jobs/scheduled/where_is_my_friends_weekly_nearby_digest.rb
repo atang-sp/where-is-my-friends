@@ -11,7 +11,7 @@ module Jobs
       return unless SiteSetting.where_is_my_friends_enabled
 
       UserLocation
-        .active_for_discovery
+        .discoverable
         .includes(user: :user_option)
         .find_each do |location|
           unless location.user&.user_option&.where_is_my_friends_notify_nearby
@@ -29,7 +29,7 @@ module Jobs
               title: TITLE_KEY,
               topic_title:
                 I18n.t(
-                  "where_is_my_friends.notification.weekly_nearby_digest",
+                  weekly_digest_key(new_nearby_count),
                   count: new_nearby_count,
                   locale: location.user.effective_locale
                 ),
@@ -51,11 +51,19 @@ module Jobs
       return 0 if nearby_keys.empty?
 
       UserLocation
-        .active_for_discovery
+        .discoverable
         .where(city_key: nearby_keys)
         .where.not(user_id: location.user_id)
         .where("user_locations.city_joined_at > ?", 7.days.ago)
         .count
+    end
+
+    def weekly_digest_key(count)
+      if WhereIsMyFriends::AggregatePrivacy.suppressed?(count)
+        "where_is_my_friends.notification.weekly_nearby_digest_suppressed"
+      else
+        "where_is_my_friends.notification.weekly_nearby_digest"
+      end
     end
   end
 end

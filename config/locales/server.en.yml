@@ -168,8 +168,11 @@ en:
     notification:
       member_joined_description: "also joined local discovery in %{city}"
       profile_location_invite: "Your profile shows you're in %{city} — did you know %{count} forum members are nearby? Join Local Friends to connect with them!"
+      profile_location_invite_suppressed: "Your profile shows you're in %{city} — forum members nearby have joined Local Friends. Join to connect with them!"
+      profile_location_invite_empty: "Your profile shows you're in %{city}. Join Local Friends to help people nearby find one another!"
       monthly_digest: "%{count} new members joined near you last month"
       weekly_nearby_digest: "%{count} members joined nearby cities this week"
+      weekly_nearby_digest_suppressed: "New members joined nearby cities this week"
       licensed_import_reason: "Licensed English import paused: %{reason}"
   site_settings:
     where_is_my_friends_enabled: "Enable city-first local member discovery"

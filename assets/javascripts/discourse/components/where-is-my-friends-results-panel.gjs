@@ -83,6 +83,11 @@ export default <template>
       <article data-test-result-skeleton></article>
     </div>
   {{else if @hasUsers}}
+    {{#if @resultsLimited}}
+      <p class="alert alert-info" data-test-results-limited>{{i18n
+          "where_is_my_friends.results_limited"
+        }}</p>
+    {{/if}}
     <section class="where-is-my-friends__results">
       {{#if @expandedRadius}}
         <p class="alert alert-info" data-test-expanded-radius>
@@ -253,6 +258,11 @@ export default <template>
         data-test-presence-note
       >{{i18n "where_is_my_friends.presence_privacy_note"}}</p>
     </section>
+  {{else if @isLimited}}
+    <section class="where-is-my-friends__empty" data-test-limited-state>
+      <h2>{{i18n "where_is_my_friends.results_limited_title"}}</h2>
+      <p>{{i18n "where_is_my_friends.results_limited"}}</p>
+    </section>
   {{else if @isEmpty}}
     <section class="where-is-my-friends__empty" data-test-empty-state>
       {{#if @hasActiveFilters}}
@@ -266,7 +276,12 @@ export default <template>
           "where_is_my_friends.global_stats_pioneer"
           city=@location.city
         }}</p>
-      {{#if @nearbyCityCount}}
+      {{#if @nearbyCityCountSuppressed}}
+        <p
+          class="where-is-my-friends__nearby-count"
+          data-test-nearby-city-count
+        >{{i18n "where_is_my_friends.empty_nearby_count_suppressed"}}</p>
+      {{else if @nearbyCityCount}}
         <p
           class="where-is-my-friends__nearby-count"
           data-test-nearby-city-count

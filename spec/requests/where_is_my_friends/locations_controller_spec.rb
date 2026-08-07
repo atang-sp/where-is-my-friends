@@ -62,6 +62,7 @@ RSpec.describe WhereIsMyFriends::LocationsController do
     end
 
     it "deduplicates city suggestions by normalized city key" do
+      SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 2
       sign_in(user)
       UserLocation.upsert_city_location(Fabricate(:user).id, city: "上海")
       UserLocation.upsert_city_location(Fabricate(:user).id, city: "上海市")
@@ -93,15 +94,16 @@ RSpec.describe WhereIsMyFriends::LocationsController do
     end
 
     it "returns active, growing, and complete city directory counts" do
+      SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 2
       sign_in(user)
       active_shanghai = Fabricate(:user, last_seen_at: 1.day.ago)
-      inactive_shanghai = Fabricate(:user, last_seen_at: 100.days.ago)
+      second_shanghai = Fabricate(:user, last_seen_at: 4.days.ago)
       active_suzhou = Fabricate(:user, last_seen_at: 2.days.ago)
       active_beijing = Fabricate(:user, last_seen_at: 3.days.ago)
 
       [
         [active_shanghai, "上海", 2.days.ago],
-        [inactive_shanghai, "上海市", 2.days.ago],
+        [second_shanghai, "上海市", 2.days.ago],
         [active_suzhou, "苏州", 1.day.ago],
         [active_beijing, "北京", 40.days.ago]
       ].each do |member, city, joined_at|
@@ -120,7 +122,7 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         directory.fetch("cities").find { |entry| entry["city_key"] == "上海" }
       expect(shanghai).to include(
         "city" => "上海",
-        "recent_active_count" => 1,
+        "recent_active_count" => 2,
         "joined_count" => 2
       )
       expect(directory.fetch("cities").pluck("city_key")).to contain_exactly(
@@ -175,6 +177,52 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       )
     end
 
+    it "suppresses exact city aggregates below the privacy threshold" do
+      SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 3
+      sign_in(user)
+      member = Fabricate(:user, last_seen_at: 1.day.ago)
+      UserLocation.upsert_city_location(member.id, city: "上海")
+
+      get "/where-is-my-friends.json"
+
+      suggestion =
+        response
+          .parsed_body
+          .fetch("city_suggestions")
+          .find { |entry| entry["city_key"] == "上海" }
+      expect(suggestion).to include("count" => nil, "count_suppressed" => true)
+
+      city =
+        response
+          .parsed_body
+          .dig("city_directory", "cities")
+          .find { |entry| entry["city_key"] == "上海" }
+      expect(city).to include(
+        "recent_active_count" => nil,
+        "recent_active_count_suppressed" => true,
+        "joined_count" => nil,
+        "joined_count_suppressed" => true,
+        "new_member_count" => nil,
+        "new_member_count_suppressed" => true,
+        "counts_suppressed" => true
+      )
+
+      get "/where-is-my-friends/cities/preview.json", params: { city: "上海" }
+
+      expect(response.parsed_body.fetch("city")).to include(
+        "recent_active_count" => nil,
+        "recent_active_count_suppressed" => true,
+        "joined_count" => nil,
+        "joined_count_suppressed" => true
+      )
+      expect(response.parsed_body.fetch("radius_options").first).to include(
+        "recent_active_count" => nil,
+        "recent_active_count_suppressed" => true,
+        "joined_count" => nil,
+        "joined_count_suppressed" => true
+      )
+    end
+
     it "exposes only the selected map provider browser key" do
       SiteSetting.where_is_my_friends_map_provider = "amap"
       SiteSetting.where_is_my_friends_amap_api_key = "amap-browser-key"
@@ -194,6 +242,7 @@ RSpec.describe WhereIsMyFriends::LocationsController do
 
   describe "GET /where-is-my-friends/cities/preview.json" do
     it "previews network density without joining and recommends the smallest useful radius" do
+      SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 2
       sign_in(user)
       shanghai_member = Fabricate(:user, last_seen_at: 1.day.ago)
       UserLocation.upsert_city_location(shanghai_member.id, city: "上海")
@@ -209,15 +258,18 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "city" => "上海",
         "city_key" => "上海",
         "canonical" => true,
-        "recent_active_count" => 1,
-        "joined_count" => 1
+        "recent_active_count" => nil,
+        "recent_active_count_suppressed" => true,
+        "joined_count" => nil,
+        "joined_count_suppressed" => true,
+        "counts_suppressed" => true
       )
       expect(
         response
           .parsed_body
           .fetch("radius_options")
           .map { |option| [option["radius_km"], option["recent_active_count"]] }
-      ).to eq([[50, 1], [100, 3], [200, 3]])
+      ).to eq([[50, nil], [100, 3], [200, 3]])
       expect(response.parsed_body["recommended_radius_km"]).to eq(100)
       expect(response.parsed_body.fetch("nearby_cities").first).to include(
         "city" => "苏州",
@@ -283,8 +335,11 @@ RSpec.describe WhereIsMyFriends::LocationsController do
 
       expect(response.parsed_body.fetch("city")).to include(
         "canonical" => false,
-        "recent_active_count" => 0,
-        "joined_count" => 0
+        "recent_active_count" => nil,
+        "recent_active_count_suppressed" => true,
+        "joined_count" => nil,
+        "joined_count_suppressed" => true,
+        "counts_suppressed" => true
       )
       expect(response.parsed_body).to include(
         "radius_options" => [],
@@ -362,7 +417,10 @@ RSpec.describe WhereIsMyFriends::LocationsController do
   end
 
   describe "GET /where-is-my-friends/locations/nearby.json" do
-    before { sign_in(user) }
+    before do
+      SiteSetting.hide_new_user_profiles = false
+      sign_in(user)
+    end
 
     it "uses the signed-in user's stored city, excludes self and disabled users" do
       UserLocation.upsert_precise_location(
@@ -391,6 +449,95 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       expect(
         response.parsed_body.fetch("users").pluck("username")
       ).to contain_exactly(nearby_user.username)
+    end
+
+    it "excludes ineligible accounts and profiles the viewer cannot see" do
+      SiteSetting.allow_users_to_hide_profile = true
+      UserLocation.upsert_city_location(user.id, city: "上海")
+
+      visible_user = Fabricate(:user, trust_level: 2)
+      deactivated_user = Fabricate(:user, trust_level: 2)
+      staged_user = Fabricate(:user, trust_level: 2)
+      suspended_user = Fabricate(:user, trust_level: 2)
+      silenced_user = Fabricate(:user, trust_level: 2)
+      hidden_profile_user = Fabricate(:user, trust_level: 2)
+
+      deactivated_user.update_column(:active, false)
+      staged_user.update_column(:staged, true)
+      suspended_user.update_column(:suspended_till, 1.day.from_now)
+      silenced_user.update_column(:silenced_till, 1.day.from_now)
+      hidden_profile_user.user_option.update!(hide_profile: true)
+
+      [
+        visible_user,
+        deactivated_user,
+        staged_user,
+        suspended_user,
+        silenced_user,
+        hidden_profile_user
+      ].each do |nearby_user|
+        UserLocation.upsert_city_location(nearby_user.id, city: "上海")
+      end
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      expect(response.status).to eq(200)
+      expect(
+        response.parsed_body.fetch("users").pluck("username")
+      ).to contain_exactly(visible_user.username)
+    end
+
+    it "continues past hidden profiles to fill the visible result limit" do
+      SiteSetting.allow_users_to_hide_profile = true
+      SiteSetting.where_is_my_friends_max_users_display = 10
+      UserLocation.upsert_city_location(user.id, city: "上海")
+
+      10.times do
+        hidden_user =
+          Fabricate(:user, trust_level: 2, last_seen_at: 1.minute.ago)
+        hidden_user.user_option.update!(hide_profile: true)
+        UserLocation.upsert_city_location(hidden_user.id, city: "上海")
+      end
+      visible_user =
+        Fabricate(:user, trust_level: 2, last_seen_at: 100.days.ago)
+      UserLocation.upsert_city_location(visible_user.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      expect(
+        response.parsed_body.fetch("users").pluck("username")
+      ).to contain_exactly(visible_user.username)
+    end
+
+    it "distinguishes a complete hidden scan from a truncated scan" do
+      SiteSetting.allow_users_to_hide_profile = true
+      SiteSetting.where_is_my_friends_max_users_display = 10
+      UserLocation.upsert_city_location(user.id, city: "上海")
+
+      (
+        10 * WhereIsMyFriends::LocationDiscovery::PROFILE_SCAN_MULTIPLIER
+      ).times do
+        hidden_user =
+          Fabricate(:user, trust_level: 2, last_seen_at: 1.minute.ago)
+        hidden_user.user_option.update!(hide_profile: true)
+        UserLocation.upsert_city_location(hidden_user.id, city: "上海")
+      end
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      expect(response.parsed_body).to include("state" => "empty", "users" => [])
+
+      outside_scan_budget =
+        Fabricate(:user, trust_level: 2, last_seen_at: 100.days.ago)
+      UserLocation.upsert_city_location(outside_scan_budget.id, city: "上海")
+
+      get "/where-is-my-friends/locations/nearby.json"
+
+      expect(response.parsed_body).to include(
+        "state" => "limited",
+        "users" => [],
+        "results_limited" => true
+      )
     end
 
     it "returns distance bands and never location coordinates or arbitrary custom fields" do
@@ -489,9 +636,22 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       get "/where-is-my-friends/locations/nearby.json"
       expect(response.parsed_body["state"]).to eq("setup")
 
-      UserLocation.upsert_city_location(user.id, city: "成都")
+      SiteSetting.allow_users_to_hide_profile = true
+      UserLocation.upsert_city_location(
+        user.id,
+        city: "上海",
+        discovery_radius_km: 100
+      )
+      nearby_user = Fabricate(:user, trust_level: 2)
+      nearby_user.user_option.update!(hide_profile: true)
+      UserLocation.upsert_city_location(nearby_user.id, city: "苏州")
       get "/where-is-my-friends/locations/nearby.json"
-      expect(response.parsed_body).to include("state" => "empty", "users" => [])
+      expect(response.parsed_body).to include(
+        "state" => "empty",
+        "users" => [],
+        "nearby_city_count" => nil,
+        "nearby_city_count_suppressed" => true
+      )
     end
 
     it "includes members from nearby cities within the discovery radius" do
@@ -744,6 +904,7 @@ RSpec.describe WhereIsMyFriends::LocationsController do
     end
 
     before do
+      SiteSetting.hide_new_user_profiles = false
       sign_in(user)
       SiteSetting.where_is_my_friends_filterable_user_fields = "性别|属性"
       UserLocation.upsert_city_location(user.id, city: "上海")

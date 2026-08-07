@@ -13,6 +13,7 @@ module WhereIsMyFriends
         end
 
         model :user
+        policy :achievements_enabled
         model :profile
         policy :can_manage_profile
 
@@ -25,6 +26,10 @@ module WhereIsMyFriends
 
         def fetch_user(guardian:)
           guardian.user
+        end
+
+        def achievements_enabled
+          FlyingChess.achievements_enabled?
         end
 
         def fetch_profile(user:)

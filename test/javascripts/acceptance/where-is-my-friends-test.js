@@ -213,6 +213,36 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       .hasText("People in your area are already here");
   });
 
+  test("topic-list city cards hide privacy-suppressed counts", async function (assert) {
+    api.initial = {
+      state: "setup",
+      current_user: { id: 1, username: "current-user" },
+      location: null,
+      active_participants: { suppressed: true },
+      city_suggestions: [],
+      city_directory: {
+        active: [
+          {
+            city: "上海",
+            city_key: "上海",
+            recent_active_count: null,
+            joined_count: null,
+            counts_suppressed: true,
+          },
+        ],
+        growing: [],
+      },
+      settings: {},
+    };
+
+    await visit("/");
+
+    assert
+      .dom("[data-test-callout-city-card='上海']")
+      .includesText("Exact member counts are hidden for privacy")
+      .doesNotIncludeText("null");
+  });
+
   test("topic-list city cards open a no-commitment preview without saving inline", async function (assert) {
     api.initial = {
       state: "setup",
@@ -590,6 +620,89 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.strictEqual(api.savedLocations[0].notify_nearby, "false");
   });
 
+  test("setup renders privacy-suppressed city aggregates without exact counts", async function (assert) {
+    api.initial = {
+      state: "setup",
+      current_user: { id: 1, username: "current-user" },
+      location: null,
+      active_participants: { suppressed: true },
+      city_suggestions: [],
+      city_catalogue: [{ city: "上海", city_key: "上海", region: "上海" }],
+      city_directory: {
+        active: [
+          {
+            city: "上海",
+            city_key: "上海",
+            recent_active_count: null,
+            recent_active_count_suppressed: true,
+            joined_count: null,
+            joined_count_suppressed: true,
+            counts_suppressed: true,
+          },
+        ],
+        growing: [],
+        cities: [],
+      },
+      settings: {},
+      filterable_fields: [],
+    };
+    api.preview = {
+      city: {
+        city: "上海",
+        city_key: "上海",
+        canonical: true,
+        recent_active_count: null,
+        recent_active_count_suppressed: true,
+        joined_count: null,
+        joined_count_suppressed: true,
+        counts_suppressed: true,
+      },
+      radius_options: [
+        {
+          radius_km: 50,
+          recent_active_count: null,
+          recent_active_count_suppressed: true,
+          joined_count: null,
+          joined_count_suppressed: true,
+          counts_suppressed: true,
+        },
+      ],
+      recommended_radius_km: 50,
+      nearby_cities: [
+        {
+          city: "苏州",
+          city_key: "苏州",
+          approximate_distance_km: 90,
+          recent_active_count: null,
+          recent_active_count_suppressed: true,
+          joined_count: null,
+          joined_count_suppressed: true,
+          counts_suppressed: true,
+        },
+      ],
+      local_topics: [],
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert
+      .dom("[data-test-city-card='上海']")
+      .includesText("Exact member counts are hidden for privacy")
+      .doesNotIncludeText("null");
+
+    await click("[data-test-city-card='上海']");
+
+    assert
+      .dom("[data-test-city-network-preview]")
+      .includesText("Exact member counts are hidden for privacy");
+    assert
+      .dom("[data-test-preview-radius='50']")
+      .hasText("50 km · exact counts hidden");
+    assert
+      .dom("[data-test-preview-nearby-city='苏州']")
+      .hasText("苏州 about 90 km · exact counts hidden");
+  });
+
   test("editing a saved region keeps the optional field visible", async function (assert) {
     api.initial = readyState();
     api.initial.location.region = "上海";
@@ -661,11 +774,47 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
       city_suggestions: [],
       settings: {},
     };
+    api.nearby = {
+      state: "empty",
+      users: [],
+      nearby_city_count: null,
+      nearby_city_count_suppressed: true,
+    };
 
     await visit("/where-is-my-friends");
 
     assert.dom("[data-test-empty-state]").exists();
+    assert
+      .dom("[data-test-nearby-city-count]")
+      .hasText("Members in nearby cities have already joined")
+      .doesNotIncludeText("null");
     assert.dom("[data-test-local-topics]").exists();
+  });
+
+  test("a bounded visibility scan does not claim there are no results", async function (assert) {
+    api.initial = {
+      state: "ready",
+      current_user: { id: 1, username: "current-user" },
+      location: { city: "上海", discovery_mode: "city" },
+      active_participants: { suppressed: true },
+      city_suggestions: [],
+      settings: {},
+    };
+    api.nearby = {
+      state: "limited",
+      users: [],
+      results_limited: true,
+      local_topics: [],
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert.dom("[data-test-limited-state]").exists();
+    assert.dom("[data-test-empty-state]").doesNotExist();
+    assert
+      .dom("[data-test-limited-state]")
+      .includesText("Some profiles could not be checked")
+      .doesNotIncludeText("Be the first connection");
   });
 
   test("server errors are rendered as escaped plain text", async function (assert) {

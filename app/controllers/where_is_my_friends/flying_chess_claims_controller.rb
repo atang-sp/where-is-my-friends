@@ -61,6 +61,7 @@ module WhereIsMyFriends
           render_json_error(contract.errors.full_messages, status: 400)
         end
         on_model_not_found(:user) { raise Discourse::NotFound }
+        on_failed_policy(:achievements_enabled) { raise Discourse::NotFound }
         on_model_not_found(:profile) { raise Discourse::NotFound }
         on_failed_policy(:can_manage_profile) do
           raise Discourse::InvalidAccess.new

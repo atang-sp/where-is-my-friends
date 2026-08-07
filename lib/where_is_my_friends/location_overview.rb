@@ -8,6 +8,11 @@ module WhereIsMyFriends
 
     def call
       location = current_location
+      protected_new_nearby_count =
+        AggregatePrivacy.protect_counts(
+          { new_nearby_count: new_nearby_count(location) },
+          :new_nearby_count
+        )
 
       {
         state: state_for(location),
@@ -22,12 +27,11 @@ module WhereIsMyFriends
         city_catalogue: CityCentroidLookup.instance.catalogue,
         settings: client_settings,
         profile_location: @user.user_profile&.location.presence,
-        new_nearby_count: new_nearby_count(location),
         filterable_fields:
           resolved_filterable_fields.map do |field|
             field.slice(:name, :key, :options)
           end
-      }
+      }.merge(protected_new_nearby_count)
     end
 
     private
@@ -54,17 +58,20 @@ module WhereIsMyFriends
     def city_suggestions
       active =
         UserLocation
-          .active_for_discovery
+          .discoverable
           .select("city_key, MIN(city) AS city, COUNT(*) AS member_count")
           .group(:city_key)
           .order("COUNT(*) DESC, MIN(city)")
           .limit(20)
           .map do |location|
-            {
-              city: location.city,
-              city_key: location.city_key,
-              count: location.member_count
-            }
+            AggregatePrivacy.protect_counts(
+              {
+                city: location.city,
+                city_key: location.city_key,
+                count: location.member_count
+              },
+              :count
+            )
           end
 
       seen_keys = active.map { |suggestion| suggestion[:city_key] }.to_set
@@ -92,11 +99,7 @@ module WhereIsMyFriends
         virtual_location_enabled:
           SiteSetting.where_is_my_friends_enable_virtual_location,
         map_provider: SiteSetting.where_is_my_friends_map_provider,
-        aggregate_privacy_threshold:
-          SiteSetting
-            .where_is_my_friends_aggregate_privacy_threshold
-            .to_i
-            .clamp(2, 20),
+        aggregate_privacy_threshold: AggregatePrivacy.threshold,
         default_discovery_radius_km: UserLocation.default_discovery_radius_km,
         discovery_radius_options_km: UserLocation::DISCOVERY_RADIUS_OPTIONS_KM
       }
@@ -116,18 +119,14 @@ module WhereIsMyFriends
     end
 
     def active_participants
-      scope = UserLocation.active_for_discovery
+      scope = UserLocation.discoverable
       count = scope.count
-      threshold =
-        SiteSetting.where_is_my_friends_aggregate_privacy_threshold.to_i.clamp(
-          2,
-          20
-        )
-      return { suppressed: true } if count < threshold
+      protected = AggregatePrivacy.protect_counts({ count: count }, :count)
+      return { suppressed: true } if protected[:count_suppressed]
 
       {
         suppressed: false,
-        count: count,
+        count: protected[:count],
         city_count: scope.distinct.count(:city_key)
       }
     end
@@ -143,7 +142,7 @@ module WhereIsMyFriends
         )
 
       UserLocation
-        .active_for_discovery
+        .discoverable
         .where(city_key: nearby_keys)
         .where.not(user_id: @user.id)
         .where("user_locations.updated_at > ?", 7.days.ago)
