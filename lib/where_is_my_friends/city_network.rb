@@ -49,9 +49,15 @@ module WhereIsMyFriends
             .first(limit)
             .map { |entry| protect_city_counts(entry) },
         cities:
-          cities.sort_by do |entry|
-            [-entry[:recent_active_count], -entry[:joined_count], entry[:city]]
-          end.map { |entry| protect_city_counts(entry) },
+          cities
+            .sort_by do |entry|
+              [
+                -entry[:recent_active_count],
+                -entry[:joined_count],
+                entry[:city]
+              ]
+            end
+            .map { |entry| protect_city_counts(entry) },
         activity_window_days: (ACTIVE_WINDOW / 1.day).to_i,
         growth_window_days: (GROWTH_WINDOW / 1.day).to_i
       }
@@ -162,8 +168,9 @@ module WhereIsMyFriends
     )
       protected = AggregatePrivacy.protect_counts(entry, *keys)
       displayed_keys = keys & %i[recent_active_count joined_count]
-      protected[:counts_suppressed] =
-        displayed_keys.any? { |key| protected[:"#{key}_suppressed"] }
+      protected[:counts_suppressed] = displayed_keys.any? do |key|
+        protected[:"#{key}_suppressed"]
+      end
       protected
     end
 

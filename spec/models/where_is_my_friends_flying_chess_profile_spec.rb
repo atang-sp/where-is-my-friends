@@ -243,7 +243,8 @@ RSpec.describe WhereIsMyFriendsFlyingChessProfile do
       end
 
       before do
-        SiteSetting.where_is_my_friends_flying_chess_achievements_enabled = false
+        SiteSetting.where_is_my_friends_flying_chess_achievements_enabled =
+          false
       end
 
       it "revokes the badge" do

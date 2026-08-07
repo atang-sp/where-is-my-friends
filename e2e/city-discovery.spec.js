@@ -100,9 +100,9 @@ test.describe.serial("Local Friends against real Discourse", () => {
     const panel = page.locator("[data-test-community-discovery]");
     await expect(panel).toBeVisible();
     await expect(page.locator("[data-test-community-content]")).toHaveCount(0);
-    await expect(
-      page.locator("[data-test-local-friends-callout]")
-    ).toHaveCount(0);
+    await expect(page.locator("[data-test-local-friends-callout]")).toHaveCount(
+      0
+    );
     await expect(page.locator(".topic-list-item").first()).toBeVisible();
     expect(recommendationRequests).toBe(0);
     expect((await panel.boundingBox()).height).toBeLessThanOrEqual(64);
@@ -143,9 +143,9 @@ test.describe.serial("Local Friends against real Discourse", () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(panel).toBeVisible();
-    await expect(
-      page.locator("[data-test-local-friends-callout]")
-    ).toHaveCount(0);
+    await expect(page.locator("[data-test-local-friends-callout]")).toHaveCount(
+      0
+    );
     const sizes = await page.evaluate(() => ({
       viewport: window.innerWidth,
       content: document.documentElement.scrollWidth,
@@ -373,9 +373,9 @@ test.describe.serial("Local Friends against real Discourse", () => {
     expect(response.ok()).toBeTruthy();
     const report = await response.json();
     expect(report.funnel.unique_page_visitors).toBeGreaterThan(0);
-    expect(report.funnel.recommendation_groups.topics.exposed_users).toBeGreaterThan(
-      0
-    );
+    expect(
+      report.funnel.recommendation_groups.topics.exposed_users
+    ).toBeGreaterThan(0);
     expect(report.funnel.local_callout.viewed_users).toBeGreaterThan(0);
     expect(report.funnel.mature_cohorts).toHaveProperty(
       "recommendation_exposure"

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.18.0 — 2026-08-07
+
+- Apply one aggregate-privacy policy to discovery counts, previews, digests,
+  invitations, and operator tasks without fabricating zero-member activity.
+- Exclude ineligible accounts and Guardian-hidden profiles from discovery,
+  bound visibility scans, and report an explicit limited state instead of a
+  misleading empty result when the scan budget is exhausted.
+- Gate both Flying Chess write endpoints behind the achievement setting and
+  synchronize public first-takeoff badges when either feature switch changes.
+- Isolate growth-report specs from shared database state and test both the
+  immutable minimum Discourse snapshot and the latest core in CI.
+
 ## 1.17.0 — 2026-08-05
 
 - Add the native Discourse emoji picker to the personal-dynamics publisher while

@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.17.0
+# version: 1.18.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0-latest
@@ -239,8 +239,9 @@ after_initialize do
 
   on(:site_setting_changed) do |name, old_value, new_value|
     next if old_value == new_value
-    next if name.to_sym !=
-              :where_is_my_friends_flying_chess_achievements_enabled
+    if name.to_sym != :where_is_my_friends_flying_chess_achievements_enabled
+      next
+    end
 
     Jobs.enqueue(Jobs::WhereIsMyFriendsSynchronizeFlyingChessBadges)
   end

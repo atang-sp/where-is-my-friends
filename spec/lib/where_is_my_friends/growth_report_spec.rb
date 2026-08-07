@@ -80,14 +80,15 @@ RSpec.describe WhereIsMyFriends::GrowthReport do
           as_of: as_of
         )
       supply =
-        described_class.new(since: since, as_of: as_of).call.fetch(
-          :content_supply
-        )
+        described_class
+          .new(since: since, as_of: as_of)
+          .call
+          .fetch(:content_supply)
 
       additive_metrics =
-        supply.except(:seven_day_human_response_rate).to_h do |key, value|
-          [key, value - baseline_supply.fetch(key)]
-        end
+        supply
+          .except(:seven_day_human_response_rate)
+          .to_h { |key, value| [key, value - baseline_supply.fetch(key)] }
       expect(additive_metrics).to eq(
         public_topics_created: 3,
         human_topics_created: 3,
@@ -144,9 +145,7 @@ RSpec.describe WhereIsMyFriends::GrowthReport do
             :imported_topics_created,
             :unique_human_topic_authors
           )
-          .to_h do |key, value|
-            [key, value - baseline_supply.fetch(key)]
-          end
+          .to_h { |key, value| [key, value - baseline_supply.fetch(key)] }
       ).to eq(
         public_topics_created: 1,
         human_topics_created: 0,

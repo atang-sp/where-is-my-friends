@@ -493,11 +493,13 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       UserLocation.upsert_city_location(user.id, city: "上海")
 
       10.times do
-        hidden_user = Fabricate(:user, trust_level: 2, last_seen_at: 1.minute.ago)
+        hidden_user =
+          Fabricate(:user, trust_level: 2, last_seen_at: 1.minute.ago)
         hidden_user.user_option.update!(hide_profile: true)
         UserLocation.upsert_city_location(hidden_user.id, city: "上海")
       end
-      visible_user = Fabricate(:user, trust_level: 2, last_seen_at: 100.days.ago)
+      visible_user =
+        Fabricate(:user, trust_level: 2, last_seen_at: 100.days.ago)
       UserLocation.upsert_city_location(visible_user.id, city: "上海")
 
       get "/where-is-my-friends/locations/nearby.json"
@@ -512,8 +514,11 @@ RSpec.describe WhereIsMyFriends::LocationsController do
       SiteSetting.where_is_my_friends_max_users_display = 10
       UserLocation.upsert_city_location(user.id, city: "上海")
 
-      (10 * WhereIsMyFriends::LocationDiscovery::PROFILE_SCAN_MULTIPLIER).times do
-        hidden_user = Fabricate(:user, trust_level: 2, last_seen_at: 1.minute.ago)
+      (
+        10 * WhereIsMyFriends::LocationDiscovery::PROFILE_SCAN_MULTIPLIER
+      ).times do
+        hidden_user =
+          Fabricate(:user, trust_level: 2, last_seen_at: 1.minute.ago)
         hidden_user.user_option.update!(hide_profile: true)
         UserLocation.upsert_city_location(hidden_user.id, city: "上海")
       end

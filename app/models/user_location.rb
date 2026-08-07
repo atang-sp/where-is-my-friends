@@ -43,9 +43,7 @@ class UserLocation < ActiveRecord::Base
           )
         end
   scope :active_for_discovery,
-        -> do
-          where(enabled: true).where.not(city_key: [nil, ""])
-        end
+        -> { where(enabled: true).where.not(city_key: [nil, ""]) }
   scope :discoverable, -> { active_for_discovery.with_discoverable_user }
 
   def self.normalize_city(value)

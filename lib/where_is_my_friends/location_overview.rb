@@ -99,8 +99,7 @@ module WhereIsMyFriends
         virtual_location_enabled:
           SiteSetting.where_is_my_friends_enable_virtual_location,
         map_provider: SiteSetting.where_is_my_friends_map_provider,
-        aggregate_privacy_threshold:
-          AggregatePrivacy.threshold,
+        aggregate_privacy_threshold: AggregatePrivacy.threshold,
         default_discovery_radius_km: UserLocation.default_discovery_radius_km,
         discovery_radius_options_km: UserLocation::DISCOVERY_RADIUS_OPTIONS_KM
       }

@@ -26,8 +26,7 @@ task "where_is_my_friends:notify_profile_location_users" => :environment do
     next if profile_city.blank?
 
     city_key = UserLocation.normalize_city(profile_city)
-    nearby_count =
-      UserLocation.discoverable.where(city_key: city_key).count
+    nearby_count = UserLocation.discoverable.where(city_key: city_key).count
     invite_key =
       if nearby_count.zero?
         "where_is_my_friends.notification.profile_location_invite_empty"
