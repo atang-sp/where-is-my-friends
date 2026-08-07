@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.19.0 — 2026-08-07
+
+- Deepen local discovery, interest preferences, recommendations, and practice
+  invitations into independent workflow modules with compact rendering seams
+  and isolated loading and error states.
+- Compute and cache only the requested homepage recommendation group, and use
+  narrow page, callout, and composer location projections instead of building
+  data those surfaces do not consume.
+- Centralize client telemetry event allowlists, context mapping, transport, and
+  best-effort failures behind one reusable module.
+- Apply one viewer-aware account eligibility, Guardian visibility, and bounded
+  scanning policy to discovery, recommendations, invitations, and member-joined
+  notifications, including hidden-profile regression coverage.
+
 ## 1.18.0 — 2026-08-07
 
 - Apply one aggregate-privacy policy to discovery counts, previews, digests,
