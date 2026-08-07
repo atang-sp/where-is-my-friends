@@ -2,11 +2,11 @@
 
 module WhereIsMyFriends
   class LocationDiscovery
-    PROFILE_SCAN_MULTIPLIER = 3
-
     def initialize(user:, guardian:, origin:, raw_filters:, filterable_fields:)
       @user = user
       @guardian = guardian
+      @member_selection =
+        ViewerAwareMemberSelection.new(viewer: user, guardian: guardian)
       @origin = origin
       @raw_filters = raw_filters
       @filterable_fields = filterable_fields
@@ -79,15 +79,21 @@ module WhereIsMyFriends
         UserLocation.discovery_limit(
           SiteSetting.where_is_my_friends_max_users_display
         )
-      locations, results_limited =
-        visible_locations(
-          locations.order(
-            Arel.sql(
-              "CASE WHEN users.last_seen_at >= #{ActiveRecord::Base.connection.quote(90.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST, users.id ASC"
-            )
-          ),
-          limit: limit
+      selection =
+        @member_selection.select(
+          scope:
+            locations.order(
+              Arel.sql(
+                "CASE WHEN users.last_seen_at >= #{ActiveRecord::Base.connection.quote(90.days.ago)} THEN 0 ELSE 1 END, users.last_seen_at DESC NULLS LAST, users.id ASC"
+              )
+            ),
+          limit: limit,
+          scan_limit:
+            limit * ViewerAwareMemberSelection::DEFAULT_SCAN_MULTIPLIER,
+          &:user
         )
+      locations = selection.items
+      results_limited = selection.limited
 
       fields = @filterable_fields
       cf_map = load_custom_field_values(locations.map(&:user_id), fields)
@@ -140,32 +146,6 @@ module WhereIsMyFriends
       { state: "empty", users: [] }.merge(protected_count).merge(
         local_topic_snapshot(radius)
       )
-    end
-
-    def visible_locations(scope, limit:)
-      visible = []
-      offset = 0
-      scan_budget = limit * PROFILE_SCAN_MULTIPLIER
-      scan_truncated = false
-
-      while offset < scan_budget
-        batch_limit = [limit, scan_budget - offset].min
-        batch = scope.offset(offset).limit(batch_limit).to_a
-        break if batch.empty?
-
-        visible.concat(
-          batch.select { |location| @guardian.can_see_profile?(location.user) }
-        )
-        break if visible.length >= limit || batch.length < batch_limit
-
-        offset += batch.length
-        if offset >= scan_budget
-          scan_truncated = scope.offset(offset).exists?
-          break
-        end
-      end
-
-      [visible.first(limit), scan_truncated]
     end
 
     def limited_result(radius)

@@ -8,6 +8,7 @@ import { ajax } from "discourse/lib/ajax";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import CommunityDiscoveryPanel from "discourse/plugins/where-is-my-friends/discourse/components/community-discovery-panel";
+import { createClientTelemetry } from "discourse/plugins/where-is-my-friends/discourse/lib/client-telemetry";
 import {
   HOMEPAGE_DISCOVERY_ENTRIES,
   homepageDiscoveryEntry,
@@ -27,6 +28,7 @@ export default class InterestOnboardingCallout extends Component {
   @service siteSettings;
 
   @tracked dismissed = false;
+  telemetry = createClientTelemetry();
 
   get onboardingState() {
     return get(
@@ -81,7 +83,7 @@ export default class InterestOnboardingCallout extends Component {
 
   @action
   recordPrompt() {
-    void this.recordEvent("interest_prompt_viewed");
+    void this.telemetry.record("interest_prompt_viewed");
   }
 
   @action
@@ -98,17 +100,6 @@ export default class InterestOnboardingCallout extends Component {
       this.dismissed = true;
     } catch {
       // A non-critical prompt must never block the topic list.
-    }
-  }
-
-  async recordEvent(eventName) {
-    try {
-      await ajax("/where-is-my-friends/events.json", {
-        type: "POST",
-        data: { event_name: eventName },
-      });
-    } catch {
-      // Analytics must never block the topic list.
     }
   }
 

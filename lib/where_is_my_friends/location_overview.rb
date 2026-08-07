@@ -2,18 +2,24 @@
 
 module WhereIsMyFriends
   class LocationOverview
+    PROJECTIONS = {
+      page: :page_projection,
+      callout: :callout_projection,
+      presence: :presence_projection
+    }.freeze
+
     def initialize(user:)
       @user = user
     end
 
-    def call
-      location = current_location
-      protected_new_nearby_count =
-        AggregatePrivacy.protect_counts(
-          { new_nearby_count: new_nearby_count(location) },
-          :new_nearby_count
-        )
+    def call(projection: :page)
+      send(PROJECTIONS.fetch(projection))
+    end
 
+    private
+
+    def page_projection
+      location = current_location
       {
         state: state_for(location),
         current_user: {
@@ -26,18 +32,47 @@ module WhereIsMyFriends
         city_directory: CityNetwork.new.directory,
         city_catalogue: CityCentroidLookup.instance.catalogue,
         settings: client_settings,
-        profile_location: @user.user_profile&.location.presence,
+        profile_location: profile_location,
         filterable_fields:
           resolved_filterable_fields.map do |field|
             field.slice(:name, :key, :options)
           end
+      }
+    end
+
+    def callout_projection
+      location = current_location
+      protected_new_nearby_count =
+        AggregatePrivacy.protect_counts(
+          { new_nearby_count: new_nearby_count(location) },
+          :new_nearby_count
+        )
+
+      {
+        state: state_for(location),
+        location: location_metadata(location),
+        active_participants: active_participants,
+        city_directory: CityNetwork.new.directory,
+        profile_location: profile_location
       }.merge(protected_new_nearby_count)
     end
 
-    private
+    def presence_projection
+      {
+        has_location: current_location.present?,
+        profile_location: profile_location
+      }
+    end
 
     def current_location
-      UserLocation.active_for_discovery.find_by(user_id: @user.id)
+      return @current_location if defined?(@current_location)
+
+      @current_location =
+        UserLocation.active_for_discovery.find_by(user_id: @user.id)
+    end
+
+    def profile_location
+      @profile_location ||= @user.user_profile&.location.presence
     end
 
     def state_for(location)

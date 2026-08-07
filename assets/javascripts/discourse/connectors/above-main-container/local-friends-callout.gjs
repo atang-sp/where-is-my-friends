@@ -9,6 +9,7 @@ import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
+import { createClientTelemetry } from "discourse/plugins/where-is-my-friends/discourse/lib/client-telemetry";
 import {
   HOMEPAGE_DISCOVERY_ENTRIES,
   homepageDiscoveryEntry,
@@ -63,6 +64,7 @@ export default class LocalFriendsCallout extends Component {
   @tracked compact = false;
   calloutState = readCalloutState();
   recordedImpressionSurfaces = new Set();
+  telemetry = createClientTelemetry();
 
   constructor() {
     super(...arguments);
@@ -214,7 +216,7 @@ export default class LocalFriendsCallout extends Component {
     }
 
     try {
-      this.data = await ajax("/where-is-my-friends.json");
+      this.data = await ajax("/where-is-my-friends/callout.json");
       if (!this.data.location && this.data.profile_location) {
         this.city = this.data.profile_location;
         this.hasSuggestion = true;
@@ -232,7 +234,7 @@ export default class LocalFriendsCallout extends Component {
     }
 
     this.recordedImpressionSurfaces.add(surface);
-    void this.recordEvent("local_callout_viewed");
+    void this.telemetry.record("local_callout_viewed", { surface });
     this.recordView();
   }
 
@@ -279,7 +281,9 @@ export default class LocalFriendsCallout extends Component {
         state: response.state,
       };
       this.justJoined = true;
-      void this.recordEvent("local_callout_location_saved");
+      void this.telemetry.record("local_callout_location_saved", {
+        surface: this.calloutSurface,
+      });
     } catch {
       this.error = i18n("where_is_my_friends.callout_save_error");
     } finally {
@@ -289,7 +293,9 @@ export default class LocalFriendsCallout extends Component {
 
   @action
   dismiss() {
-    void this.recordEvent("local_callout_dismissed");
+    void this.telemetry.record("local_callout_dismissed", {
+      surface: this.calloutSurface,
+    });
     const views = Math.max(this.calloutState.views, MAX_VIEWS);
     this.calloutState = {
       views,
@@ -311,21 +317,9 @@ export default class LocalFriendsCallout extends Component {
 
   @action
   trackOpen() {
-    void this.recordEvent("local_callout_opened");
-  }
-
-  async recordEvent(eventName) {
-    try {
-      await ajax("/where-is-my-friends/events.json", {
-        type: "POST",
-        data: {
-          event_name: eventName,
-          surface: this.calloutSurface,
-        },
-      });
-    } catch {
-      // Measurement must never block local discovery.
-    }
+    void this.telemetry.record("local_callout_opened", {
+      surface: this.calloutSurface,
+    });
   }
 
   <template>

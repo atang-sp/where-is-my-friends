@@ -2,6 +2,8 @@
 
 WhereIsMyFriends::Engine.routes.draw do
   get "/" => "locations#index"
+  get "/callout" => "locations#callout"
+  get "/location-presence" => "locations#presence"
   get "/cities/preview" => "locations#preview"
   post "/locations" => "locations#create"
   get "/locations/nearby" => "locations#nearby"

@@ -39,7 +39,7 @@ class UserLocation < ActiveRecord::Base
   scope :with_discoverable_user,
         -> do
           joins(:user).merge(
-            User.activated.not_staged.not_suspended.not_silenced
+            WhereIsMyFriends::ViewerAwareMemberSelection.eligible_users
           )
         end
   scope :active_for_discovery,

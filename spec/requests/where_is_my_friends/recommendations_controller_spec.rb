@@ -92,6 +92,103 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
   end
 
   describe "#index" do
+    it "returns an exact projection for every supported group and rejects unknown groups" do
+      {
+        "people" => "recommended_users",
+        "interests" => "recommended_interests"
+      }.each do |group, result_key|
+        get "/where-is-my-friends/recommendations.json",
+            params: {
+              group: group
+            }
+
+        expect(response.status).to eq(200)
+        expect(response.parsed_body.keys).to contain_exactly(
+          "algorithm_version",
+          "state",
+          "recommendation_group",
+          result_key
+        )
+        expect(response.parsed_body.fetch("recommendation_group")).to eq(group)
+      end
+
+      get "/where-is-my-friends/recommendations.json",
+          params: {
+            group: "everything"
+          }
+
+      expect(response.status).to eq(422)
+      expect(response.parsed_body.fetch("errors")).to be_present
+    end
+
+    context "with a complete interest profile" do
+      fab!(:query_budget_profile) do
+        WhereIsMyFriendsInterestProfile.create!(
+          user: user,
+          purpose: "learn",
+          personalization_enabled: true,
+          recommendable: true,
+          completed_at: Time.current
+        )
+      end
+
+      fab!(:query_budget_ruby_interest) do
+        query_budget_profile.interests.create!(tag: ruby_tag, position: 0)
+      end
+      fab!(:query_budget_design_interest) do
+        query_budget_profile.interests.create!(tag: design_tag, position: 1)
+      end
+      fab!(:query_budget_community_interest) do
+        query_budget_profile.interests.create!(tag: community_tag, position: 2)
+      end
+      fab!(:query_budget_topic) do
+        Fabricate(
+          :topic,
+          user: author,
+          title: "A focused Ruby discussion",
+          tags: [ruby_tag]
+        )
+      end
+
+      it "computes only the requested recommendation group with a smaller query budget" do
+        get "/where-is-my-friends/recommendations.json"
+        get "/where-is-my-friends/recommendations.json",
+            params: {
+              group: "topics"
+            }
+
+        group_queries =
+          ActiveRecord::Base.uncached do
+            track_sql_queries do
+              get "/where-is-my-friends/recommendations.json",
+                  params: {
+                    group: "topics"
+                  }
+            end
+          end
+        group_response = response.parsed_body
+
+        full_queries =
+          ActiveRecord::Base.uncached do
+            track_sql_queries do
+              get "/where-is-my-friends/recommendations.json"
+            end
+          end
+
+        expect(group_response.keys).to contain_exactly(
+          "algorithm_version",
+          "state",
+          "recommendation_group",
+          "recommended_topics"
+        )
+        expect(group_response.fetch("recommendation_group")).to eq("topics")
+        expect(
+          group_response.fetch("recommended_topics").pluck("id")
+        ).to include(query_budget_topic.id)
+        expect(group_queries.length).to be < full_queries.length
+      end
+    end
+
     it "returns a grouped curated catalogue instead of deriving interests from recent topics" do
       %w[纯实践 惩戒管教 游戏互动].each { |name| Tag.find_by!(name: name) }
       recent_tag = Fabricate(:tag, name: "偶然出现的话题标签")
@@ -1011,6 +1108,7 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
          params: {
            target_type: "topic",
            target_id: topic.id,
+           group: "topics",
            surface: "homepage",
            candidate_source: "interest",
            rank: 2,
@@ -1018,6 +1116,12 @@ RSpec.describe WhereIsMyFriends::RecommendationsController do
          }
 
     expect(response.status).to eq(200)
+    expect(response.parsed_body.keys).to contain_exactly(
+      "algorithm_version",
+      "state",
+      "recommendation_group",
+      "recommended_topics"
+    )
     expect(
       response.parsed_body.fetch("recommended_topics").pluck("id")
     ).not_to include(topic.id)

@@ -11,6 +11,7 @@ import { not } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import PersonalDynamicsCard from "discourse/plugins/where-is-my-friends/discourse/components/personal-dynamics-card";
+import { createClientTelemetry } from "discourse/plugins/where-is-my-friends/discourse/lib/client-telemetry";
 
 const graphemeSegmenter =
   typeof Intl.Segmenter === "function"
@@ -49,11 +50,15 @@ export default class PersonalDynamicsPage extends Component {
   @tracked publishNotice = null;
   lengthRequest = 0;
   inputElement = null;
+  telemetry = createClientTelemetry({
+    surface: "profile",
+    recommendationGroup: "dynamics",
+  });
 
   constructor(owner, args) {
     super(owner, args);
     void this.load();
-    void this.recordEvent("dynamics_profile_viewed");
+    void this.telemetry.record("dynamics_profile_viewed");
   }
 
   get isSelf() {
@@ -173,7 +178,7 @@ export default class PersonalDynamicsPage extends Component {
 
   @action
   trackOpen() {
-    void this.recordEvent("dynamic_opened");
+    void this.telemetry.record("dynamic_opened");
   }
 
   async load(beforeId = null, append = false) {
@@ -200,21 +205,6 @@ export default class PersonalDynamicsPage extends Component {
       if (!append) {
         this.loading = false;
       }
-    }
-  }
-
-  async recordEvent(eventName) {
-    try {
-      await ajax("/where-is-my-friends/events.json", {
-        type: "POST",
-        data: {
-          event_name: eventName,
-          surface: "profile",
-          recommendation_group: "dynamics",
-        },
-      });
-    } catch {
-      // Measurement must never block personal dynamics.
     }
   }
 

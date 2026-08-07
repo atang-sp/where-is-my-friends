@@ -39,6 +39,7 @@ module WhereIsMyFriends
     end
 
     def notify_user(user)
+      return unless viewer_selection(user).visible?(@joiner)
       return if daily_count(user) >= DAILY_LIMIT
 
       Notification.create!(
@@ -69,6 +70,10 @@ module WhereIsMyFriends
         .where("created_at > ?", 1.day.ago)
         .where("data::jsonb->>'message' = ?", MESSAGE_KEY)
         .count
+    end
+
+    def viewer_selection(user)
+      ViewerAwareMemberSelection.new(viewer: user)
     end
   end
 end
