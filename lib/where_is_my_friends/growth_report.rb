@@ -16,6 +16,7 @@ module WhereIsMyFriends
           ends_at: @as_of.iso8601
         },
         funnel: FunnelMetrics.new(since: @since, as_of: @as_of).call,
+        connections: ConnectionMetrics.new(since: @since, as_of: @as_of).call,
         dynamics: DynamicMetrics.new(since: @since, as_of: @as_of).call,
         content_supply: content_supply,
         daily: daily_trend

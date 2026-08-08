@@ -132,6 +132,7 @@ RSpec.describe WhereIsMyFriends::EventsController do
       expect(response.status).to eq(200)
       expect(response.parsed_body).to include(
         "period",
+        "connections",
         "content_supply",
         "daily"
       )
@@ -139,6 +140,60 @@ RSpec.describe WhereIsMyFriends::EventsController do
         "unique_page_visitors" => 1
       )
       expect(response.parsed_body.fetch("funnel")).to include("mature_cohorts")
+    end
+
+    it "returns no invitation, participant, interest, PM, or content identifiers" do
+      freeze_time(Time.zone.parse("2026-08-31 12:00:00"))
+      SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 3
+      admin = Fabricate(:admin)
+      invitations =
+        3.times.map do
+          WhereIsMyFriendsPracticeInvitation.create!(
+            sender: Fabricate(:user),
+            recipient: Fabricate(:user),
+            interest_name: "never-expose-interest-name",
+            note: "never expose this invitation note",
+            created_at: 2.days.ago
+          )
+        end
+      sign_in(admin)
+
+      get "/where-is-my-friends/debug-stats.json"
+
+      expect(response.status).to eq(200)
+      connections = response.parsed_body.fetch("connections")
+      forbidden_keys = %w[
+        id
+        invitation_id
+        sender_id
+        recipient_id
+        user_id
+        username
+        user_pair
+        tag_id
+        interest
+        interest_name
+        pm_topic_id
+        topic_id
+        post_id
+        raw
+        note
+        content
+        city
+        latitude
+        longitude
+        distance
+      ]
+      keys = connections.to_json.scan(/"([^"]+)":/).flatten
+
+      expect(keys & forbidden_keys).to be_empty
+      expect(connections.to_json).not_to include(
+        "never-expose-interest-name",
+        "never expose this invitation note",
+        *invitations.flat_map do |invitation|
+          [invitation.sender.username, invitation.recipient.username]
+        end
+      )
     end
 
     it "supports approved report windows and breaks location totals down by mode" do
