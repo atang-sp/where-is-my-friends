@@ -75,9 +75,17 @@ export default class LocalFriendsCallout extends Component {
     return Boolean(
       this.currentUser &&
       this.isTopicListRoute &&
+      !this.firstConnectionOwnsHomepage &&
       (!this.isHomeRoute ||
         this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.LOCAL) &&
       !this.calloutCooldownActive
+    );
+  }
+
+  get firstConnectionOwnsHomepage() {
+    return Boolean(
+      this.isHomeRoute &&
+      this.siteSettings.where_is_my_friends_first_connection_enabled
     );
   }
 

@@ -7,6 +7,7 @@ export default class PersonalDynamicsHomepageFeedConnector extends Component {
     return Boolean(
       currentUser &&
       siteSettings.where_is_my_friends_enabled &&
+      !siteSettings.where_is_my_friends_first_connection_enabled &&
       siteSettings.where_is_my_friends_dynamics_enabled &&
       siteSettings.where_is_my_friends_dynamics_feed_enabled &&
       siteSettings.where_is_my_friends_dynamics_category_id

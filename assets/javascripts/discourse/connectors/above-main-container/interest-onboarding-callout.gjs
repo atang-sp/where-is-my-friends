@@ -41,14 +41,23 @@ export default class InterestOnboardingCallout extends Component {
     return (
       this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.INTEREST_ONBOARDING &&
       !this.dismissed &&
-      this.isTopicListRoute
+      this.isTopicListRoute &&
+      !this.firstConnectionOwnsHomepage
     );
   }
 
   get shouldShowDiscovery() {
     return (
       this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.COMMUNITY &&
-      this.isHomeRoute
+      this.isHomeRoute &&
+      !this.firstConnectionOwnsHomepage
+    );
+  }
+
+  get firstConnectionOwnsHomepage() {
+    return Boolean(
+      this.isHomeRoute &&
+      this.siteSettings.where_is_my_friends_first_connection_enabled
     );
   }
 
