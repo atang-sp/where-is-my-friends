@@ -9,6 +9,7 @@ WhereIsMyFriends::Engine.routes.draw do
   get "/locations/nearby" => "locations#nearby"
   delete "/locations" => "locations#destroy"
   get "/recommendations" => "recommendations#index"
+  get "/next-action" => "next_actions#show"
   get "/dynamics" => "dynamics#index"
   get "/dynamics/feed" => "dynamics#feed"
   get "/dynamics/recent" => "dynamics#recent"

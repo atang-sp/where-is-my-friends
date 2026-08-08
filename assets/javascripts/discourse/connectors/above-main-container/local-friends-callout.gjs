@@ -51,6 +51,7 @@ function shouldCompact(state) {
 
 export default class LocalFriendsCallout extends Component {
   @service currentUser;
+  @service firstConnectionHomepage;
   @service router;
   @service siteSettings;
 
@@ -75,10 +76,15 @@ export default class LocalFriendsCallout extends Component {
     return Boolean(
       this.currentUser &&
       this.isTopicListRoute &&
+      !this.firstConnectionOwnsHomepage &&
       (!this.isHomeRoute ||
         this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.LOCAL) &&
       !this.calloutCooldownActive
     );
+  }
+
+  get firstConnectionOwnsHomepage() {
+    return this.firstConnectionHomepage.owns(this.router.currentRouteName);
   }
 
   get homepageEntry() {

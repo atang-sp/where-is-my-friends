@@ -47,9 +47,9 @@ module WhereIsMyFriends
       new(user).catalogue
     end
 
-    def initialize(user, diversity_seed: nil)
+    def initialize(user, diversity_seed: nil, guardian: nil)
       @user = user
-      @guardian = Guardian.new(user)
+      @guardian = guardian || Guardian.new(user)
       @member_selection =
         ViewerAwareMemberSelection.new(viewer: user, guardian: @guardian)
       @diversity_seed = diversity_seed.to_s.first(32)
@@ -66,6 +66,14 @@ module WhereIsMyFriends
         :recommendation_group => group,
         method_name => send(method_name, profile)
       }
+    end
+
+    def first_recommended_user(profile:)
+      recommended_users(
+        profile,
+        limit: 1,
+        include_optional_details: false
+      ).first
     end
 
     def full_payload(profile)
@@ -189,7 +197,11 @@ module WhereIsMyFriends
         end
     end
 
-    def recommended_users(profile)
+    def recommended_users(
+      profile,
+      limit: MAX_USERS,
+      include_optional_details: true
+    )
       viewer_tags = profile_interest_tags(profile)
       return [] if viewer_tags.empty?
 
@@ -285,8 +297,13 @@ module WhereIsMyFriends
             ]
           end
           .then { |candidates| refresh_record_candidates(candidates) }
-          .first(MAX_USERS)
-      latest_dynamics = latest_member_dynamics(selected_candidates)
+          .first([limit, MAX_USERS].min)
+      latest_dynamics =
+        if include_optional_details
+          latest_member_dynamics(selected_candidates)
+        else
+          {}
+        end
 
       selected_candidates.each_with_index.map do |candidate, index|
         candidate_match = candidate_matches.fetch(candidate.id)
@@ -297,7 +314,8 @@ module WhereIsMyFriends
           candidate_match.fetch(:match),
           candidate_source: member_candidate_source(candidate_match),
           rank: index + 1,
-          latest_dynamic: latest_dynamics[candidate.id]
+          latest_dynamic: latest_dynamics[candidate.id],
+          include_optional_details: include_optional_details
         )
       end
     end
@@ -902,7 +920,8 @@ module WhereIsMyFriends
       match,
       candidate_source:,
       rank:,
-      latest_dynamic: nil
+      latest_dynamic: nil,
+      include_optional_details: true
     )
       representative_topics = topics.sort_by(&:bumped_at).reverse.first(2)
       public_reason_tags =
@@ -919,10 +938,14 @@ module WhereIsMyFriends
       reason_tags =
         (public_reason_tags.presence || private_match_reason_tags).first(3)
       invitation_tags =
-        PracticeInvitationEligibility.new(
-          sender: @user,
-          recipient: candidate
-        ).common_interests
+        if include_optional_details
+          PracticeInvitationEligibility.new(
+            sender: @user,
+            recipient: candidate
+          ).common_interests
+        else
+          []
+        end
 
       payload = {
         id: candidate.id,

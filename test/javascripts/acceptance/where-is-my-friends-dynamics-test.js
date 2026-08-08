@@ -26,6 +26,7 @@ function dynamic(id, text = `Dynamic ${id}`) {
 acceptance("Where Is My Friends | personal dynamics", function (needs) {
   needs.settings({
     where_is_my_friends_enabled: true,
+    where_is_my_friends_first_connection_enabled: false,
     where_is_my_friends_dynamics_enabled: true,
     where_is_my_friends_dynamics_feed_enabled: true,
     where_is_my_friends_dynamics_category_id: 1,

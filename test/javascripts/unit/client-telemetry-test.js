@@ -59,4 +59,27 @@ module("Unit | where-is-my-friends | client telemetry", function () {
 
     assert.false(await telemetry.record("page_view"));
   });
+
+  test("allows first connection events with coarse context only", async function (assert) {
+    const requests = [];
+    const telemetry = createClientTelemetry(
+      { surface: "homepage" },
+      async (...request) => requests.push(request)
+    );
+
+    assert.true(
+      await telemetry.record("first_connection_topic_opened", {
+        recommendationGroup: "topics",
+        algorithmVersion: "first_connection_v1",
+        topicId: 42,
+        title: "private target title",
+      })
+    );
+    assert.deepEqual(requests[0][1].data, {
+      event_name: "first_connection_topic_opened",
+      surface: "homepage",
+      recommendation_group: "topics",
+      algorithm_version: "first_connection_v1",
+    });
+  });
 });

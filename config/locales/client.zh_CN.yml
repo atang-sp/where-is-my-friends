@@ -14,6 +14,45 @@ zh_CN:
       title: "同城朋友"
       eyebrow: "本地社区"
       description: "找到你身边的同好，把线上的熟悉ID变成线下的真实连接。"
+      first_connection:
+        eyebrow: "今天可以做什么"
+        loading: "正在加载今天的建议行动"
+        dismiss: "七天内不再显示今天的建议行动"
+        more: "查看更多推荐"
+        more_people: "查看更多成员"
+        onboarding:
+          title: "找到适合你的话题和成员"
+          description: "先选择 3 个感兴趣的方向，我们会马上给你一个可以参与的社区机会。"
+          cta: "选择兴趣"
+        incoming_invitation:
+          title: "你收到了一条连接邀请"
+          description: "你可以查看共同兴趣，并自行决定接受、拒绝或忽略。"
+          cta: "查看邀请"
+        continue_conversation:
+          title: "继续刚开始的对话"
+          description: "对方已经接受邀请，可以从共同兴趣开始聊聊。"
+          cta: "继续对话"
+        topic:
+          title: "先从一个容易加入的话题开始"
+          description: "这个讨论与你选择的兴趣有关，目前很适合参与。"
+          cta: "参与讨论"
+        person:
+          title: "认识一位可能聊得来的成员"
+          description: "你们有共同关注的方向，可以先从公开内容了解对方。"
+          topic_cta: "从共同话题开始"
+          profile_cta: "查看资料"
+        dynamic:
+          title: "看看社区成员最近在分享什么"
+          description: "这条近期动态对你可见，可以从这里了解社区正在发生的事。"
+          cta: "查看动态"
+        local_discovery:
+          title: "发现同城成员"
+          description: "只需从城市开始，无需精确位置，也能认识本地社区成员。"
+          cta: "看看同城成员"
+        recommendations:
+          title: "看看为你准备的社区推荐"
+          description: "暂时没有适合单独突出的一项内容，可以继续浏览原有推荐。"
+          cta: "查看推荐"
       flying_chess:
         eyebrow: "服务器确认成就"
         claim_title: "保存这局飞行棋成就"

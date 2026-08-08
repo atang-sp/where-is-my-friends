@@ -14,6 +14,45 @@ en:
       title: "Local Friends"
       eyebrow: "Local community"
       description: "Find people near you who share your interests — turn online usernames into real-life connections."
+      first_connection:
+        eyebrow: "What can you do today?"
+        loading: "Loading today's suggested action"
+        dismiss: "Hide today's suggested action for seven days"
+        more: "See more recommendations"
+        more_people: "See more members"
+        onboarding:
+          title: "Find topics and members that fit you"
+          description: "Choose three interests first, and we'll immediately suggest a community opportunity you can join."
+          cta: "Choose interests"
+        incoming_invitation:
+          title: "You received a connection invitation"
+          description: "Review your shared interest, then choose whether to accept, decline, or ignore it."
+          cta: "View invitation"
+        continue_conversation:
+          title: "Continue the conversation you just started"
+          description: "Your invitation was accepted. You can start with the interest you share."
+          cta: "Continue conversation"
+        topic:
+          title: "Start with a discussion that's easy to join"
+          description: "This discussion relates to your interests and is a good place to participate now."
+          cta: "Join the discussion"
+        person:
+          title: "Meet a member you may enjoy talking with"
+          description: "You share a direction of interest, so you can begin with their public contributions."
+          topic_cta: "Start from a shared topic"
+          profile_cta: "View profile"
+        dynamic:
+          title: "See what a community member is sharing"
+          description: "This recent update is visible to you and offers an easy way to learn what's happening."
+          cta: "View update"
+        local_discovery:
+          title: "Discover members in your city"
+          description: "Start with a city—precise location is not required—to find people in the local community."
+          cta: "Explore local members"
+        recommendations:
+          title: "Explore your community recommendations"
+          description: "Browse the existing recommendation panel when no single result is ready to highlight."
+          cta: "View recommendations"
       flying_chess:
         eyebrow: "Server-verified achievement"
         claim_title: "Save this Flying Chess game"

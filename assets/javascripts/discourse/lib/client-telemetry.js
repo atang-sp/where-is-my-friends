@@ -40,6 +40,16 @@ const EVENT_NAMES = new Set([
   "recent_dynamics_viewed",
   "dynamic_opened",
   "recommended_user_dynamic_opened",
+  "first_connection_card_viewed",
+  "first_connection_card_dismissed",
+  "first_connection_onboarding_opened",
+  "first_connection_invitation_opened",
+  "first_connection_conversation_opened",
+  "first_connection_topic_opened",
+  "first_connection_person_opened",
+  "first_connection_dynamic_opened",
+  "first_connection_local_opened",
+  "first_connection_recommendations_opened",
 ]);
 
 const CONTEXT_FIELDS = {

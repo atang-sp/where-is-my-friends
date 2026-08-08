@@ -109,6 +109,7 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
   needs.settings({
     chat_enabled: true,
     where_is_my_friends_enabled: true,
+    where_is_my_friends_first_connection_enabled: false,
     where_is_my_friends_interest_onboarding_enabled: true,
     where_is_my_friends_target_category_id: 1,
     where_is_my_friends_target_category_slug: "legacy-only",

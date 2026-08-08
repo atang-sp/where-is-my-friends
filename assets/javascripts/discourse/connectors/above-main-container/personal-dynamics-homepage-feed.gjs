@@ -13,7 +13,15 @@ export default class PersonalDynamicsHomepageFeedConnector extends Component {
     );
   }
 
+  @service firstConnectionHomepage;
   @service router;
+
+  get shouldShow() {
+    return Boolean(
+      this.isHomeRoute &&
+      !this.firstConnectionHomepage.owns(this.router.currentRouteName)
+    );
+  }
 
   get isHomeRoute() {
     const routeName = this.router.currentRouteName ?? "";
@@ -33,7 +41,7 @@ export default class PersonalDynamicsHomepageFeedConnector extends Component {
   }
 
   <template>
-    {{#if this.isHomeRoute}}
+    {{#if this.shouldShow}}
       <PersonalDynamicsHomepageFeed />
     {{/if}}
   </template>

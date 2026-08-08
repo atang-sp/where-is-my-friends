@@ -24,6 +24,7 @@ export default class InterestOnboardingCallout extends Component {
   }
 
   @service currentUser;
+  @service firstConnectionHomepage;
   @service router;
   @service siteSettings;
 
@@ -41,15 +42,21 @@ export default class InterestOnboardingCallout extends Component {
     return (
       this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.INTEREST_ONBOARDING &&
       !this.dismissed &&
-      this.isTopicListRoute
+      this.isTopicListRoute &&
+      !this.firstConnectionOwnsHomepage
     );
   }
 
   get shouldShowDiscovery() {
     return (
       this.homepageEntry === HOMEPAGE_DISCOVERY_ENTRIES.COMMUNITY &&
-      this.isHomeRoute
+      this.isHomeRoute &&
+      !this.firstConnectionOwnsHomepage
     );
+  }
+
+  get firstConnectionOwnsHomepage() {
+    return this.firstConnectionHomepage.owns(this.router.currentRouteName);
   }
 
   get homepageEntry() {
