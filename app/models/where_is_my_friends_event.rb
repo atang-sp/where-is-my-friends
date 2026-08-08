@@ -41,6 +41,16 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     recent_dynamics_viewed
     dynamic_opened
     recommended_user_dynamic_opened
+    first_connection_card_viewed
+    first_connection_card_dismissed
+    first_connection_onboarding_opened
+    first_connection_invitation_opened
+    first_connection_conversation_opened
+    first_connection_topic_opened
+    first_connection_person_opened
+    first_connection_dynamic_opened
+    first_connection_local_opened
+    first_connection_recommendations_opened
   ].freeze
   LOCATION_MODES = %w[city gps map].freeze
   RESULT_BUCKETS = %w[zero one_to_four five_to_nineteen twenty_plus].freeze
@@ -54,7 +64,7 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     exploration
   ].freeze
   RANK_BUCKETS = %w[one_to_two three_to_five six_plus].freeze
-  ALGORITHM_VERSIONS = %w[participation_v1].freeze
+  ALGORITHM_VERSIONS = %w[participation_v1 first_connection_v1].freeze
 
   belongs_to :user
 

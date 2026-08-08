@@ -181,6 +181,7 @@ en:
     where_is_my_friends_flying_chess_claim_secret: "Shared secret used to verify room-server completion claims (at least 32 bytes)"
     where_is_my_friends_flying_chess_game_url: "Flying Chess entry point shown on forum profiles"
     where_is_my_friends_interest_onboarding_enabled: "Enable first-use interest onboarding and personalized recommendations"
+    where_is_my_friends_first_connection_enabled: "Show one stage-aware suggested action on the homepage"
     where_is_my_friends_interest_tags: "Up to 20 forum tags to add alongside the plugin's built-in detailed interest catalogue"
     where_is_my_friends_dynamics_enabled: "Enable member-only personal updates"
     where_is_my_friends_dynamics_homepage_enabled: "Enable the updates group in homepage community discovery"

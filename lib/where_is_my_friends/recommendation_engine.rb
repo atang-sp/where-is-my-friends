@@ -47,9 +47,9 @@ module WhereIsMyFriends
       new(user).catalogue
     end
 
-    def initialize(user, diversity_seed: nil)
+    def initialize(user, diversity_seed: nil, guardian: nil)
       @user = user
-      @guardian = Guardian.new(user)
+      @guardian = guardian || Guardian.new(user)
       @member_selection =
         ViewerAwareMemberSelection.new(viewer: user, guardian: @guardian)
       @diversity_seed = diversity_seed.to_s.first(32)

@@ -25,9 +25,9 @@ module WhereIsMyFriends
     class InvalidContent < StandardError
     end
 
-    def initialize(viewer:)
+    def initialize(viewer:, guardian: nil)
       @viewer = viewer
-      @guardian = Guardian.new(viewer)
+      @guardian = guardian || Guardian.new(viewer)
       ensure_available!
     end
 

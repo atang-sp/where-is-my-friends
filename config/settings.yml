@@ -39,6 +39,14 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
+  where_is_my_friends_first_connection_enabled:
+    default: true
+    client: true
+    type: bool
+    description: "在首页显示阶段感知的今日行动入口"
+    category: "where_is_my_friends"
+    translated: true
+
   where_is_my_friends_interest_tags:
     default: ""
     type: list
