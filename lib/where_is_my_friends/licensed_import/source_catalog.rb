@@ -3,6 +3,22 @@
 module WhereIsMyFriends
   module LicensedImport
     class SourceCatalog
+      CANDIDATE_SOURCE_TYPE = SpankingArtClient::SOURCE_TYPE
+      CANDIDATE_SOURCE_IDS =
+        SpankingArtClient::PAGES.map { |page| page.fetch(:page_id) }.freeze
+
+      def self.candidate_capacity
+        CANDIDATE_SOURCE_IDS.length
+      end
+
+      def self.candidate_source_type
+        CANDIDATE_SOURCE_TYPE
+      end
+
+      def self.candidate_source_ids
+        CANDIDATE_SOURCE_IDS
+      end
+
       def initialize(candidate_sources: nil, verification_sources: nil)
         spanking_art = SpankingArtClient.new
         @candidate_sources = candidate_sources || [spanking_art]

@@ -2,6 +2,11 @@
 
 These tests run against real development Rails/Ember services and real plugin endpoints. They do not mock HTTP responses. Browser geolocation permission is the only browser capability controlled by Playwright.
 
+The smaller PR/release gate lives in `spec/system/` and is auto-discovered by
+the official Discourse plugin workflow on both minimum and latest core. This
+`e2e/` suite remains the broader real-service regression run and is not replaced
+by those four system-test workflows.
+
 From the Discourse checkout:
 
 ```bash

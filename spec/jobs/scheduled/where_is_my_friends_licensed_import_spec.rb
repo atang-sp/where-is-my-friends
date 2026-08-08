@@ -6,6 +6,29 @@ RSpec.describe Jobs::WhereIsMyFriendsLicensedImport do
     SiteSetting.licensed_import_enabled = true
   end
 
+  it "has no side effects while licensed imports are disabled" do
+    SiteSetting.licensed_import_enabled = false
+
+    allow(WhereIsMyFriends::LicensedImport::PublicationLock).to receive(
+      :synchronize
+    )
+    allow(WhereIsMyFriends::LicensedImport::ScheduleGuard).to receive(:new)
+    allow(WhereIsMyFriends::LicensedImport::EngagementGuard).to receive(:new)
+
+    described_class.new.execute({})
+
+    expect(SiteSetting.licensed_import_enabled).to eq(false)
+    expect(
+      WhereIsMyFriends::LicensedImport::PublicationLock
+    ).not_to have_received(:synchronize)
+    expect(
+      WhereIsMyFriends::LicensedImport::ScheduleGuard
+    ).not_to have_received(:new)
+    expect(
+      WhereIsMyFriends::LicensedImport::EngagementGuard
+    ).not_to have_received(:new)
+  end
+
   it "stops future runs and notifies administrators when the API key is missing" do
     allow(WhereIsMyFriends::LicensedImport::ScheduleGuard).to receive(
       :new

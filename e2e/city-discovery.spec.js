@@ -381,6 +381,8 @@ test.describe.serial("Local Friends against real Discourse", () => {
       "recommendation_exposure"
     );
     expect(report.content_supply).toHaveProperty("public_topics_created");
+    expect(report.connections).toHaveProperty("by_source");
+    expect(report.connections.by_source).toHaveProperty("native");
     expect(report.daily.length).toBeGreaterThan(0);
     expect(report.period).toHaveProperty("starts_at");
     expect(report).not.toHaveProperty("latitude");

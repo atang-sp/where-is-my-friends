@@ -14,6 +14,33 @@ RSpec.describe WhereIsMyFriends::GrowthReport do
     end
   end
 
+  it "includes privacy-safe connection outcomes without replacing existing sections" do
+    as_of = Time.zone.parse("2026-08-31 12:00:00")
+    SiteSetting.where_is_my_friends_aggregate_privacy_threshold = 3
+    3.times do
+      WhereIsMyFriendsPracticeInvitation.create!(
+        sender: Fabricate(:user),
+        recipient: Fabricate(:user),
+        interest_name: "shared-interest",
+        created_at: as_of - 2.days
+      )
+    end
+
+    report = described_class.new(since: as_of - 30.days, as_of: as_of).call
+
+    expect(report.keys).to contain_exactly(
+      :period,
+      :funnel,
+      :connections,
+      :dynamics,
+      :content_supply,
+      :daily
+    )
+    expect(
+      report.dig(:connections, :by_source, "native", :window, :invitations_sent)
+    ).to eq(3)
+  end
+
   context "with public-topic supply" do
     let(:as_of) { Time.zone.parse("2026-08-10 12:00:00") }
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.20.0 — 2026-08-08
+
+- Add privacy-suppressed native and legacy invitation snapshots, mature
+  seven-day response cohorts, and an accepted-to-sender-follow-up proxy to the
+  administrator growth report without returning invitation, user, topic, or
+  interest identifiers.
+- Model licensed imports as a finite five-item pilot, pause after five mature
+  no-reply publications, and fail closed at the 30-day review when fewer than
+  five mature samples are available.
+- Add four real Rails/Ember plugin system-test workflows for city discovery,
+  lazy recommendations, practice invitations, personal dynamics, and aggregate
+  privacy so the official Discourse workflow discovers a system-test job.
+- Add a v1.20 production observation protocol that keeps deployment and mature
+  production outcomes separate from implementation, local validation, and CI.
+
 ## 1.19.0 — 2026-08-07
 
 - Deepen local discovery, interest preferences, recommendations, and practice
