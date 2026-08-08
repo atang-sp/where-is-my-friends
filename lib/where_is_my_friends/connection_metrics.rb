@@ -10,22 +10,14 @@ module WhereIsMyFriends
     end
 
     def call
-      invitations =
-        WhereIsMyFriendsPracticeInvitation
-          .where(created_at: @since..@as_of)
-          .select(
-            :id,
-            :source,
-            :status,
-            :sender_id,
-            :recipient_id,
-            :created_at,
-            :responded_at,
-            :pm_topic_id
-          )
-          .to_a
+      invitations = invitation_scope.where(created_at: @since..@as_of).to_a
+      accepted_invitations =
+        invitation_scope.where(
+          status: "accepted",
+          responded_at: @since..@as_of
+        ).to_a
       @sender_follow_up_invitation_ids =
-        sender_follow_up_invitation_ids(invitations)
+        sender_follow_up_invitation_ids(accepted_invitations)
 
       {
         as_of: @as_of.iso8601,
@@ -34,7 +26,10 @@ module WhereIsMyFriends
         by_source:
           WhereIsMyFriendsPracticeInvitation::SOURCES.index_with do |source|
             source_metrics(
-              invitations.select { |invitation| invitation.source == source }
+              invitations.select { |invitation| invitation.source == source },
+              accepted_invitations.select do |invitation|
+                invitation.source == source
+              end
             )
           end
       }
@@ -42,8 +37,22 @@ module WhereIsMyFriends
 
     private
 
-    def source_metrics(invitations)
-      return limited if source_limited?(invitations)
+    def invitation_scope
+      WhereIsMyFriendsPracticeInvitation.select(
+        :id,
+        :source,
+        :status,
+        :sender_id,
+        :recipient_id,
+        :created_at,
+        :responded_at,
+        :pm_topic_id
+      )
+    end
+
+    def source_metrics(invitations, accepted_invitations)
+      relevant_invitations = (invitations + accepted_invitations).uniq(&:id)
+      return limited if source_limited?(relevant_invitations)
 
       mature, in_progress =
         invitations.partition do |invitation|
@@ -54,11 +63,13 @@ module WhereIsMyFriends
         limited: false,
         window: window_metrics(invitations),
         response_cohort_7d: response_metrics(mature, in_progress),
-        reciprocal_conversation_7d: reciprocal_metrics(invitations)
+        reciprocal_conversation_7d: reciprocal_metrics(accepted_invitations)
       }
     end
 
     def window_metrics(invitations)
+      return limited if source_limited?(invitations)
+
       state_groups =
         WhereIsMyFriendsPracticeInvitation::STATUSES.index_with do |status|
           invitations.select do |invitation|
@@ -89,6 +100,8 @@ module WhereIsMyFriends
     end
 
     def response_metrics(mature, in_progress)
+      return limited if source_limited?(mature + in_progress)
+
       outcomes =
         %w[accepted declined ignored].index_with do |status|
           mature.select do |invitation|
@@ -136,13 +149,14 @@ module WhereIsMyFriends
 
     def reciprocal_metrics(invitations)
       accepted_with_pm =
-        invitations.select do |invitation|
-          invitation.status == "accepted" && invitation.pm_topic_id.present? &&
-            invitation.responded_at.present? &&
-            invitation.responded_at <= @as_of
-        end
+        invitations.select { |invitation| invitation.pm_topic_id.present? }
+      accepted_without_pm = invitations - accepted_with_pm
       mature, in_progress =
         accepted_with_pm.partition do |invitation|
+          invitation.responded_at <= @as_of - RESPONSE_WINDOW
+        end
+      without_pm_mature, without_pm_in_progress =
+        accepted_without_pm.partition do |invitation|
           invitation.responded_at <= @as_of - RESPONSE_WINDOW
         end
       followed_up =
@@ -150,9 +164,12 @@ module WhereIsMyFriends
           @sender_follow_up_invitation_ids.include?(invitation.id)
         end
       without_follow_up = mature - followed_up
+      return limited if source_limited?(invitations)
       if atomic_breakdown_limited?(
            mature,
            in_progress,
+           without_pm_mature,
+           without_pm_in_progress,
            followed_up,
            without_follow_up
          )

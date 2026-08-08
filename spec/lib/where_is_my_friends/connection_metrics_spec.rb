@@ -254,6 +254,45 @@ RSpec.describe WhereIsMyFriends::ConnectionMetrics do
     )
   end
 
+  it "atomically suppresses a small accepted-without-PM subgroup" do
+    3.times { create_accepted_pm_invitation(responded_at: as_of - 10.days) }
+    create_accepted_responses([1.hour])
+
+    source =
+      described_class
+        .new(since: since, as_of: as_of)
+        .call
+        .dig(:by_source, "native")
+
+    expect(source.dig(:response_cohort_7d, :accepted_within_7d)).to eq(4)
+    expect(source.fetch(:reciprocal_conversation_7d)).to eq(limited: true)
+  end
+
+  it "anchors reciprocal cohorts on acceptance inside the report window" do
+    3.times do
+      create_accepted_pm_invitation(
+        responded_at: as_of - 10.days,
+        created_at: since - 1.day
+      )
+    end
+
+    source =
+      described_class
+        .new(since: since, as_of: as_of)
+        .call
+        .dig(:by_source, "native")
+
+    expect(source.fetch(:window)).to eq(limited: true)
+    expect(source.fetch(:response_cohort_7d)).to eq(limited: true)
+    expect(source.fetch(:reciprocal_conversation_7d)).to include(
+      limited: false,
+      mature_accepted_invitations: 3,
+      accepted_in_progress: 0,
+      sender_followed_up_within_7d: 0,
+      reciprocal_conversation_rate_7d: 0.0
+    )
+  end
+
   it "does not count the recipient-created first PM post as sender follow-up" do
     3.times { create_accepted_pm_invitation(responded_at: as_of - 10.days) }
 
@@ -542,7 +581,7 @@ RSpec.describe WhereIsMyFriends::ConnectionMetrics do
     6.times { create_accepted_pm_invitation(responded_at: as_of - 10.days) }
     large_queries = connection_queries
 
-    expect(small_queries).to eq(2)
+    expect(small_queries).to eq(3)
     expect(large_queries).to eq(small_queries)
   end
 
@@ -560,7 +599,11 @@ RSpec.describe WhereIsMyFriends::ConnectionMetrics do
     end
   end
 
-  def create_accepted_pm_invitation(responded_at:, source: "native")
+  def create_accepted_pm_invitation(
+    responded_at:,
+    source: "native",
+    created_at: responded_at - 1.day
+  )
     sender = Fabricate(:user)
     recipient = Fabricate(:user)
     first_post =
@@ -578,7 +621,7 @@ RSpec.describe WhereIsMyFriends::ConnectionMetrics do
         interest_name: "shared-interest",
         source: source,
         status: "accepted",
-        created_at: responded_at - 1.day,
+        created_at: created_at,
         responded_at: responded_at,
         pm_topic: first_post.topic
       )

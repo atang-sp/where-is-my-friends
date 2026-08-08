@@ -27,9 +27,9 @@ module WhereIsMyFriends
         recent =
           published
             .where.not(topic_id: nil)
-            .where(
-              published_at: (as_of - REVIEW_WINDOW)..(as_of - MATURE_AFTER)
-            )
+            .where("published_at <= ?", as_of - MATURE_AFTER)
+            .order(published_at: :asc, id: :asc)
+            .limit(@mature_sample_size)
             .to_a
         replied = human_reply_topic_ids(recent)
         current_originals =
@@ -94,7 +94,13 @@ module WhereIsMyFriends
       end
 
       def published
-        WhereIsMyFriendsLicensedImport.published.where.not(published_at: nil)
+        WhereIsMyFriendsLicensedImport
+          .published
+          .where.not(published_at: nil)
+          .where(
+            source_type: SourceCatalog.candidate_source_type,
+            source_question_id: SourceCatalog.candidate_source_ids
+          )
       end
 
       def human_reply_topic_ids(records)

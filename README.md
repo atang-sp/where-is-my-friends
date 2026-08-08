@@ -34,7 +34,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 
 七日参与、首次回复、插件回访和内容响应率只用已经走完整个七日观察窗的成熟 cohort 计算，尚未成熟的用户或话题单独列为 `in_progress`；推荐成熟 cohort 只纳入带 `recommendation_group` 的新版曝光。原有顶层曝光后 24 小时回复率和七日兼容键也映射到同一成熟 cohort，不再混入未成熟样本。24 小时回复率同样只用已走完 24 小时的曝光。旧版插件回访指标仍以本插件记录的 `page_view` 为准，不代表全站回访；新增的动态发布者、回复者、打开者和同期普通公开内容参与者七日回访明确使用 Discourse `UserVisit`，代表全站自然日访问。内容供给统计公开可见、非受限分区的主题，并区分人工原创、许可导入、人工作者/回复者和七日内获得人工回复的成熟主题。
 
-管理员报告中的 `connections` 直接聚合实践邀请表：按来源分别提供窗口状态快照、创建后七日响应成熟 cohort，以及“接受后原发送者在该两人 PM 中七日内发布一篇合格回复”的双向会话代理指标。`native` 不与 `legacy_reconfirmed` 混入同一转化率；未走完观察窗的邀请或接受记录只进入 `in_progress`，七日后响应只计为 late response。该代理只说明插件创建的 PM 出现了往返，不能证明线下见面、实践成功或关系建立。
+管理员报告中的 `connections` 直接聚合实践邀请表：按来源分别提供窗口状态快照、创建后七日响应成熟 cohort，以及“接受后原发送者在该两人 PM 中七日内发布一篇合格回复”的双向会话代理指标。前两项按邀请创建时间入窗；双向会话按 `responded_at ∈ [since, as_of]` 入窗，因此不会漏掉更早创建、但在报告期内接受的邀请。`native` 不与 `legacy_reconfirmed` 混入同一转化率；未走完观察窗的邀请或接受记录只进入 `in_progress`，七日后响应只计为 late response。该代理只说明插件创建的 PM 出现了往返，不能证明线下见面、实践成功或关系建立。
 
 ## 隐私边界
 
@@ -57,7 +57,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 插件绝不自动订阅标签、分区，也不会改变任何通知级别。
 - 个人动态只存在于仅登录会员可读、默认静音的专用分区；功能配置不合格时接口 fail closed。动态及回复在安全上传落地前拒绝图片、音视频和附件，但正文可使用论坛已有表情；推荐流只展示其他成员最近 30 天的一条动态，排除当前用户和忽略关系，不引入关注、点赞或公开热度排名，且动态不会进入普通 Latest、用户“主题”页或讨论推荐。
 - 七日公开互动率和首次回复率直接从公开帖子按 onboarding 或推荐曝光时间窗聚合；私信、受限分区、内容和目标 ID 均不会进入统计结果。
-- 邀请连接统计复用统一的 aggregate privacy policy；任一来源或状态细分不足阈值时原子隐藏整个细分，不返回精确数量、比例或中位响应时间，也不提供可通过总数相减恢复小分组的合并总计。
+- 邀请连接统计复用统一的 aggregate privacy policy；任一来源或状态细分不足阈值时原子隐藏整个细分，不返回精确数量、比例或中位响应时间，也不提供可通过总数相减恢复小分组的合并总计。接受后缺少 PM 的记录同样参与原子抑制判断，但不返回该小组的精确数量。
 - 英文原文只在单次任务内存中存在，不写插件数据库或日志；数据库只保存来源、许可、失败代码、token 用量和通过校验的中文内容。模型 API 密钥与 Discourse AI 的 `AiSecret` 一样由数据库保存；管理接口只返回“已配置”状态，绝不返回密钥，日志也会过滤密钥参数。数据库管理员和数据库备份仍可读取密钥。发送给模型供应商的内容已经过许可校验和隐私清理；供应商的数据保留、日志和缓存政策需由管理员单独确认。
 
 管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据。响应包含统计起止时间、原有位置与推荐漏斗、推荐分组和面板操作、同城入口漏斗、成熟 cohort、`connections` 邀请连接结果、公开内容供给、动态供给/回复/发现/全站回访，以及按自然日汇总的发现和内容趋势。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。完整口径见 [增长可观测性口径](docs/plans/2026-08-02-growth-observability.md)，部署基线、观察时间点和决策矩阵见 [v1.20 生产闭环协议](docs/plans/2026-08-08-v1.20-production-closure.md)。
@@ -78,7 +78,7 @@ bundle exec rake db:migrate
 
 若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
 
-许可英文精选的模型供应商可在插件管理页配置 Responses API 或 OpenAI-compatible Chat Completions 的 Base URL、模型和 API 密钥；Chat Completions 可选择严格 JSON Schema，或供应商兼容性更广的 JSON object 加本地严格校验。同一个模型网关负责范围分类、翻译和独立复核，不需要单独的 OpenAI Moderation 凭据。供应商密钥可直接在后台轮换，无需环境变量或重建；旧的 DeepSeek/OpenAI 供应商密钥环境变量不会被读取。新发布候选只有五个固定 Spanking Art Wiki 条目；Wikipedia 与 Stack Exchange 客户端仅用于核验旧记录，不会扩充试点。首次启用必须保持 `licensed_import_dry_run=true`；三篇预览全部人工通过后仍需单独授权，最多公开五篇。30 日时不足五篇成熟样本会 fail closed，五篇中至少三篇获得七日真人回复才通过回复率门槛。本次代码合并不授权开启生产导入。完整步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
+许可英文精选的模型供应商可在插件管理页配置 Responses API 或 OpenAI-compatible Chat Completions 的 Base URL、模型和 API 密钥；Chat Completions 可选择严格 JSON Schema，或供应商兼容性更广的 JSON object 加本地严格校验。同一个模型网关负责范围分类、翻译和独立复核，不需要单独的 OpenAI Moderation 凭据。供应商密钥可直接在后台轮换，无需环境变量或重建；旧的 DeepSeek/OpenAI 供应商密钥环境变量不会被读取。新发布候选只有五个固定 Spanking Art Wiki 条目；参与度门禁也只按这五个 catalogue identity 统计，Wikipedia、Stack Exchange 和其他历史记录仅用于核验旧记录，不会扩充或满足试点样本。首次启用必须保持 `licensed_import_dry_run=true`；三篇预览全部人工通过后仍需单独授权，最多公开五篇。30 日时不足五篇成熟样本会 fail closed，成熟样本不会在 30 日周年后因滚动窗口滑出；五篇中至少三篇获得七日真人回复才通过回复率门槛。本次代码合并不授权开启生产导入。完整步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
 
 插件元数据要求 Discourse `2026.7.0-latest` 或更高版本。持续集成会完整运行官方插件工作流两次：受保护分支已强制的 `ci / …` 状态固定到已验证的最低支持核心快照 `7c06c1528ed9571d7407fa32259d77e1853c64d5`（该快照自身版本即为 `2026.7.0-latest`），另一个 `latest` job 跟随最新核心。仓库内的 `spec/system` 会被 reusable workflow 自动发现，并在 minimum 和 latest 两个矩阵中运行真实浏览器系统测试；现有 RSpec、QUnit、lint 和 annotations 门禁保持不变。由于这一版本线没有对应的 beta Git 标签，CI 使用不可变提交来定义可重现的兼容性下限。
 

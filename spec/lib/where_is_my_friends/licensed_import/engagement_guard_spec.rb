@@ -74,6 +74,40 @@ RSpec.describe WhereIsMyFriends::LicensedImport::EngagementGuard do
     expect(notifier).not_to have_received(:notify)
   end
 
+  it "retains the first pilot sample after the exact 30-day anniversary" do
+    5.times do |index|
+      create_published(
+        published_at: as_of - (30 - index).days - 1.second,
+        replied: index < 3
+      )
+    end
+
+    allowed =
+      described_class.new(notifier: notifier).allow_publication?(as_of: as_of)
+
+    expect(allowed).to eq(true)
+    expect(SiteSetting.licensed_import_enabled).to eq(true)
+    expect(notifier).not_to have_received(:notify)
+  end
+
+  it "does not count legacy publications toward the finite pilot" do
+    4.times { |index| create_published(published_at: as_of - (8 + index).days) }
+    5.times do |index|
+      create_published(
+        published_at: as_of - (40 + index).days,
+        source_type: "stack_exchange",
+        source_question_id: 50_000 + index
+      )
+    end
+
+    guard = described_class.new(notifier: notifier)
+
+    expect(guard.stats(as_of: as_of)).to include(published_count: 4)
+    expect(guard.allow_publication?(as_of: as_of)).to eq(true)
+    expect(SiteSetting.licensed_import_enabled).to eq(true)
+    expect(notifier).not_to have_received(:notify)
+  end
+
   it "fails closed at 30 days when fewer than five mature posts exist" do
     4.times do |index|
       create_published(
@@ -173,7 +207,13 @@ RSpec.describe WhereIsMyFriends::LicensedImport::EngagementGuard do
     expect(notifier).to have_received(:notify).with("pilot_without_human_reply")
   end
 
-  def create_published(published_at:, replied: false, reply_delay: 1.day)
+  def create_published(
+    published_at:,
+    replied: false,
+    reply_delay: 1.day,
+    source_type: "spanking_art",
+    source_question_id: nil
+  )
     topic =
       Fabricate(:topic, user: Discourse.system_user, created_at: published_at)
     first_post =
@@ -193,9 +233,17 @@ RSpec.describe WhereIsMyFriends::LicensedImport::EngagementGuard do
         created_at: published_at + reply_delay
       )
     end
-    @source_id = (@source_id || 10_000) + 1
+    if source_question_id.blank?
+      page_ids =
+        WhereIsMyFriends::LicensedImport::SpankingArtClient::PAGES.map do |page|
+          page.fetch(:page_id)
+        end
+      @pilot_source_index = (@pilot_source_index || -1) + 1
+      source_question_id = page_ids.fetch(@pilot_source_index)
+    end
     WhereIsMyFriendsLicensedImport.create!(
-      source_question_id: @source_id,
+      source_type: source_type,
+      source_question_id: source_question_id,
       status: "published",
       topic: topic,
       first_post_id: first_post.id,

@@ -8,6 +8,14 @@ RSpec.describe WhereIsMyFriends::LicensedImport::SourceCatalog do
       WhereIsMyFriends::LicensedImport::SpankingArtClient::PAGES.length
     )
     expect(described_class.candidate_capacity).to eq(5)
+    expect(described_class.candidate_source_type).to eq(
+      WhereIsMyFriends::LicensedImport::SpankingArtClient::SOURCE_TYPE
+    )
+    expect(described_class.candidate_source_ids).to eq(
+      WhereIsMyFriends::LicensedImport::SpankingArtClient::PAGES.map do |page|
+        page.fetch(:page_id)
+      end
+    )
     expect(
       WhereIsMyFriends::LicensedImport::SpankingArtClient
     ).not_to have_received(:new)

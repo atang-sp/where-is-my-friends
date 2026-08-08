@@ -102,6 +102,10 @@ bundle exec rake "where_is_my_friends:licensed_import:publish_preview[预览记�
 - 五篇成熟试点中少于三篇在各自发布后七天内获得真人回复；
 - 最近 30 天真人原创主题数低于此前 30 天基线。
 
+上述试点样本只按固定 catalogue 中五个 Spanking Art `source_type + source_question_id` 统计；
+历史 Stack Exchange/Wikimedia 记录不能触发或满足试点门禁。五篇成熟试点在首篇发布满 30 日
+后仍保留于试点评估集合，只有真人原创主题供给使用滚动 30 日窗口。
+
 公开阶段仍保持每天最多一篇、至少 24 小时间隔和主题不连续重复。来源每天重新检查；
 原问答被删除、改写、换回答、变更署名或许可时，相关主题会隐藏，等待重新处理。
 
