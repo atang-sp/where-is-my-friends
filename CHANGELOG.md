@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.21.0 — 2026-08-08
+
+- Add one stage-aware “What can you do today?” homepage action that prioritizes
+  incoming invitations, accepted-conversation follow-up, onboarding, and safe
+  topic or member recommendations before dynamic and city-first fallbacks.
+- Reuse the existing recommendation, invitation, Guardian, member-selection,
+  and dynamic-feed policies without returning private interests, invitation
+  notes, PM content, target identifiers, or target content in analytics.
+- Add a compact responsive card, lazy and silent loading states, a local
+  seven-day dismissal cooldown, target-free telemetry, and an independent
+  feature switch while preserving the full recommendation page.
+- Bound accepted-invitation follow-up checks to ten candidates with one batched
+  post query, and cover stage priority, privacy, feature fallbacks, query count,
+  browser behavior, and a vertical homepage-to-topic flow.
+
 ## 1.20.0 — 2026-08-08
 
 - Add privacy-suppressed native and legacy invitation snapshots, mature
