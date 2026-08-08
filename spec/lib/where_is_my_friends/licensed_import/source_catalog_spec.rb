@@ -1,6 +1,18 @@
 # frozen_string_literal: true
 
 RSpec.describe WhereIsMyFriends::LicensedImport::SourceCatalog do
+  it "reports the fixed candidate capacity without constructing a source client" do
+    allow(WhereIsMyFriends::LicensedImport::SpankingArtClient).to receive(:new)
+
+    expect(described_class.candidate_capacity).to eq(
+      WhereIsMyFriends::LicensedImport::SpankingArtClient::PAGES.length
+    )
+    expect(described_class.candidate_capacity).to eq(5)
+    expect(
+      WhereIsMyFriends::LicensedImport::SpankingArtClient
+    ).not_to have_received(:new)
+  end
+
   it "offers only Spanking Art candidates while dispatching legacy refreshes by source type" do
     spanking_art =
       instance_double(

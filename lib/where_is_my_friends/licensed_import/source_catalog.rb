@@ -3,6 +3,10 @@
 module WhereIsMyFriends
   module LicensedImport
     class SourceCatalog
+      def self.candidate_capacity
+        SpankingArtClient::PAGES.length
+      end
+
       def initialize(candidate_sources: nil, verification_sources: nil)
         spanking_art = SpankingArtClient.new
         @candidate_sources = candidate_sources || [spanking_art]

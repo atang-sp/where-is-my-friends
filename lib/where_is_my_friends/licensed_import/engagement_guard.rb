@@ -4,37 +4,44 @@ module WhereIsMyFriends
   module LicensedImport
     class EngagementGuard
       MATURE_AFTER = 7.days
-      CONSECUTIVE_LIMIT = 7
       REVIEW_WINDOW = 30.days
       MIN_REPLY_RATE = 0.5
 
-      def initialize(notifier: AdminNotifier.new)
+      def initialize(
+        notifier: AdminNotifier.new,
+        mature_sample_size: SourceCatalog.candidate_capacity
+      )
         @notifier = notifier
+        @mature_sample_size = Integer(mature_sample_size)
+        raise ArgumentError if @mature_sample_size < 1
       end
 
-      def allow_publication?
-        code = no_reply_code || thirty_day_code
+      def allow_publication?(as_of: Time.zone.now)
+        code = no_reply_code(as_of:) || thirty_day_code(as_of:)
         return pause!(code) if code
 
         true
       end
 
-      def stats(now: Time.zone.now)
+      def stats(as_of: Time.zone.now)
         recent =
           published
             .where.not(topic_id: nil)
-            .where(published_at: (now - REVIEW_WINDOW)..(now - MATURE_AFTER))
+            .where(
+              published_at: (as_of - REVIEW_WINDOW)..(as_of - MATURE_AFTER)
+            )
             .to_a
         replied = human_reply_topic_ids(recent)
         current_originals =
-          human_original_topics_between(now - REVIEW_WINDOW, now)
+          human_original_topics_between(as_of - REVIEW_WINDOW, as_of)
         previous_originals =
           human_original_topics_between(
-            now - (2 * REVIEW_WINDOW),
-            now - REVIEW_WINDOW
+            as_of - (2 * REVIEW_WINDOW),
+            as_of - REVIEW_WINDOW
           )
         {
           published_count: recent.length,
+          mature_sample_requirement: @mature_sample_size,
           human_replied_count: replied.length,
           seven_day_human_reply_rate:
             (
@@ -51,25 +58,29 @@ module WhereIsMyFriends
 
       private
 
-      def no_reply_code
+      def no_reply_code(as_of:)
         records =
           published
-            .where("published_at <= ?", MATURE_AFTER.ago)
+            .where("published_at <= ?", as_of - MATURE_AFTER)
             .order(published_at: :desc)
-            .limit(CONSECUTIVE_LIMIT)
+            .limit(@mature_sample_size)
             .to_a
-        return unless records.length == CONSECUTIVE_LIMIT
+        return unless records.length == @mature_sample_size
         return if human_reply_topic_ids(records).any?
 
-        "seven_without_human_reply"
+        "pilot_without_human_reply"
       end
 
-      def thirty_day_code
+      def thirty_day_code(as_of:)
         first_published = published.minimum(:published_at)
-        return if first_published.blank? || first_published > REVIEW_WINDOW.ago
+        if first_published.blank? || first_published > as_of - REVIEW_WINDOW
+          return
+        end
 
-        values = stats
-        return if values.fetch(:published_count) < CONSECUTIVE_LIMIT
+        values = stats(as_of:)
+        if values.fetch(:published_count) < @mature_sample_size
+          return "thirty_day_insufficient_mature_sample"
+        end
         if values.fetch(:seven_day_human_reply_rate) < MIN_REPLY_RATE
           return "thirty_day_reply_rate_below_half"
         end
@@ -87,22 +98,32 @@ module WhereIsMyFriends
       end
 
       def human_reply_topic_ids(records)
-        records.filter_map do |record|
-          next if record.topic_id.blank? || record.published_at.blank?
+        published_at_by_topic_id =
+          records
+            .filter_map do |record|
+              if record.topic_id.present? && record.published_at.present?
+                [record.topic_id, record.published_at]
+              end
+            end
+            .to_h
+        return [] if published_at_by_topic_id.empty?
 
-          replies =
-            Post
-              .where(
-                topic_id: record.topic_id,
-                post_type: Post.types[:regular],
-                post_number: 2..,
-                created_at:
-                  record.published_at..(record.published_at + MATURE_AFTER)
-              )
-              .where(deleted_at: nil, hidden: false)
-              .where.not(user_id: Discourse.system_user.id)
-          record.topic_id if replies.exists?
-        end
+        Post
+          .where(
+            topic_id: published_at_by_topic_id.keys,
+            post_type: Post.types[:regular],
+            post_number: 2..
+          )
+          .where(deleted_at: nil, hidden: false)
+          .where.not(user_id: Discourse.system_user.id)
+          .pluck(:topic_id, :created_at)
+          .filter_map do |topic_id, created_at|
+            published_at = published_at_by_topic_id.fetch(topic_id)
+            if created_at.between?(published_at, published_at + MATURE_AFTER)
+              topic_id
+            end
+          end
+          .uniq
       end
 
       def human_original_topics_between(start_at, end_at)
