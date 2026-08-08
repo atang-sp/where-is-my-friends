@@ -22,7 +22,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 明确状态：覆盖首次设置、加载、结果、空结果和错误状态。
 - 控制权：用户可更新城市或立即删除位置；位置不会由插件自动过期，分析事件仍在 90 天后删除。
 - 隐私统计：只记录白名单事件、位置模式和粗粒度结果桶；事件 90 天后删除。
-- 许可英文精选：安全地将 Interpersonal Skills Stack Exchange 的一篇完整问答翻译为中文；默认只生成管理员预览，校验未全部通过时绝不发帖。
+- 许可英文精选：新发布严格限制为五个已经核对的 Spanking Art Wiki 固定条目；默认只生成管理员预览，三篇干跑和单独人工授权未完成前绝不公开发帖。
 
 ## 社区发现排序与衡量
 
@@ -33,6 +33,8 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 首页和兴趣页会记录 `surface`、`recommendation_group`、`candidate_source`、`rank_bucket`、`algorithm_version` 与 `result_bucket`。这些事件不保存话题、成员或兴趣目标 ID，也不保存内容。推荐北极星指标是“看过推荐的用户中，七日内产生公开发帖或回复的比例”；同时聚合推荐面板展开/收起、分组切换、刷新、各分组展示到打开和不感兴趣，以及同城入口的展示、打开、保存城市和关闭漏斗。
 
 七日参与、首次回复、插件回访和内容响应率只用已经走完整个七日观察窗的成熟 cohort 计算，尚未成熟的用户或话题单独列为 `in_progress`；推荐成熟 cohort 只纳入带 `recommendation_group` 的新版曝光。原有顶层曝光后 24 小时回复率和七日兼容键也映射到同一成熟 cohort，不再混入未成熟样本。24 小时回复率同样只用已走完 24 小时的曝光。旧版插件回访指标仍以本插件记录的 `page_view` 为准，不代表全站回访；新增的动态发布者、回复者、打开者和同期普通公开内容参与者七日回访明确使用 Discourse `UserVisit`，代表全站自然日访问。内容供给统计公开可见、非受限分区的主题，并区分人工原创、许可导入、人工作者/回复者和七日内获得人工回复的成熟主题。
+
+管理员报告中的 `connections` 直接聚合实践邀请表：按来源分别提供窗口状态快照、创建后七日响应成熟 cohort，以及“接受后原发送者在该两人 PM 中七日内发布一篇合格回复”的双向会话代理指标。`native` 不与 `legacy_reconfirmed` 混入同一转化率；未走完观察窗的邀请或接受记录只进入 `in_progress`，七日后响应只计为 late response。该代理只说明插件创建的 PM 出现了往返，不能证明线下见面、实践成功或关系建立。
 
 ## 隐私边界
 
@@ -55,9 +57,10 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 插件绝不自动订阅标签、分区，也不会改变任何通知级别。
 - 个人动态只存在于仅登录会员可读、默认静音的专用分区；功能配置不合格时接口 fail closed。动态及回复在安全上传落地前拒绝图片、音视频和附件，但正文可使用论坛已有表情；推荐流只展示其他成员最近 30 天的一条动态，排除当前用户和忽略关系，不引入关注、点赞或公开热度排名，且动态不会进入普通 Latest、用户“主题”页或讨论推荐。
 - 七日公开互动率和首次回复率直接从公开帖子按 onboarding 或推荐曝光时间窗聚合；私信、受限分区、内容和目标 ID 均不会进入统计结果。
+- 邀请连接统计复用统一的 aggregate privacy policy；任一来源或状态细分不足阈值时原子隐藏整个细分，不返回精确数量、比例或中位响应时间，也不提供可通过总数相减恢复小分组的合并总计。
 - 英文原文只在单次任务内存中存在，不写插件数据库或日志；数据库只保存来源、许可、失败代码、token 用量和通过校验的中文内容。模型 API 密钥与 Discourse AI 的 `AiSecret` 一样由数据库保存；管理接口只返回“已配置”状态，绝不返回密钥，日志也会过滤密钥参数。数据库管理员和数据库备份仍可读取密钥。发送给模型供应商的内容已经过许可校验和隐私清理；供应商的数据保留、日志和缓存政策需由管理员单独确认。
 
-管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据。响应包含统计起止时间、原有位置与推荐漏斗、推荐分组和面板操作、同城入口漏斗、成熟 cohort、公开内容供给、动态供给/回复/发现/全站回访，以及按自然日汇总的发现和内容趋势。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。完整口径和上线观察方法见 [增长可观测性口径](docs/plans/2026-08-02-growth-observability.md)。
+管理员调试端点 `/where-is-my-friends/debug-stats.json` 只对管理员开放，且只返回聚合数据。响应包含统计起止时间、原有位置与推荐漏斗、推荐分组和面板操作、同城入口漏斗、成熟 cohort、`connections` 邀请连接结果、公开内容供给、动态供给/回复/发现/全站回访，以及按自然日汇总的发现和内容趋势。可通过 `?days=7`、`?days=30` 或 `?days=90` 选择统计窗口；其他值安全回退到 30 天。完整口径见 [增长可观测性口径](docs/plans/2026-08-02-growth-observability.md)，部署基线、观察时间点和决策矩阵见 [v1.20 生产闭环协议](docs/plans/2026-08-08-v1.20-production-closure.md)。
 
 ## 安装与升级
 
@@ -75,9 +78,9 @@ bundle exec rake db:migrate
 
 若数据库仍有旧插件的 `practice_interests` 表，post-migrate 会幂等导入：近 90 天记录成为 `needs_reconfirmation` 私密书签，所有双向记录成为 `notification_suppressed` 历史配对。导入不会创建 `WhereIsMyFriendsPracticeInvitation` 或 `Notification`。部署顺序与回滚检查见 [实践邀请上线手册](docs/plans/2026-07-28-practice-invitations-rollout.md)。
 
-许可英文精选的模型供应商可在插件管理页配置 Responses API 或 OpenAI-compatible Chat Completions 的 Base URL、模型和 API 密钥；Chat Completions 可选择严格 JSON Schema，或供应商兼容性更广的 JSON object 加本地严格校验。同一个模型网关负责范围分类、翻译和独立复核，不需要单独的 OpenAI Moderation 凭据。供应商密钥可直接在后台轮换，无需环境变量或重建；旧的 DeepSeek/OpenAI 供应商密钥环境变量不会被读取。许可来源包括 Interpersonal Skills Stack Exchange 完整问答，以及程序白名单中的 Wikipedia 成人 SP 教育章节；后者会实时验证站点许可并署名到固定修订版本。首次启用必须保持 `licensed_import_dry_run=true`；完整配置、三天预览、人工抽查、公开发布、自动暂停和事故处理步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
+许可英文精选的模型供应商可在插件管理页配置 Responses API 或 OpenAI-compatible Chat Completions 的 Base URL、模型和 API 密钥；Chat Completions 可选择严格 JSON Schema，或供应商兼容性更广的 JSON object 加本地严格校验。同一个模型网关负责范围分类、翻译和独立复核，不需要单独的 OpenAI Moderation 凭据。供应商密钥可直接在后台轮换，无需环境变量或重建；旧的 DeepSeek/OpenAI 供应商密钥环境变量不会被读取。新发布候选只有五个固定 Spanking Art Wiki 条目；Wikipedia 与 Stack Exchange 客户端仅用于核验旧记录，不会扩充试点。首次启用必须保持 `licensed_import_dry_run=true`；三篇预览全部人工通过后仍需单独授权，最多公开五篇。30 日时不足五篇成熟样本会 fail closed，五篇中至少三篇获得七日真人回复才通过回复率门槛。本次代码合并不授权开启生产导入。完整步骤见 [英文精选上线手册](docs/plans/2026-07-31-licensed-english-import-rollout.md)。
 
-插件元数据要求 Discourse `2026.7.0-latest` 或更高版本。持续集成会完整运行官方插件工作流两次：受保护分支已强制的 `ci / …` 状态固定到已验证的最低支持核心快照 `7c06c1528ed9571d7407fa32259d77e1853c64d5`（该快照自身版本即为 `2026.7.0-latest`），另一个 `latest` job 跟随最新核心。这样最低版本兼容性失败会直接阻塞现有必需检查，而不是只作提示。由于这一版本线没有对应的 beta Git 标签，CI 使用不可变提交来定义可重现的兼容性下限。
+插件元数据要求 Discourse `2026.7.0-latest` 或更高版本。持续集成会完整运行官方插件工作流两次：受保护分支已强制的 `ci / …` 状态固定到已验证的最低支持核心快照 `7c06c1528ed9571d7407fa32259d77e1853c64d5`（该快照自身版本即为 `2026.7.0-latest`），另一个 `latest` job 跟随最新核心。仓库内的 `spec/system` 会被 reusable workflow 自动发现，并在 minimum 和 latest 两个矩阵中运行真实浏览器系统测试；现有 RSpec、QUnit、lint 和 annotations 门禁保持不变。由于这一版本线没有对应的 beta Git 标签，CI 使用不可变提交来定义可重现的兼容性下限。
 
 ## 设置
 
@@ -159,16 +162,18 @@ d/rake db:migrate
 RAILS_ENV=test d/rake db:migrate
 d/rake 'plugin:spec[where-is-my-friends]'
 CI=1 d/rake 'plugin:qunit[where-is-my-friends]'
+d/exec env LOAD_PLUGINS=1 bin/rspec plugins/where-is-my-friends/spec/system
 d/exec bin/lint plugins/where-is-my-friends
 ```
 
-`CI=1` 让容器内的 Chromium 使用无沙箱测试参数。真实浏览器端到端测试见 `e2e/README.md`。
+`spec/system` 是官方 PR/release system-test 门禁，覆盖四条关键纵向流程。完整的真实 Rails/Ember Playwright 套件仍保留在 `e2e/`；运行方法见 `e2e/README.md`。Playwright 默认保留浏览器沙箱，只有执行环境明确禁用 browser user namespace 时才显式设置 `DISCOURSE_DISABLE_BROWSER_SANDBOX=1`。
 
 ## 主要目录
 
 - `lib/where_is_my_friends/recommendation_engine.rb`：权限安全、可解释、以参与为目标的话题/成员/兴趣入口推荐。
 - `lib/where_is_my_friends/dynamic_feed.rb`：个人动态的配置校验、创建、权限过滤、分页、最近作者去重、批量成员摘要和序列化唯一策略入口。
 - `lib/where_is_my_friends/dynamic_metrics.rb`：动态成熟作者、七日回复、入口漏斗和基于 `UserVisit` 的全站回访聚合。
+- `lib/where_is_my_friends/connection_metrics.rb`：按邀请来源隔离的状态快照、七日响应 cohort、双向会话代理和原子隐私抑制。
 - `lib/where_is_my_friends/growth_report.rb`：管理员可见的漏斗、成熟 cohort、内容供给和按日趋势聚合。
 - `lib/where_is_my_friends/licensed_import/`：许可校验、内容清理、安全分类、忠实翻译、独立复核、发布和自动停发。
 - `lib/where_is_my_friends/practice_invitation_eligibility.rb`：共同兴趣、信任、屏蔽、opt-out 和私信权限策略。
@@ -179,6 +184,7 @@ d/exec bin/lint plugins/where-is-my-friends
 - `app/controllers/where_is_my_friends/`：认证后的发现和事件 API。
 - `assets/javascripts/discourse/components/`：原生 Glimmer/GJS 页面和模态框。
 - `spec/`：模型、请求和定时任务测试。
+- `spec/system/`：官方 Discourse reusable workflow 自动发现的真实 Rails/Ember 浏览器门禁。
 - `test/javascripts/`：QUnit 验收和单元测试。
 
 ## 许可证
