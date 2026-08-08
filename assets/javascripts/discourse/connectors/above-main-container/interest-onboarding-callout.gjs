@@ -24,6 +24,7 @@ export default class InterestOnboardingCallout extends Component {
   }
 
   @service currentUser;
+  @service firstConnectionHomepage;
   @service router;
   @service siteSettings;
 
@@ -55,10 +56,7 @@ export default class InterestOnboardingCallout extends Component {
   }
 
   get firstConnectionOwnsHomepage() {
-    return Boolean(
-      this.isHomeRoute &&
-      this.siteSettings.where_is_my_friends_first_connection_enabled
-    );
+    return this.firstConnectionHomepage.owns(this.router.currentRouteName);
   }
 
   get homepageEntry() {

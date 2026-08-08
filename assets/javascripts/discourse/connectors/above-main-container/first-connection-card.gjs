@@ -1,10 +1,12 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { registerDestructor } from "@ember/destroyable";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
+import { defaultHomepage } from "discourse/lib/utilities";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import { createClientTelemetry } from "discourse/plugins/where-is-my-friends/discourse/lib/client-telemetry";
@@ -55,6 +57,7 @@ export default class FirstConnectionCard extends Component {
   }
 
   @service router;
+  @service firstConnectionHomepage;
 
   @tracked status = firstConnectionCooldownActive() ? "dismissed" : "loading";
   @tracked nextAction = null;
@@ -62,21 +65,20 @@ export default class FirstConnectionCard extends Component {
   loaded = false;
   viewed = false;
 
-  get isHomeRoute() {
-    const routeName = this.router.currentRouteName ?? "";
-    return (
-      !this.isCategoryRoute &&
-      (routeName === "discovery" || routeName.startsWith("discovery."))
-    );
+  constructor() {
+    super(...arguments);
+    registerDestructor(this, () => {
+      this.firstConnectionHomepage.release(this);
+    });
+
+    if (this.status === "loading" && this.isHomeRoute) {
+      this.claimHomepage();
+    }
   }
 
-  get isCategoryRoute() {
+  get isHomeRoute() {
     const routeName = this.router.currentRouteName ?? "";
-    return Boolean(
-      routeName === "discovery.categories" ||
-      routeName.startsWith("category.") ||
-      this.router.currentRoute?.attributes?.category
-    );
+    return routeName === `discovery.${defaultHomepage()}`;
   }
 
   get isLoading() {
@@ -112,28 +114,44 @@ export default class FirstConnectionCard extends Component {
 
   @action
   async load() {
-    if (this.loaded || firstConnectionCooldownActive()) {
+    if (this.loaded) {
       return;
     }
+
+    if (firstConnectionCooldownActive()) {
+      this.status = "dismissed";
+      this.firstConnectionHomepage.release(this);
+      return;
+    }
+
+    this.claimHomepage();
     this.loaded = true;
 
     try {
       const payload = await ajax("/where-is-my-friends/next-action.json");
       if (payload?.state === "empty") {
         this.status = "empty";
+        this.firstConnectionHomepage.release(this);
       } else if (validActionPayload(payload)) {
         this.nextAction = payload;
         this.status = "ready";
       } else {
         this.status = "error";
+        this.firstConnectionHomepage.release(this);
       }
     } catch {
       this.status = "error";
+      this.firstConnectionHomepage.release(this);
     }
+  }
+
+  claimHomepage() {
+    this.firstConnectionHomepage.claim(this, this.router.currentRouteName);
   }
 
   @action
   recordView() {
+    this.claimHomepage();
     if (this.viewed) {
       return;
     }
@@ -162,6 +180,7 @@ export default class FirstConnectionCard extends Component {
   dismiss() {
     startFirstConnectionCooldown();
     this.status = "dismissed";
+    this.firstConnectionHomepage.release(this);
     void this.telemetry.record(
       "first_connection_card_dismissed",
       this.telemetryContext

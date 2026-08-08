@@ -59,6 +59,36 @@ module WhereIsMyFriends
         /where_is_my_friends_practice_invitations|FROM "topics"|FROM "posts"/
       ).length
     end
+
+    def all_next_action_query_count
+      ActiveRecord::Base
+        .uncached do
+          track_sql_queries do
+            WhereIsMyFriends::NextAction.new(
+              user: user,
+              guardian: Guardian.new(user),
+              as_of: Time.current
+            ).call
+          end
+        end
+        .length
+    end
+
+    def create_recommended_people(count)
+      count.times do |index|
+        candidate = Fabricate(:user, last_seen_at: (index + 1).hours.ago)
+        candidate.change_trust_level!(TrustLevel[1])
+        profile =
+          WhereIsMyFriendsInterestProfile.create!(
+            user: candidate,
+            purpose: "share",
+            personalization_enabled: true,
+            recommendable: true,
+            completed_at: Time.current
+          )
+        profile.interests.create!(tag: interest, position: 0)
+      end
+    end
   end
 end
 
@@ -188,6 +218,37 @@ RSpec.describe WhereIsMyFriends::NextActionsController do
     )
   end
 
+  it "prioritizes an incoming invitation over an accepted-conversation follow-up" do
+    accepted_at = 1.day.ago
+    first_post =
+      Fabricate(
+        :private_message_post,
+        user: sender,
+        recipient: user,
+        post_number: 1,
+        created_at: accepted_at
+      )
+    WhereIsMyFriendsPracticeInvitation.create!(
+      sender: user,
+      recipient: sender,
+      tag: interest,
+      interest_name: interest.name,
+      status: "accepted",
+      responded_at: accepted_at,
+      pm_topic: first_post.topic
+    )
+    WhereIsMyFriendsPracticeInvitation.create!(
+      sender: outsider,
+      recipient: user,
+      tag: interest,
+      interest_name: interest.name
+    )
+
+    get "/where-is-my-friends/next-action.json"
+
+    expect(response.parsed_body.fetch("state")).to eq("incoming_invitation")
+  end
+
   it "prompts the original sender to continue an accessible recently accepted PM" do
     accepted_at = 1.day.ago
     first_post =
@@ -259,6 +320,46 @@ RSpec.describe WhereIsMyFriends::NextActionsController do
 
     expect(response.status).to eq(200)
     expect(response.parsed_body.fetch("state")).to eq("onboarding")
+  end
+
+  it "includes the exact seven-day accepted boundary and excludes older invitations" do
+    as_of = Time.zone.parse("2026-08-08 12:00:00")
+    accepted_at = as_of - 7.days
+    first_post =
+      Fabricate(
+        :private_message_post,
+        user: sender,
+        recipient: user,
+        post_number: 1,
+        created_at: accepted_at
+      )
+    invitation =
+      WhereIsMyFriendsPracticeInvitation.create!(
+        sender: user,
+        recipient: sender,
+        tag: interest,
+        interest_name: interest.name,
+        status: "accepted",
+        responded_at: accepted_at,
+        pm_topic: first_post.topic
+      )
+
+    action =
+      WhereIsMyFriends::NextAction.new(
+        user: user,
+        guardian: Guardian.new(user),
+        as_of: as_of
+      ).call
+    expect(action.fetch(:state)).to eq("continue_conversation")
+
+    invitation.update!(responded_at: accepted_at - 1.second)
+    action =
+      WhereIsMyFriends::NextAction.new(
+        user: user,
+        guardian: Guardian.new(user),
+        as_of: as_of
+      ).call
+    expect(action.fetch(:state)).to eq("onboarding")
   end
 
   it "skips an accepted PM that the current member can no longer access" do
@@ -681,5 +782,26 @@ RSpec.describe WhereIsMyFriends::NextActionsController do
 
     expect(large_count).to eq(small_count)
     expect(large_count).to be <= 4
+  end
+
+  it "keeps person-action queries constant as recommendation candidates grow" do
+    complete_interest_profile
+    public_topic = Fabricate(:topic, user: outsider, created_at: 2.days.ago)
+    Fabricate(
+      :post,
+      topic: public_topic,
+      user: user,
+      post_number: 2,
+      created_at: 1.day.ago
+    )
+    create_recommended_people(1)
+    all_next_action_query_count
+    small_count = all_next_action_query_count
+
+    create_recommended_people(5)
+    all_next_action_query_count
+    large_count = all_next_action_query_count
+
+    expect(large_count).to eq(small_count)
   end
 end

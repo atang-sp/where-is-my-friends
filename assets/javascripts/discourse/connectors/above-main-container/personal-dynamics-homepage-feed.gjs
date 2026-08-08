@@ -7,14 +7,21 @@ export default class PersonalDynamicsHomepageFeedConnector extends Component {
     return Boolean(
       currentUser &&
       siteSettings.where_is_my_friends_enabled &&
-      !siteSettings.where_is_my_friends_first_connection_enabled &&
       siteSettings.where_is_my_friends_dynamics_enabled &&
       siteSettings.where_is_my_friends_dynamics_feed_enabled &&
       siteSettings.where_is_my_friends_dynamics_category_id
     );
   }
 
+  @service firstConnectionHomepage;
   @service router;
+
+  get shouldShow() {
+    return Boolean(
+      this.isHomeRoute &&
+      !this.firstConnectionHomepage.owns(this.router.currentRouteName)
+    );
+  }
 
   get isHomeRoute() {
     const routeName = this.router.currentRouteName ?? "";
@@ -34,7 +41,7 @@ export default class PersonalDynamicsHomepageFeedConnector extends Component {
   }
 
   <template>
-    {{#if this.isHomeRoute}}
+    {{#if this.shouldShow}}
       <PersonalDynamicsHomepageFeed />
     {{/if}}
   </template>

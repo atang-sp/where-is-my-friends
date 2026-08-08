@@ -10,10 +10,12 @@
   notes, PM content, target identifiers, or target content in analytics.
 - Add a compact responsive card, lazy and silent loading states, a local
   seven-day dismissal cooldown, target-free telemetry, and an independent
-  feature switch while preserving the full recommendation page.
+  feature switch while preserving the full recommendation page and restoring
+  legacy homepage discovery after empty, error, or dismissal states.
 - Bound accepted-invitation follow-up checks to ten candidates with one batched
-  post query, and cover stage priority, privacy, feature fallbacks, query count,
-  browser behavior, and a vertical homepage-to-topic flow.
+  post query; serialize only the first ranked member for the people action; and
+  cover stage priority, privacy, feature fallbacks, query count, browser
+  behavior, and a vertical homepage-to-topic flow.
 
 ## 1.20.0 — 2026-08-08
 

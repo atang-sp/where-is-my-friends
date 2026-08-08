@@ -163,8 +163,7 @@ module WhereIsMyFriends
       return unless profile
 
       topics =
-        RecommendationEngine
-          .new(@user, guardian: @guardian)
+        recommendation_engine
           .call(profile: profile, group: "topics")
           .fetch(:recommended_topics)
           .reject { |topic| topic.fetch(:viewer_replied, false) }
@@ -180,11 +179,12 @@ module WhereIsMyFriends
       profile = recommendation_profile
       return unless profile
 
-      RecommendationEngine
-        .new(@user, guardian: @guardian)
-        .call(profile: profile, group: "people")
-        .fetch(:recommended_users)
-        .first
+      recommendation_engine.first_recommended_user(profile: profile)
+    end
+
+    def recommendation_engine
+      @recommendation_engine ||=
+        RecommendationEngine.new(@user, guardian: @guardian)
     end
 
     def recent_public_interaction?

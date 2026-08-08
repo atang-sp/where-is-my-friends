@@ -8,6 +8,7 @@ import {
   waitFor,
 } from "@ember/test-helpers";
 import { test } from "qunit";
+import { defaultHomepage, setDefaultHomepage } from "discourse/lib/utilities";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 import { FIRST_CONNECTION_COOLDOWN_KEY } from "discourse/plugins/where-is-my-friends/discourse/lib/first-connection-cooldown";
 
@@ -58,6 +59,7 @@ acceptance("Where Is My Friends | first connection", function (needs) {
   needs.hooks.beforeEach(() => {
     localStorage.removeItem(FIRST_CONNECTION_COOLDOWN_KEY);
     Object.assign(api, {
+      originalHomepage: defaultHomepage(),
       response: topicAction(),
       responseStatus: 200,
       defer: false,
@@ -71,6 +73,7 @@ acceptance("Where Is My Friends | first connection", function (needs) {
 
   needs.hooks.afterEach(() => {
     localStorage.removeItem(FIRST_CONNECTION_COOLDOWN_KEY);
+    setDefaultHomepage(api.originalHomepage);
   });
 
   needs.pretender((server, helper) => {
@@ -184,6 +187,7 @@ acceptance("Where Is My Friends | first connection", function (needs) {
 
     assert.dom("[data-test-first-connection-loading]").doesNotExist();
     assert.dom("[data-test-first-connection-card]").doesNotExist();
+    assert.dom("[data-test-community-discovery]").exists();
     assert.deepEqual(api.events, []);
   });
 
@@ -193,6 +197,7 @@ acceptance("Where Is My Friends | first connection", function (needs) {
 
     assert.dom("[data-test-first-connection-loading]").doesNotExist();
     assert.dom("[data-test-first-connection-card]").doesNotExist();
+    assert.dom("[data-test-community-discovery]").exists();
   });
 
   test("dismisses locally without saving target content", async function (assert) {
@@ -200,6 +205,7 @@ acceptance("Where Is My Friends | first connection", function (needs) {
     await click("[data-test-dismiss-first-connection]");
 
     assert.dom("[data-test-first-connection-card]").doesNotExist();
+    assert.dom("[data-test-community-discovery]").exists();
     assert.true(api.events.includes("first_connection_card_dismissed"));
     assert.true(
       Number.isFinite(
@@ -246,6 +252,16 @@ acceptance("Where Is My Friends | first connection", function (needs) {
 
     assert.dom("[data-test-first-connection-loading]").doesNotExist();
     assert.dom("[data-test-first-connection-card]").doesNotExist();
+    assert.dom("[data-test-community-discovery]").exists();
     assert.strictEqual(api.requests, 0);
+  });
+
+  test("renders on a categories-configured homepage", async function (assert) {
+    setDefaultHomepage("categories");
+
+    await visit("/");
+
+    assert.dom("[data-test-first-connection-card]").exists({ count: 1 });
+    assert.strictEqual(api.requests, 1);
   });
 });
