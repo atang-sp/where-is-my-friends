@@ -384,6 +384,7 @@ function setupApi(needs, state) {
 acceptance("Where Is My Friends | interest onboarding", function (needs) {
   needs.settings({
     where_is_my_friends_enabled: true,
+    where_is_my_friends_first_connection_enabled: false,
     where_is_my_friends_interest_onboarding_enabled: true,
     where_is_my_friends_practice_invitations_enabled: true,
   });
@@ -1188,6 +1189,7 @@ acceptance(
   function (needs) {
     needs.settings({
       where_is_my_friends_enabled: true,
+      where_is_my_friends_first_connection_enabled: false,
       where_is_my_friends_interest_onboarding_enabled: false,
     });
     needs.user({

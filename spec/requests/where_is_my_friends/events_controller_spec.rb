@@ -73,6 +73,33 @@ RSpec.describe WhereIsMyFriends::EventsController do
       )
     end
 
+    it "records a target-free first connection action" do
+      sign_in(user)
+
+      post "/where-is-my-friends/events.json",
+           params: {
+             event_name: "first_connection_topic_opened",
+             surface: "homepage",
+             recommendation_group: "topics",
+             algorithm_version: "first_connection_v1",
+             topic_id: 88_888,
+             title: "private target title"
+           }
+
+      expect(response.status).to eq(200)
+      expect(WhereIsMyFriendsEvent.last).to have_attributes(
+        user_id: user.id,
+        event_name: "first_connection_topic_opened",
+        surface: "homepage",
+        recommendation_group: "topics",
+        algorithm_version: "first_connection_v1"
+      )
+      expect(WhereIsMyFriendsEvent.column_names).not_to include(
+        "topic_id",
+        "title"
+      )
+    end
+
     it "records only boolean dynamic-preview context without content or identity" do
       sign_in(user)
 

@@ -8,6 +8,7 @@ module WhereIsMyFriendsProductionClosureHelpers
     SiteSetting.hide_new_user_profiles = false
     SiteSetting.tagging_enabled = true
     SiteSetting.where_is_my_friends_enabled = true
+    SiteSetting.where_is_my_friends_first_connection_enabled = false
     SiteSetting.where_is_my_friends_interest_onboarding_enabled = true
     SiteSetting.where_is_my_friends_dynamics_enabled = true
     SiteSetting.where_is_my_friends_dynamics_homepage_enabled = true

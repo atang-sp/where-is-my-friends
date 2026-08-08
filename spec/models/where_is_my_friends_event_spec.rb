@@ -33,6 +33,16 @@ RSpec.describe WhereIsMyFriendsEvent do
       local_callout_dismissed
       local_callout_location_saved
       personalization_disabled
+      first_connection_card_viewed
+      first_connection_card_dismissed
+      first_connection_onboarding_opened
+      first_connection_invitation_opened
+      first_connection_conversation_opened
+      first_connection_topic_opened
+      first_connection_person_opened
+      first_connection_dynamic_opened
+      first_connection_local_opened
+      first_connection_recommendations_opened
     ]
     unknown =
       described_class.new(user: user, event_name: "raw_location_captured")
