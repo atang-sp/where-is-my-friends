@@ -333,7 +333,7 @@ en:
       practice_invitations:
         eyebrow: "One-to-one practice"
         form_title: "Invite @%{username}"
-        one_to_one_notice: "This invitation and any accepted private message include only you and this member."
+        one_to_one_notice: "This invitation and any accepted personal message include only you and this member."
         interest: "Shared interest"
         proposed_time: "Suggested time (optional)"
         proposed_time_value: "Suggested time: %{time}"

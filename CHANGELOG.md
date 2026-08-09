@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.22.0 — 2026-08-09
+
+- Add `打屁股` keyword and alias coverage for pure-practice and discipline
+  interests, `妈妈` keywords for family scenes, and a new `女神崇拜` scene so
+  the interest catalogue recognizes the community's most-searched terms.
+- Surface curated interest aliases to the onboarding picker search so terms
+  like `打屁股` and `为女神` find their catalogue interests.
+- Let an empty or privacy-limited city state lead with starting a local topic
+  when a compose target is available, keeping topic browsing as a secondary
+  action instead of routing members to a guaranteed-empty search.
+
 ## 1.21.0 — 2026-08-08
 
 - Add one stage-aware “What can you do today?” homepage action that prioritizes

@@ -37,6 +37,7 @@ export default class LocationDiscoveryWorkflow {
   @tracked networkPreview = null;
   @tracked previewLoading = false;
   @tracked selectedPreviewRadius = null;
+  @tracked composeUrl = null;
 
   constructor({
     model,
@@ -96,6 +97,7 @@ export default class LocationDiscoveryWorkflow {
         connect: this.trackConnection,
         manageLocation: this.manageLocation,
         openLocalTopic: this.trackLocalTopicOpen,
+        composeLocalTopic: this.trackLocalTopicCompose,
         setMemberFilter: this.setMemberFilter,
         toggleCityNotifications: this.toggleNotifyCity,
       }),
@@ -179,6 +181,8 @@ export default class LocationDiscoveryWorkflow {
       },
       localTopic: {
         actionUrl: this.localTopicActionUrl,
+        searchUrl: this.localTopicSearchUrl,
+        compose: this.localTopicComposeAction,
         city: this.location.city,
       },
     };
@@ -442,8 +446,22 @@ export default class LocationDiscoveryWorkflow {
     });
   }
 
-  get localTopicActionUrl() {
+  get localTopicSearchUrl() {
     return `/search?q=${encodeURIComponent(this.location?.city ?? "")}`;
+  }
+
+  get localTopicComposeUrl() {
+    return this.composeUrl;
+  }
+
+  get localTopicComposeAction() {
+    return Boolean(this.composeUrl) && (this.isEmpty || this.isLimited);
+  }
+
+  get localTopicActionUrl() {
+    return this.localTopicComposeAction
+      ? this.localTopicComposeUrl
+      : this.localTopicSearchUrl;
   }
 
   get cityPreview() {
@@ -641,6 +659,7 @@ export default class LocationDiscoveryWorkflow {
       this.expandedRadius = response.expanded_radius ?? false;
       this.originalRadiusKm = response.original_radius_km ?? null;
       this.expandedRadiusKm = response.expanded_radius_km ?? null;
+      this.composeUrl = response.local_topic_compose_url ?? null;
       this.discoveryState =
         this.availableUsers.length > 0
           ? "ready"
@@ -793,6 +812,7 @@ export default class LocationDiscoveryWorkflow {
       this.location = null;
       this.users = [];
       this.cityGroups = [];
+      this.composeUrl = null;
       this.discoveryState = "setup";
       this.memberFilter = "";
       this.activeFilters = {};

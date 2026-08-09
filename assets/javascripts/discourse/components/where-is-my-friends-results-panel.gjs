@@ -340,8 +340,20 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
     <LocalTopicsPanel
       @actionUrl={{@state.localTopic.actionUrl}}
       @city={{@state.localTopic.city}}
-      @compose={{false}}
-      @onAction={{@on.openLocalTopic}}
+      @compose={{@state.localTopic.compose}}
+      @onAction={{if
+        @state.localTopic.compose
+        @on.composeLocalTopic
+        @on.openLocalTopic
+      }}
     />
+    {{#if @state.localTopic.compose}}
+      <a
+        class="btn btn-default"
+        href={{@state.localTopic.searchUrl}}
+        data-test-browse-local-topics
+        {{on "click" @on.openLocalTopic}}
+      >{{i18n "where_is_my_friends.browse_local_topics"}}</a>
+    {{/if}}
   </template>
 }

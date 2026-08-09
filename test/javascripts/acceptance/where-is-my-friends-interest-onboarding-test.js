@@ -23,6 +23,7 @@ function pendingModel() {
       {
         id: 2,
         name: "design",
+        aliases: ["ui", "界面"],
         group_key: "content_interest",
         group_name: "Content interests",
       },
@@ -976,6 +977,11 @@ acceptance("Where Is My Friends | interest onboarding", function (needs) {
     assert
       .dom("[data-test-interest-group='communication_style']")
       .doesNotExist();
+
+    await fillIn("[data-test-interest-search]", "界面");
+
+    assert.dom("[data-test-interest='design']").exists();
+    assert.dom("[data-test-interest='ruby']").doesNotExist();
   });
 
   test("members can dismiss, edit, and fully clear personalization", async function (assert) {

@@ -1023,11 +1023,14 @@ module WhereIsMyFriends
 
     def serialize_catalogue_tag(tag, entry)
       group_key = entry["group_key"] || entry.fetch("key")
-
-      serialize_tag(tag).merge(
-        group_key: group_key,
-        group_name: catalogue_group_translation(group_key, "name")
-      )
+      payload =
+        serialize_tag(tag).merge(
+          group_key: group_key,
+          group_name: catalogue_group_translation(group_key, "name")
+        )
+      aliases = Array(entry["aliases"])
+      payload[:aliases] = aliases if aliases.present?
+      payload
     end
 
     def catalogue_group_translation(group_key, field)

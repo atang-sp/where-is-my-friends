@@ -80,6 +80,7 @@ module("Unit | where-is-my-friends | location discovery workflow", function () {
     assert.deepEqual(Object.keys(workflow.intents.results).sort(), [
       "changeFilter",
       "changeRadius",
+      "composeLocalTopic",
       "connect",
       "copyInvite",
       "manageLocation",

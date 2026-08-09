@@ -54,12 +54,12 @@ groups:
         name: 纯实践
         related: [discipline, game_interaction, scenario]
         topic_tags: [spank]
-        topic_keywords: [实践, 实战]
+        topic_keywords: [实践, 实战, 打屁股]
       - key: discipline
         name: 惩戒管教
-        aliases: [训诫]
+        aliases: [训诫, 打屁股]
         related: [pure_practice, serious_mood, ritual]
-        topic_keywords: [惩戒, 管教, 训诫]
+        topic_keywords: [惩戒, 管教, 训诫, 打屁股]
       - key: game_interaction
         name: 游戏互动
         related: [pure_practice, lighthearted_mood, scenario, game_creation]
@@ -144,7 +144,7 @@ groups:
       - key: family_discipline
         name: 家庭管教
         related: [discipline, care, scenario]
-        topic_keywords: [家庭管教, 兄妹, 姐弟, 家长]
+        topic_keywords: [家庭管教, 兄妹, 姐弟, 家长, 妈妈]
       - key: friends_scene
         name: 朋友闺蜜
         related: [lighthearted_mood, game_interaction, scenario]
@@ -161,6 +161,11 @@ groups:
         name: 军训教官
         related: [discipline, serious_mood, scenario]
         topic_keywords: [军训, 教官, 训练]
+      - key: goddess_worship
+        name: 女神崇拜
+        aliases: [女神, 为女神]
+        related: [ancient_court, submission, ritual, scenario]
+        topic_keywords: [女神, 为女神, 崇拜, 侍奉]
 
   - key: position
     selection_mode: multi
