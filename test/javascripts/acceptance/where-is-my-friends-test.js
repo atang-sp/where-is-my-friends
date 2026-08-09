@@ -1058,6 +1058,32 @@ acceptance("Where Is My Friends | city discovery", function (needs) {
     assert.dom("[data-test-empty-invitation]").exists();
   });
 
+  test("empty state starts a local topic and keeps browsing as a secondary action", async function (assert) {
+    api.initial = readyState();
+    api.nearby = {
+      state: "empty",
+      users: [],
+      local_topics: [],
+      local_topic_compose_url: "/new-topic?category_id=7",
+    };
+
+    await visit("/where-is-my-friends");
+
+    assert
+      .dom("[data-test-local-topics]")
+      .hasText("Start a local topic")
+      .hasAttribute("href", "/new-topic?category_id=7");
+    await triggerEvent("[data-test-local-topics]", "click", { ctrlKey: true });
+    assert.true(api.events.includes("local_topic_interacted"));
+    assert
+      .dom("[data-test-browse-local-topics]")
+      .hasAttribute("href", "/search?q=%E4%B8%8A%E6%B5%B7");
+    await triggerEvent("[data-test-browse-local-topics]", "click", {
+      ctrlKey: true,
+    });
+    assert.true(api.events.includes("local_topic_opened"));
+  });
+
   test("empty state copies an invite link and announces the outcome", async function (assert) {
     api.initial = readyState();
     Object.defineProperty(navigator, "clipboard", {
