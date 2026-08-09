@@ -129,7 +129,7 @@ end
 #
 #  id                     :bigint           not null, primary key
 #  active                 :boolean          default(FALSE), not null
-#  api_key                :string(10000)    not null
+#  api_key                :text             not null
 #  base_url               :string           not null
 #  last_test_error_code   :string
 #  last_test_status       :string
