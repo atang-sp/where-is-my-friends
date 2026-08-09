@@ -137,7 +137,11 @@ export default class PreferenceRecommendationSession {
   get interestGroups() {
     const query = this.interestSearch.trim().toLocaleLowerCase();
     const options = this.interestOptions.filter(
-      (interest) => !query || interest.name.toLocaleLowerCase().includes(query)
+      (interest) =>
+        !query ||
+        [interest.name, ...(interest.aliases ?? [])].some((name) =>
+          name.toLocaleLowerCase().includes(query)
+        )
     );
     const configuredGroups = this.model.catalogue_groups ?? [];
     const fallbackGroups = [
