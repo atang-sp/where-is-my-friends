@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require Rails.root.join(
-          "plugins/where-is-my-friends/db/migrate/20260810000000_seed_goddess_worship_catalogue_tag.rb"
+          "plugins/where-is-my-friends/db/migrate/20260809150000_seed_goddess_worship_catalogue_tag.rb"
         )
 
 RSpec.describe SeedGoddessWorshipCatalogueTag do
