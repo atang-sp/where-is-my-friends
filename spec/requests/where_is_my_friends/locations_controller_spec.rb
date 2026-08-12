@@ -643,9 +643,11 @@ RSpec.describe WhereIsMyFriends::LocationsController do
         "last_seen_at",
         "last_posted_at",
         "bio_excerpt",
-        "custom_fields"
+        "custom_fields",
+        "user_tags"
       )
       expect(result["custom_fields"]).to eq({})
+      expect(result["user_tags"]).to eq([])
       expect(response.body).not_to include(
         "latitude",
         "longitude",

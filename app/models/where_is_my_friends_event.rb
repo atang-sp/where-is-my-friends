@@ -51,6 +51,12 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     first_connection_dynamic_opened
     first_connection_local_opened
     first_connection_recommendations_opened
+    user_tag_proposed
+    user_tag_approved
+    user_tag_rejected
+    user_tag_removed
+    user_tag_endorsed
+    user_tag_endorsement_removed
   ].freeze
   LOCATION_MODES = %w[city gps map].freeze
   RESULT_BUCKETS = %w[zero one_to_four five_to_nineteen twenty_plus].freeze

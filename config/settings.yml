@@ -215,6 +215,43 @@ plugins:
     category: "where_is_my_friends"
     translated: true
 
+  where_is_my_friends_user_tags_enabled:
+    default: false
+    client: true
+    type: bool
+    description: "启用成员印象标签：提议须经被标签人批准后才公开，可赞同"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_user_tag_max_length:
+    default: 20
+    min: 1
+    max: 50
+    client: true
+    type: integer
+    description: "印象标签文本的最大字符数"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_user_tag_daily_proposal_limit:
+    default: 20
+    min: 1
+    max: 100
+    type: integer
+    description: "每位成员每天最多向他人提议的印象标签数"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_user_tag_max_displayed:
+    default: 5
+    min: 1
+    max: 20
+    client: true
+    type: integer
+    description: "成员卡片最多展示的已批准印象标签数，按赞同数排序"
+    category: "where_is_my_friends"
+    translated: true
+
   licensed_import_enabled:
     default: false
     type: bool

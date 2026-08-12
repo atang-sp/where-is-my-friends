@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.22.0
+# version: 1.23.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0-latest
@@ -18,6 +18,7 @@ register_asset "stylesheets/where-is-my-friends.scss"
 register_svg_icon "plug"
 register_svg_icon "floppy-disk"
 register_svg_icon "plane"
+register_svg_icon "tag"
 
 require_relative "lib/where_is_my_friends/engine"
 
@@ -153,6 +154,10 @@ after_initialize do
     :user_option,
     :where_is_my_friends_accept_practice_invitations
   ) { object.where_is_my_friends_accept_practice_invitations }
+  UserUpdater::OPTION_ATTR.push(:where_is_my_friends_accept_user_tags)
+  add_to_serializer(:user_option, :where_is_my_friends_accept_user_tags) do
+    object.where_is_my_friends_accept_user_tags
+  end
 
   add_to_serializer(:user_card, :where_is_my_friends_city) do
     UserLocation.discoverable.find_by(user_id: object.id)&.city
@@ -226,6 +231,28 @@ after_initialize do
     end
   end
 
+  add_to_serializer(:user_card, :where_is_my_friends_user_tags) do
+    if scope.user && WhereIsMyFriends::UserTagVisibility.feature_enabled?
+      WhereIsMyFriends::UserTagVisibility.public_tags_for(
+        object,
+        viewer: scope.user
+      )
+    else
+      []
+    end
+  end
+
+  add_to_serializer(:user, :where_is_my_friends_user_tags) do
+    if scope.user && WhereIsMyFriends::UserTagVisibility.feature_enabled?
+      WhereIsMyFriends::UserTagVisibility.public_tags_for(
+        object,
+        viewer: scope.user
+      )
+    else
+      []
+    end
+  end
+
   on(:user_destroyed) do |user|
     WhereIsMyFriendsFlyingChessCompletion.where(user_id: user.id).delete_all
     WhereIsMyFriendsFlyingChessProfile.where(user_id: user.id).delete_all
@@ -276,6 +303,8 @@ after_initialize do
     get "/where-is-my-friends/interests" => "list#latest",
         :constraints => ->(request) { request.format.html? }
     get "/where-is-my-friends/dynamics" => "list#latest",
+        :constraints => ->(request) { request.format.html? }
+    get "/where-is-my-friends/tags" => "list#latest",
         :constraints => ->(request) { request.format.html? }
     get "/where-is-my-friends/flying-chess" => "list#latest",
         :constraints => ->(request) { request.format.html? }

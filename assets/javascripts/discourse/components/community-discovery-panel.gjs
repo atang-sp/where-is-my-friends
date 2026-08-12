@@ -10,6 +10,7 @@ import { eq } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import { createClientTelemetry } from "discourse/plugins/where-is-my-friends/discourse/lib/client-telemetry";
+import UserTagChips from "./user-tag-chips";
 
 export default class CommunityDiscoveryPanel extends Component {
   @service currentUser;
@@ -570,6 +571,10 @@ export default class CommunityDiscoveryPanel extends Component {
                             <span>{{interest.name}}</span>
                           {{/each}}
                         </p>
+                        <UserTagChips
+                          @username={{person.username}}
+                          @tags={{person.user_tags}}
+                        />
                         {{#if person.latest_dynamic}}
                           <a
                             class="community-discovery__dynamic-preview"

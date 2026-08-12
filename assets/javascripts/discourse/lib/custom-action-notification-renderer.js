@@ -2,6 +2,7 @@ import { i18n } from "discourse-i18n";
 
 const ACTION_MESSAGES = new Set([
   "where_is_my_friends.practice_invitations.notification_message",
+  "where_is_my_friends.user_tags.notification_message",
   "practice_matching.notification.mutual_match",
 ]);
 

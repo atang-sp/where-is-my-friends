@@ -16,7 +16,8 @@ class UserLocationSerializer < ApplicationSerializer
              :last_seen_at,
              :last_posted_at,
              :bio_excerpt,
-             :custom_fields
+             :custom_fields,
+             :user_tags
 
   def id
     user.id
@@ -82,6 +83,15 @@ class UserLocationSerializer < ApplicationSerializer
 
   def custom_fields
     object[:custom_field_values] || {}
+  end
+
+  def user_tags
+    return [] unless WhereIsMyFriends::UserTagVisibility.feature_enabled?
+
+    WhereIsMyFriends::UserTagVisibility.public_tags_for(
+      user,
+      viewer: scope.user
+    )
   end
 
   private

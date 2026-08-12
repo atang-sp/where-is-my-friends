@@ -975,6 +975,7 @@ module WhereIsMyFriends
           match.score.positive? ? match.strength : "public_activity",
         reason_interests: reason_tags.map { |tag| serialize_tag(tag) },
         invitation_interests: invitation_tags.map { |tag| serialize_tag(tag) },
+        user_tags: UserTagVisibility.public_tags_for(candidate, viewer: @user),
         representative_topics:
           representative_topics.map do |topic|
             serialize_topic(
