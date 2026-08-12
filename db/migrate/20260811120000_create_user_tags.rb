@@ -9,8 +9,8 @@ class CreateUserTags < ActiveRecord::Migration[7.0]
                null: false
 
     create_table :where_is_my_friends_user_tags do |t|
-      t.integer :proposer_id, null: false
-      t.integer :target_user_id, null: false
+      t.bigint :proposer_id, null: false
+      t.bigint :target_user_id, null: false
       t.string :label, null: false
       t.string :status, null: false, default: "pending"
       t.datetime :responded_at
@@ -35,8 +35,8 @@ class CreateUserTags < ActiveRecord::Migration[7.0]
                     on_delete: :cascade
 
     create_table :where_is_my_friends_tag_endorsements do |t|
-      t.integer :tag_id, null: false
-      t.integer :user_id, null: false
+      t.bigint :tag_id, null: false
+      t.bigint :user_id, null: false
       t.timestamps
     end
 

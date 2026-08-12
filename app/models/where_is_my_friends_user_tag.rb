@@ -82,8 +82,8 @@ end
 #  status        :string           default("pending"), not null
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
-#  proposer_id   :integer          not null
-#  target_user_id :integer         not null
+#  proposer_id   :bigint           not null
+#  target_user_id :bigint          not null
 #
 # Indexes
 #
