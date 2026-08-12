@@ -2,6 +2,7 @@ import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
+import UserTagChips from "./user-tag-chips";
 
 export default <template>
   <section class="interest-onboarding__results">
@@ -75,6 +76,10 @@ export default <template>
                   </span>
                 {{/each}}
               </p>
+              <UserTagChips
+                @username={{user.username}}
+                @tags={{user.user_tags}}
+              />
               {{#if user.representative_topics.length}}
                 <ul>
                   {{#each user.representative_topics as |topic|}}
