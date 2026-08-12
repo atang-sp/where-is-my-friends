@@ -7,6 +7,7 @@ import DButton from "discourse/ui-kit/d-button";
 import dAvatar from "discourse/ui-kit/helpers/d-avatar";
 import { i18n } from "discourse-i18n";
 import LocalTopicsPanel from "./local-topics-panel";
+import UserTagChips from "./user-tag-chips";
 
 export default class WhereIsMyFriendsResultsPanel extends Component {
   @action
@@ -210,6 +211,10 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
                         >{{user.custom_field_label}}</span>
                       </p>
                     {{/if}}
+                    <UserTagChips
+                      @username={{user.username}}
+                      @tags={{user.user_tags}}
+                    />
                     {{#if user.inactive}}
                       {{#unless user.activity_label}}
                         <p

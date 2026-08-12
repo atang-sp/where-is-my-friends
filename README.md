@@ -12,6 +12,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 相关话题映射：目录由插件维护，不依赖论坛当下有多少标签；已有 `spank`、`训诫`、`小说`、`sp飞行棋` 等标签和公开话题可通过别名、标签及标题关键词关联。
 - 可解释推荐：话题显示匹配兴趣，成员推荐只引用用户可见的公开贡献和代表话题。
 - 一对一实践邀请：从推荐卡或公开兴趣资料页选择共同兴趣，可附建议时间和备注；接受后只创建两人私信。
+- 印象标签：成员可向他人提议自由文本标签，被标签人批准后才公开，其他成员可公开赞同；提议人匿名，被标签人可移除或关闭接收。
 - 可控收件箱：收件人可接受、拒绝或忽略邀请，也可在通知设置中完全关闭实践邀请。
 - 旧数据接管：近 90 天旧实践意向只迁移为私密、待重新确认的书签；既有互选只保留为静默历史。
 - 用户控制：可跳过、编辑、“不感兴趣”、退出被推荐、公开兴趣或一键清空个性化数据。
@@ -63,6 +64,7 @@ Local Friends 帮助成员真正“看见论坛里有哪些人”：新成员可
 - 建议时间按发送者浏览器时区转换为 UTC；邀请保留兴趣名称快照，管理员后续删除标签不会破坏历史。
 - 旧意向书签只向原意向所有者返回；迁移、重新确认和历史互选导入都不会自动发送邀请或通知。
 - 只有明确允许“被推荐”且近期活跃的成员才会出现；不会暴露对方的私密兴趣或使用目的。
+- 印象标签：提议在批准前只对被标签人与提议人可见，任何第三方接口都不返回 pending 标签；已批准标签只展示给双方无屏蔽/静音关系且可查看资料的用户，提议人身份从不公开，被标签人可移除任意标签并一键关闭接收；赞同者公开，但不能赞同自己或提议人的标签。
 - 插件绝不自动订阅标签、分区，也不会改变任何通知级别。
 - 个人动态只存在于仅登录会员可读、默认静音的专用分区；功能配置不合格时接口 fail closed。动态及回复在安全上传落地前拒绝图片、音视频和附件，但正文可使用论坛已有表情；推荐流只展示其他成员最近 30 天的一条动态，排除当前用户和忽略关系，不引入关注、点赞或公开热度排名，且动态不会进入普通 Latest、用户“主题”页或讨论推荐。
 - 七日公开互动率和首次回复率直接从公开帖子按 onboarding 或推荐曝光时间窗聚合；私信、受限分区、内容和目标 ID 均不会进入统计结果。
@@ -110,6 +112,10 @@ bundle exec rake db:migrate
 | `where_is_my_friends_practice_invitations_enabled` | `true` | 启用严格一对一实践邀请 |
 | `where_is_my_friends_practice_invitation_min_trust_level` | `1` | 允许发送邀请的最低信任等级 |
 | `where_is_my_friends_practice_invitation_daily_limit` | `5` | 每位成员每天最多发送的邀请数 |
+| `where_is_my_friends_user_tags_enabled` | `false` | 启用成员印象标签：提议须经被标签人批准后才公开，可赞同 |
+| `where_is_my_friends_user_tag_max_length` | `20` | 印象标签文本的最大字符数 |
+| `where_is_my_friends_user_tag_daily_proposal_limit` | `20` | 每位成员每天最多向他人提议的印象标签数 |
+| `where_is_my_friends_user_tag_max_displayed` | `5` | 成员卡片最多展示的已批准印象标签数，按赞同数排序 |
 | `where_is_my_friends_enable_virtual_location` | `true` | 允许可选 GPS/地图距离范围 |
 | `where_is_my_friends_map_provider` | `openstreetmap` | `openstreetmap`、`amap` 或 `baidu` |
 | `where_is_my_friends_amap_api_key` | 空 | 仅在选择高德时发送到浏览器 |
@@ -159,6 +165,14 @@ OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的�
 | `PUT` | `/where-is-my-friends/legacy-practice-bookmarks/:id/reconfirm.json` | 仅重新确认书签，不发送邀请 |
 | `PUT` | `/where-is-my-friends/legacy-practice-bookmarks/:id/dismiss.json` | 移除旧意向书签 |
 | `POST` | `/where-is-my-friends/events.json` | 写入白名单漏斗或无目标 ID 的粗粒度推荐曝光/行动事件 |
+| `GET` | `/where-is-my-friends/user-tags.json?username=...` | 某成员已批准的印象标签（含赞同数与本人是否已赞同） |
+| `POST` | `/where-is-my-friends/user-tags.json` | 向某成员提议一条自由文本印象标签 |
+| `GET` | `/where-is-my-friends/user-tags/mine.json` | 我的印象标签收件箱：待确认提议（含提议人身份）与已处理标签 |
+| `PUT` | `/where-is-my-friends/user-tags/:id/approve.json` | 被标签人批准提议并使其公开 |
+| `PUT` | `/where-is-my-friends/user-tags/:id/reject.json` | 被标签人拒绝提议 |
+| `PUT` | `/where-is-my-friends/user-tags/:id/remove.json` | 被标签人移除已公开的标签 |
+| `POST` | `/where-is-my-friends/user-tags/:id/endorse.json` | 赞同一条已公开的标签 |
+| `DELETE` | `/where-is-my-friends/user-tags/:id/endorse.json` | 取消赞同 |
 | `POST` | `/where-is-my-friends/flying-chess/claims.json` | 认领房间服务签发的单次完成凭证；需要主插件、成就子功能和有效共享密钥均已启用 |
 | `PUT` | `/where-is-my-friends/flying-chess/profile.json` | 当前用户设置自己的飞行棋成就资料是否公开；成就子功能关闭时不可用 |
 | `GET` | `/where-is-my-friends/debug-stats.json` | 管理员聚合诊断 |
@@ -189,7 +203,9 @@ d/exec bin/lint plugins/where-is-my-friends
 - `lib/where_is_my_friends/growth_report.rb`：管理员可见的漏斗、成熟 cohort、内容供给和按日趋势聚合。
 - `lib/where_is_my_friends/licensed_import/`：许可校验、内容清理、安全分类、忠实翻译、独立复核、发布和自动停发。
 - `lib/where_is_my_friends/practice_invitation_eligibility.rb`：共同兴趣、信任、屏蔽、opt-out 和私信权限策略。
+- `lib/where_is_my_friends/user_tag_visibility.rb`：印象标签的公共可见性、屏蔽边界与赞同序列化唯一入口。
 - `app/models/where_is_my_friends_practice_invitation.rb`：严格一对一邀请与接受后的私信引用。
+- `app/models/where_is_my_friends_user_tag.rb`：提议、批准、拒绝、移除与赞同的印象标签状态机。
 - `app/models/where_is_my_friends_legacy_practice_bookmark.rb`：仅所有者可见、需要重新确认的迁移书签。
 - `app/models/where_is_my_friends_interest_profile.rb`：私密兴趣、目的与用户控制。
 - `app/models/user_location.rb`：城市标准化、有效期和距离范围。

@@ -49,6 +49,16 @@ export default {
         });
       }
 
+      if (siteSettings.where_is_my_friends_user_tags_enabled) {
+        api.addCommunitySectionLink({
+          name: "where-is-my-friends-tags",
+          route: "where-is-my-friends-tags",
+          title: i18n("where_is_my_friends.user_tags.title"),
+          text: i18n("where_is_my_friends.user_tags.title"),
+          icon: "tag",
+        });
+      }
+
       api.addSaveableUserOption("where_is_my_friends_notify_city", {
         page: "notifications",
       });
@@ -59,6 +69,9 @@ export default {
         "where_is_my_friends_accept_practice_invitations",
         { page: "notifications" }
       );
+      api.addSaveableUserOption("where_is_my_friends_accept_user_tags", {
+        page: "notifications",
+      });
     });
   },
 };

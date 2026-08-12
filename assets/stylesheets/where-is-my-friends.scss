@@ -2462,3 +2462,83 @@
     }
   }
 }
+
+.where-is-my-friends__user-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+
+  &-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.where-is-my-friends__user-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: var(--primary-100);
+
+  &-label {
+    font-size: var(--font-down-1);
+    font-weight: 600;
+  }
+}
+
+.where-is-my-friends__user-tag-input {
+  width: 100%;
+}
+
+.where-is-my-friends__user-tag-count {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: var(--font-down-2);
+  color: var(--primary-medium);
+}
+
+.user-tag-inbox {
+  &__accepting {
+    margin-bottom: 1rem;
+  }
+
+  &__section {
+    margin-bottom: 1.5rem;
+
+    h2 {
+      margin-bottom: 0.5rem;
+      font-size: var(--font-up-1);
+    }
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--primary-low);
+
+    p {
+      margin: 0;
+    }
+
+    .btn {
+      margin-left: 0.25rem;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+}

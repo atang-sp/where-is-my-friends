@@ -138,6 +138,19 @@ en:
         invalid: "The practice invitation is invalid."
         invalid_state: "This invitation has already been handled."
         private_messages_unavailable: "A private conversation cannot be created for these members."
+    user_tags:
+      notification_title: "You received an impression tag"
+      notification_message: "where_is_my_friends.user_tags.notification_message"
+      errors:
+        self_tag: "You cannot add an impression tag to yourself."
+        unavailable: "This member is not available for impression tags right now."
+        opted_out: "This member has turned off incoming impression tags."
+        daily_limit: "You have reached today's impression tag proposal limit."
+        duplicate: "You have already proposed this tag to this member."
+        invalid: "The impression tag is invalid."
+        invalid_state: "This impression tag has already been handled."
+        invalid_endorsement: "This tag cannot be endorsed right now."
+        already_endorsed: "You have already endorsed this tag."
     legacy_practice_bookmarks:
       already_handled: "This legacy practice interest has already been handled."
     invite_pm_title: "Discover local community members near you"

@@ -107,7 +107,8 @@ module WhereIsMyFriends
               origin: @origin,
               custom_field_values: cf_map[location.user_id] || {}
             },
-            root: false
+            root: false,
+            scope: @guardian
           )
         end
 

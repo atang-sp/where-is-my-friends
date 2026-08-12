@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.23.0 — 2026-08-11
+
+- Add consent-gated member impression tags: any eligible member can propose a
+  free-text tag about another member, but it stays private to the proposer and
+  the tagged member until the tagged member approves it, after which it appears
+  on member cards and other members can publicly endorse it.
+- Keep the proposer anonymous on public cards, surface pending tags only in the
+  tagged member's inbox, and let the tagged member remove any tag or turn off
+  incoming tags entirely; endorsements are restricted to non-participants.
+- Add a `/where-is-my-friends/tags` inbox page, tag chips with endorse controls
+  on the nearby and community-discovery member cards, a propose dialog, a
+  custom notification on proposal, and six privacy-safe allowlisted events that
+  carry no tag text, target identifiers, or location values.
+- The feature ships behind `where_is_my_friends_user_tags_enabled` (default
+  off); proposals, approvals, endorsements, and visibility all respect the
+  existing profile-visibility, block/mute, and opt-in boundaries.
+
 ## 1.22.0 — 2026-08-09
 
 - Add `打屁股` keyword and alias coverage for pure-practice and discipline

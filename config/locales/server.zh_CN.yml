@@ -138,6 +138,19 @@ zh_CN:
         invalid: "实践邀请无效"
         invalid_state: "这个邀请已经处理过了"
         private_messages_unavailable: "当前无法为这两位成员创建私信会话"
+    user_tags:
+      notification_title: "你收到了一条印象标签"
+      notification_message: "where_is_my_friends.user_tags.notification_message"
+      errors:
+        self_tag: "不能给自己添加印象标签"
+        unavailable: "该成员目前不可用于添加印象标签"
+        opted_out: "这位成员已关闭印象标签接收"
+        daily_limit: "你今天提议的印象标签已达上限"
+        duplicate: "你已向这位成员提议过同样的标签"
+        invalid: "印象标签无效"
+        invalid_state: "这条印象标签已经处理过了"
+        invalid_endorsement: "这个标签当前不能被赞同"
+        already_endorsed: "你已经赞同过这个标签"
     legacy_practice_bookmarks:
       already_handled: "这条旧实践意向已经处理过了"
     invite_pm_title: "发现你身边的同城社区成员"
