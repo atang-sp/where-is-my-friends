@@ -76,14 +76,14 @@ end
 #
 # Table name: where_is_my_friends_user_tags
 #
-#  id            :bigint           not null, primary key
-#  label         :string           not null
-#  responded_at  :datetime
-#  status        :string           default("pending"), not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  proposer_id   :bigint           not null
-#  target_user_id :bigint          not null
+#  id             :bigint           not null, primary key
+#  label          :string           not null
+#  responded_at   :datetime
+#  status         :string           default("pending"), not null
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  proposer_id    :bigint           not null
+#  target_user_id :bigint           not null
 #
 # Indexes
 #
