@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.23.1 — 2026-08-12
+
+- Add the impression-tag propose/endorse chips to the interest-recommendation
+  member cards, so adding tags is available wherever members are surfaced and
+  is not tied to city discovery.
+
 ## 1.23.0 — 2026-08-11
 
 - Add consent-gated member impression tags: any eligible member can propose a
