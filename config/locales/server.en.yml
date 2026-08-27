@@ -14,6 +14,14 @@ en:
       unavailable: "Personal updates are not available."
       invalid_length: "Updates must contain 8 to 500 visible characters."
       media_not_allowed: "Images, audio, video, and attachments are not available in updates yet."
+      invalid_reaction: "This lightweight response is not available."
+      reaction_rate_limit: "You have sent too many lightweight responses today. Please try again later."
+      reaction_notification_title: "A lightweight response to your dynamic"
+      reaction_notifications:
+        relate: "related to your dynamic"
+        curious: "would like to know more about your dynamic"
+        open_to_chat: "is open to chatting about your dynamic"
+        support: "sent support for your dynamic"
     licensed_import:
       title_prefix: "[English selection · translation]"
       deleted_source_user: "deleted user"

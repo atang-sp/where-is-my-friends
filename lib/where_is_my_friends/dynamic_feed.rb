@@ -25,6 +25,9 @@ module WhereIsMyFriends
     class InvalidContent < StandardError
     end
 
+    class InvalidReaction < StandardError
+    end
+
     def initialize(viewer:, guardian: nil)
       @viewer = viewer
       @guardian = guardian || Guardian.new(viewer)
@@ -46,7 +49,7 @@ module WhereIsMyFriends
       page = page.first(PAGE_SIZE)
 
       {
-        dynamics: page.map { |topic| serialize(topic) },
+        dynamics: serialize_many(page),
         has_more: has_more,
         before_id: has_more ? page.last.id : nil
       }
@@ -55,22 +58,23 @@ module WhereIsMyFriends
     def recent
       topics = latest_topics_by_author(visible_topics).limit(RECENT_LIMIT)
 
-      { dynamics: topics.map { |topic| serialize(topic) } }
+      { dynamics: serialize_many(topics) }
     end
 
-    def discover(before_id: nil)
+    def discover(before_id: nil, limit: nil)
+      page_size = discovery_page_size(limit)
       scope =
         visible_topics
           .where("topics.created_at >= ?", RECENT_WINDOW.ago)
           .where.not(user_id: @viewer.id)
       scope = before_cursor(scope, before_id)
 
-      page = latest_topics_by_author(scope).limit(DISCOVERY_PAGE_SIZE + 1).to_a
-      has_more = page.length > DISCOVERY_PAGE_SIZE
-      page = page.first(DISCOVERY_PAGE_SIZE)
+      page = latest_topics_by_author(scope).limit(page_size + 1).to_a
+      has_more = page.length > page_size
+      page = page.first(page_size)
 
       {
-        dynamics: page.map { |topic| serialize(topic) },
+        dynamics: serialize_many(page),
         has_more: has_more,
         before_id: has_more ? page.last.id : nil
       }
@@ -80,9 +84,11 @@ module WhereIsMyFriends
       ids = Array(user_ids).map(&:to_i).uniq
       return {} if ids.empty?
 
-      latest_topics_by_author(visible_topics.where(user_id: ids))
-        .index_by(&:user_id)
-        .transform_values { |topic| serialize(topic) }
+      topics = latest_topics_by_author(visible_topics.where(user_id: ids)).to_a
+      serialized = serialize_many(topics)
+      topics.each_with_index.to_h do |topic, index|
+        [topic.user_id, serialized[index]]
+      end
     end
 
     def create(raw:)
@@ -106,10 +112,72 @@ module WhereIsMyFriends
       end
 
       if result.post
-        { queued: false, dynamic: serialize(result.post.topic) }
+        { queued: false, dynamic: serialize_many([result.post.topic]).first }
       else
         { queued: true }
       end
+    end
+
+    def react(topic_id:, kind:)
+      topic = reactionable_topic(topic_id)
+      reaction_kind = kind.to_s
+      if WhereIsMyFriendsDynamicReaction::KINDS.exclude?(reaction_kind)
+        raise InvalidReaction,
+              I18n.t("where_is_my_friends.dynamics.invalid_reaction")
+      end
+
+      reaction =
+        WhereIsMyFriendsDynamicReaction.find_or_initialize_by(
+          topic: topic,
+          user: @viewer
+        )
+      if reaction.persisted? && reaction.kind == reaction_kind
+        return { reaction: reaction.kind }
+      end
+
+      begin
+        RateLimiter.new(
+          @viewer,
+          "where-is-my-friends-dynamic-reaction",
+          40,
+          1.day
+        ).performed!
+      rescue RateLimiter::LimitExceeded
+        raise InvalidReaction,
+              I18n.t("where_is_my_friends.dynamics.reaction_rate_limit")
+      end
+
+      event_name =
+        if reaction.persisted?
+          "dynamic_reaction_changed"
+        else
+          "dynamic_reaction_added"
+        end
+      WhereIsMyFriendsDynamicReaction.transaction do
+        reaction.update!(kind: reaction_kind)
+        sync_reaction_notification!(reaction, topic)
+      end
+      record_reaction_event(event_name)
+
+      { reaction: reaction.kind }
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique
+      raise InvalidReaction,
+            I18n.t("where_is_my_friends.dynamics.invalid_reaction")
+    end
+
+    def unreact(topic_id:)
+      topic = reactionable_topic(topic_id)
+      reaction =
+        WhereIsMyFriendsDynamicReaction.find_by(topic: topic, user: @viewer)
+      return { reaction: nil } unless reaction
+
+      WhereIsMyFriendsDynamicReaction.transaction do
+        reaction.notification&.destroy!
+        reaction.destroy!
+      end
+      record_reaction_event("dynamic_reaction_removed")
+
+      { reaction: nil }
     end
 
     def self.dynamic?(topic)
@@ -194,6 +262,61 @@ module WhereIsMyFriends
     end
 
     private
+
+    def discovery_page_size(limit)
+      requested = limit.to_i
+      return DISCOVERY_PAGE_SIZE unless requested.positive?
+
+      requested.clamp(1, DISCOVERY_PAGE_SIZE)
+    end
+
+    def reactionable_topic(topic_id)
+      topic = visible_topics.find_by(id: topic_id.to_i)
+      raise Discourse::NotFound unless topic
+      raise Discourse::NotFound if topic.user_id == @viewer.id
+      raise Discourse::NotFound if @viewer.silenced?
+      if UserTagVisibility.blocked_relationship?(@viewer, topic.user)
+        raise Discourse::NotFound
+      end
+
+      topic
+    end
+
+    def sync_reaction_notification!(reaction, topic)
+      data = {
+        title: "where_is_my_friends.dynamics.reaction_notification_title",
+        message:
+          "where_is_my_friends.dynamics.reaction_notifications.#{reaction.kind}",
+        display_username: @viewer.username,
+        username: @viewer.username,
+        user_id: @viewer.id,
+        user_avatar_template: @viewer.avatar_template,
+        topic_title: topic.title,
+        action_url: "/t/#{topic.slug}/#{topic.id}",
+        dynamic_reaction_id: reaction.id
+      }.to_json
+
+      notification = reaction.notification
+      if notification
+        notification.update!(data: data)
+      else
+        notification =
+          Notification.new(
+            user: topic.user,
+            topic: topic,
+            post_number: 1,
+            notification_type: Notification.types[:custom],
+            data: data
+          )
+        notification.skip_send_email = true
+        notification.save!
+        reaction.update_column(:notification_id, notification.id)
+      end
+    end
+
+    def record_reaction_event(event_name)
+      WhereIsMyFriendsEvent.create!(user: @viewer, event_name: event_name)
+    end
 
     def ensure_available!
       raise Discourse::NotFound unless SiteSetting.where_is_my_friends_enabled
@@ -290,7 +413,58 @@ module WhereIsMyFriends
       )
     end
 
-    def serialize(topic)
+    def serialize_many(topics)
+      topics = topics.to_a
+      return [] if topics.empty?
+
+      topic_ids = topics.map(&:id)
+      reactions =
+        WhereIsMyFriendsDynamicReaction
+          .where(topic_id: topic_ids, user_id: @viewer.id)
+          .pluck(:topic_id, :kind)
+          .to_h
+      blocked_author_ids = blocked_author_ids_for(topics)
+
+      topics.map do |topic|
+        can_react =
+          topic.user_id != @viewer.id && !@viewer.silenced? &&
+            !blocked_author_ids.include?(topic.user_id)
+        serialize(
+          topic,
+          can_react: can_react,
+          reaction_kind: can_react ? reactions[topic.id] : nil
+        )
+      end
+    end
+
+    def blocked_author_ids_for(topics)
+      author_ids = topics.map(&:user_id).uniq - [@viewer.id]
+      return Set.new if author_ids.empty?
+
+      muted =
+        MutedUser.where(user_id: @viewer.id, muted_user_id: author_ids).pluck(
+          :muted_user_id
+        )
+      muted.concat(
+        MutedUser.where(user_id: author_ids, muted_user_id: @viewer.id).pluck(
+          :user_id
+        )
+      )
+      ignored =
+        IgnoredUser
+          .where(user_id: @viewer.id, ignored_user_id: author_ids)
+          .where("expiring_at > ?", Time.current)
+          .pluck(:ignored_user_id)
+      ignored.concat(
+        IgnoredUser
+          .where(user_id: author_ids, ignored_user_id: @viewer.id)
+          .where("expiring_at > ?", Time.current)
+          .pluck(:user_id)
+      )
+      (muted + ignored).to_set
+    end
+
+    def serialize(topic, can_react:, reaction_kind:)
       post = topic.first_post
       author = {
         id: topic.user.id,
@@ -308,7 +482,9 @@ module WhereIsMyFriends
         cooked: post.cooked,
         excerpt: post.excerpt(160),
         created_at: topic.created_at,
-        reply_count: topic.reply_count.to_i
+        reply_count: topic.reply_count.to_i,
+        can_react: can_react,
+        reaction: reaction_kind
       }
     end
   end

@@ -33,6 +33,12 @@ RSpec.describe WhereIsMyFriendsEvent do
       local_callout_dismissed
       local_callout_location_saved
       personalization_disabled
+      dynamics_profile_viewed
+      recent_dynamics_viewed
+      dynamic_opened
+      dynamic_reaction_added
+      dynamic_reaction_changed
+      dynamic_reaction_removed
       first_connection_card_viewed
       first_connection_card_dismissed
       first_connection_onboarding_opened

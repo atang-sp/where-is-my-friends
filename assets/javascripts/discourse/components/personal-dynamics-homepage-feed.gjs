@@ -8,14 +8,13 @@ import { i18n } from "discourse-i18n";
 import PersonalDynamicsCard from "discourse/plugins/where-is-my-friends/discourse/components/personal-dynamics-card";
 import { createClientTelemetry } from "discourse/plugins/where-is-my-friends/discourse/lib/client-telemetry";
 
+const HOMEPAGE_DYNAMIC_LIMIT = 2;
+
 export default class PersonalDynamicsHomepageFeed extends Component {
   @service currentUser;
 
   @tracked dynamics = [];
-  @tracked hasMore = false;
-  @tracked beforeId = null;
   @tracked loading = true;
-  @tracked loadingMore = false;
   @tracked error = null;
   viewRecorded = false;
   telemetry = createClientTelemetry({
@@ -33,17 +32,6 @@ export default class PersonalDynamicsHomepageFeed extends Component {
   }
 
   @action
-  async loadMore() {
-    if (this.loadingMore || !this.hasMore) {
-      return;
-    }
-
-    this.loadingMore = true;
-    await this.load(this.beforeId, true);
-    this.loadingMore = false;
-  }
-
-  @action
   trackOpen() {
     void this.telemetry.record("dynamic_opened");
   }
@@ -53,31 +41,22 @@ export default class PersonalDynamicsHomepageFeed extends Component {
     await this.load();
   }
 
-  async load(beforeId = null, append = false) {
-    if (!append) {
-      this.loading = true;
-    }
+  async load() {
+    this.loading = true;
     this.error = null;
     try {
-      const data = beforeId ? { before_id: beforeId } : undefined;
       const result = await ajax("/where-is-my-friends/dynamics/feed.json", {
-        data,
+        data: { limit: HOMEPAGE_DYNAMIC_LIMIT },
       });
-      this.dynamics = append
-        ? [...this.dynamics, ...(result.dynamics ?? [])]
-        : (result.dynamics ?? []);
-      this.hasMore = Boolean(result.has_more);
-      this.beforeId = result.before_id;
-      if (!append && !this.viewRecorded) {
+      this.dynamics = (result.dynamics ?? []).slice(0, HOMEPAGE_DYNAMIC_LIMIT);
+      if (!this.viewRecorded) {
         this.viewRecorded = true;
         void this.telemetry.record("recent_dynamics_viewed");
       }
     } catch {
       this.error = i18n("where_is_my_friends.dynamics.feed_load_error");
     } finally {
-      if (!append) {
-        this.loading = false;
-      }
+      this.loading = false;
     }
   }
 
@@ -133,15 +112,6 @@ export default class PersonalDynamicsHomepageFeed extends Component {
             />
           {{/each}}
         </div>
-        {{#if this.hasMore}}
-          <DButton
-            @action={{this.loadMore}}
-            @label="where_is_my_friends.dynamics.load_more_feed"
-            @disabled={{this.loadingMore}}
-            class="btn-default personal-dynamics-homepage__load-more"
-            data-test-personal-dynamics-homepage-load-more
-          />
-        {{/if}}
       {{else}}
         <div class="personal-dynamics-homepage__state">
           <span>{{i18n "where_is_my_friends.dynamics.feed_empty"}}</span>

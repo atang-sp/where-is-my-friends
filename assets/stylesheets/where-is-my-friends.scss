@@ -545,6 +545,35 @@
     -webkit-line-clamp: 5;
   }
 
+  &__reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  &__reaction {
+    margin: 0;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--primary-low);
+    border-radius: 999px;
+    color: var(--primary-high);
+    font-size: var(--font-down-1);
+
+    &.is-active {
+      border-color: var(--tertiary-medium);
+      background: var(--tertiary-low);
+      color: var(--tertiary-high);
+      font-weight: 650;
+    }
+  }
+
+  &__reaction-error {
+    margin: 0.5rem 0 0;
+    color: var(--danger);
+    font-size: var(--font-down-1);
+  }
+
   &__meta {
     justify-content: flex-start;
     margin-top: 0.75rem;

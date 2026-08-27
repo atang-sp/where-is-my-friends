@@ -14,6 +14,8 @@ WhereIsMyFriends::Engine.routes.draw do
   get "/dynamics/feed" => "dynamics#feed"
   get "/dynamics/recent" => "dynamics#recent"
   post "/dynamics" => "dynamics#create"
+  post "/dynamics/:topic_id/reaction" => "dynamics#react"
+  delete "/dynamics/:topic_id/reaction" => "dynamics#unreact"
   put "/recommendations/profile" => "recommendations#update_profile"
   delete "/recommendations/profile" => "recommendations#destroy_profile"
   post "/recommendations/skip" => "recommendations#skip"

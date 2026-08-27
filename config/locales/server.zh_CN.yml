@@ -14,6 +14,14 @@ zh_CN:
       unavailable: "个人动态当前不可用"
       invalid_length: "动态需包含 8 至 500 个可见字符"
       media_not_allowed: "个人动态暂不支持图片、音视频或附件"
+      invalid_reaction: "当前无法发送这个轻回应"
+      reaction_rate_limit: "你今天发送的轻回应过多，请稍后再试"
+      reaction_notification_title: "你的动态收到了一条轻回应"
+      reaction_notifications:
+        relate: "对你的动态表示了同感"
+        curious: "想进一步了解你的动态"
+        open_to_chat: "表示愿意聊聊你的动态"
+        support: "支持了你的动态"
     licensed_import:
       title_prefix: "[英文精选·译文]"
       deleted_source_user: "已删除用户"

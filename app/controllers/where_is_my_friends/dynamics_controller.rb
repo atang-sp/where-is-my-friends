@@ -25,7 +25,11 @@ module WhereIsMyFriends
       unless SiteSetting.where_is_my_friends_dynamics_feed_enabled
         raise Discourse::NotFound
       end
-      render json: dynamic_feed.discover(before_id: params[:before_id])
+      render json:
+               dynamic_feed.discover(
+                 before_id: params[:before_id],
+                 limit: params[:limit]
+               )
     end
 
     def create
@@ -33,6 +37,21 @@ module WhereIsMyFriends
       render json: result, status: result[:queued] ? 202 : 200
     rescue DynamicFeed::InvalidContent => error
       render_json_error(error.message, status: 422)
+    end
+
+    def react
+      render json:
+               dynamic_feed.react(
+                 topic_id: params.require(:topic_id),
+                 kind: params.require(:kind)
+               )
+    rescue DynamicFeed::InvalidReaction => error
+      render_json_error(error.message, status: 422)
+    end
+
+    def unreact
+      render json:
+               dynamic_feed.unreact(topic_id: params.require(:topic_id))
     end
 
     private

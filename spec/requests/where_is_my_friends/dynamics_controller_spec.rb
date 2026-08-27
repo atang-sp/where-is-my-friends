@@ -520,6 +520,131 @@ RSpec.describe WhereIsMyFriends::DynamicsController do
     )
   end
 
+  it "supports a two-item homepage preview without shrinking the browse feed" do
+    members = Group.find(Group::AUTO_GROUPS[:trust_level_0])
+    category = Fabricate(:private_category, group: members)
+    SiteSetting.where_is_my_friends_dynamics_category_id = category.id
+    SiteSetting.default_categories_muted = category.id.to_s
+    authors = Array.new(4) { Fabricate(:user, refresh_auto_groups: true) }
+    authors.each_with_index do |author, index|
+      create_dynamic.call(
+        category: category,
+        author: author,
+        raw: "首页两条预览中的第 #{index + 1} 位作者",
+        created_at: (index + 1).minutes.ago
+      )
+    end
+
+    get "/where-is-my-friends/dynamics/feed.json", params: { limit: 2 }
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body.fetch("dynamics").length).to eq(2)
+    expect(response.parsed_body.fetch("has_more")).to eq(true)
+
+    get "/where-is-my-friends/dynamics/feed.json"
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body.fetch("dynamics").length).to eq(4)
+    expect(response.parsed_body.fetch("has_more")).to eq(false)
+  end
+
+  it "creates, changes, and removes a private lightweight reaction" do
+    members = Group.find(Group::AUTO_GROUPS[:trust_level_0])
+    category = Fabricate(:private_category, group: members)
+    SiteSetting.where_is_my_friends_dynamics_category_id = category.id
+    SiteSetting.default_categories_muted = category.id.to_s
+    author = Fabricate(:user, refresh_auto_groups: true)
+    dynamic =
+      create_dynamic.call(
+        category: category,
+        author: author,
+        raw: "这条动态用于验证轻回应不会形成公开热度。"
+      )
+
+    post "/where-is-my-friends/dynamics/#{dynamic.id}/reaction.json",
+         params: {
+           kind: "curious"
+         }
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body).to eq("reaction" => "curious")
+    reaction = WhereIsMyFriendsDynamicReaction.find_by!(topic: dynamic, user: user)
+    notification = reaction.notification
+    expect(notification.user_id).to eq(author.id)
+    expect(notification.topic_id).to eq(dynamic.id)
+    expect(notification.post_number).to eq(1)
+    expect(JSON.parse(notification.data)).to include(
+      "message" =>
+        "where_is_my_friends.dynamics.reaction_notifications.curious",
+      "action_url" => "/t/#{dynamic.slug}/#{dynamic.id}",
+      "user_id" => user.id
+    )
+
+    get "/where-is-my-friends/dynamics/feed.json"
+    item = response.parsed_body.fetch("dynamics").sole
+    expect(item).to include("can_react" => true, "reaction" => "curious")
+    expect(item.keys).not_to include("reaction_count", "reactions")
+
+    expect {
+      post "/where-is-my-friends/dynamics/#{dynamic.id}/reaction.json",
+           params: {
+             kind: "support"
+           }
+    }.not_to change { Notification.count }
+    expect(response.status).to eq(200)
+    expect(reaction.reload.kind).to eq("support")
+    expect(JSON.parse(notification.reload.data).fetch("message")).to eq(
+      "where_is_my_friends.dynamics.reaction_notifications.support"
+    )
+
+    delete "/where-is-my-friends/dynamics/#{dynamic.id}/reaction.json"
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body).to eq("reaction" => nil)
+    expect(WhereIsMyFriendsDynamicReaction.exists?(reaction.id)).to eq(false)
+    expect(Notification.exists?(notification.id)).to eq(false)
+    expect(
+      WhereIsMyFriendsEvent.where(user: user).pluck(:event_name)
+    ).to include(
+      "dynamic_reaction_added",
+      "dynamic_reaction_changed",
+      "dynamic_reaction_removed"
+    )
+  end
+
+  it "rejects reactions to an invalid kind or the viewer's own dynamic" do
+    members = Group.find(Group::AUTO_GROUPS[:trust_level_0])
+    category = Fabricate(:private_category, group: members)
+    SiteSetting.where_is_my_friends_dynamics_category_id = category.id
+    SiteSetting.default_categories_muted = category.id.to_s
+    author = Fabricate(:user, refresh_auto_groups: true)
+    other_dynamic =
+      create_dynamic.call(
+        category: category,
+        author: author,
+        raw: "用于验证无效轻回应不会被保存。"
+      )
+    own_dynamic =
+      create_dynamic.call(
+        category: category,
+        author: user,
+        raw: "不能回应自己发布的这条动态。"
+      )
+
+    post "/where-is-my-friends/dynamics/#{other_dynamic.id}/reaction.json",
+         params: {
+           kind: "like"
+         }
+    expect(response.status).to eq(422)
+
+    post "/where-is-my-friends/dynamics/#{own_dynamic.id}/reaction.json",
+         params: {
+           kind: "support"
+         }
+    expect(response.status).to eq(404)
+    expect(WhereIsMyFriendsDynamicReaction.count).to eq(0)
+  end
+
   it "fails closed when the homepage dynamics feed is disabled" do
     members = Group.find(Group::AUTO_GROUPS[:trust_level_0])
     category = Fabricate(:private_category, group: members)

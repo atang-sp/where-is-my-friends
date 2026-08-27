@@ -6,11 +6,17 @@ const ACTION_MESSAGES = new Set([
   "practice_matching.notification.mutual_match",
 ]);
 
+const DYNAMIC_REACTION_MESSAGE_PREFIX =
+  "where_is_my_friends.dynamics.reaction_notifications.";
+
 export default function customActionNotificationRenderer(NotificationTypeBase) {
   return class extends NotificationTypeBase {
     get linkHref() {
       if (
-        ACTION_MESSAGES.has(this.notification.data.message) &&
+        (ACTION_MESSAGES.has(this.notification.data.message) ||
+          this.notification.data.message?.startsWith(
+            DYNAMIC_REACTION_MESSAGE_PREFIX
+          )) &&
         this.notification.data.action_url
       ) {
         return this.notification.data.action_url;
