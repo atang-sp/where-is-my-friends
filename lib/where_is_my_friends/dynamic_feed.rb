@@ -121,7 +121,7 @@ module WhereIsMyFriends
     def react(topic_id:, kind:)
       topic = reactionable_topic(topic_id)
       reaction_kind = kind.to_s
-      unless WhereIsMyFriendsDynamicReaction::KINDS.include?(reaction_kind)
+      if WhereIsMyFriendsDynamicReaction::KINDS.exclude?(reaction_kind)
         raise InvalidReaction,
               I18n.t("where_is_my_friends.dynamics.invalid_reaction")
       end
