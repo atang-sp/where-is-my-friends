@@ -40,6 +40,9 @@ class WhereIsMyFriendsEvent < ActiveRecord::Base
     dynamics_profile_viewed
     recent_dynamics_viewed
     dynamic_opened
+    dynamic_reaction_added
+    dynamic_reaction_changed
+    dynamic_reaction_removed
     recommended_user_dynamic_opened
     first_connection_card_viewed
     first_connection_card_dismissed

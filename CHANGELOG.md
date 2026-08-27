@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.24.0 — 2026-08-27
+
+- Keep the homepage dynamics preview to two author-diverse updates and route
+  deeper browsing through the dedicated dynamics page instead of appending
+  cards indefinitely on the homepage.
+- Add four retractable lightweight responses to dynamics. Each member can keep
+  one private response state per dynamic; authors receive an in-app
+  notification, while response identities and totals remain absent from feeds
+  and never affect ranking.
+
 ## 1.23.1 — 2026-08-12
 
 - Add the impression-tag propose/endorse chips to the interest-recommendation

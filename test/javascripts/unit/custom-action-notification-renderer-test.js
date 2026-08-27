@@ -26,6 +26,17 @@ module("Unit | Local Friends custom action notification renderer", function () {
     assert.strictEqual(renderer.linkHref, "/where-is-my-friends/interests");
   });
 
+  test("opens a dynamic for lightweight response notifications", function (assert) {
+    const renderer = new Renderer({
+      data: {
+        message: "where_is_my_friends.dynamics.reaction_notifications.curious",
+        action_url: "/t/a-dynamic/42",
+      },
+    });
+
+    assert.strictEqual(renderer.linkHref, "/t/a-dynamic/42");
+  });
+
   test("keeps the legacy matching action URL during the overlap release", function (assert) {
     const renderer = new Renderer({
       data: {

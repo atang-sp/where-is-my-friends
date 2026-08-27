@@ -12,6 +12,8 @@ function dynamic(id, text = `Dynamic ${id}`) {
     excerpt: text,
     created_at: "2026-08-03T12:00:00.000Z",
     reply_count: 0,
+    can_react: true,
+    reaction: null,
     author: {
       id: 1,
       username: "current-user",
@@ -41,6 +43,7 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
       feedRequests: [],
       homepageFeedRequests: [],
       publishRequests: [],
+      reactionRequests: [],
       events: [],
       publishError: null,
     });
@@ -79,11 +82,39 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
     server.get("/where-is-my-friends/dynamics/feed.json", (request) => {
       api.homepageFeedRequests.push(request.queryParams);
       return helper.response({
-        dynamics: [dynamic(4, "A member shared a small win")],
+        dynamics: [
+          dynamic(4, "A member shared a small win"),
+          dynamic(5, "A second member shared an update"),
+          dynamic(6, "This third update belongs on the browse page"),
+        ],
         has_more: false,
         before_id: null,
       });
     });
+
+    server.post(
+      "/where-is-my-friends/dynamics/:topicId/reaction.json",
+      (request) => {
+        const params = new URLSearchParams(request.requestBody);
+        api.reactionRequests.push({
+          type: "POST",
+          topicId: request.params.topicId,
+          kind: params.get("kind"),
+        });
+        return helper.response({ reaction: params.get("kind") });
+      }
+    );
+
+    server.delete(
+      "/where-is-my-friends/dynamics/:topicId/reaction.json",
+      (request) => {
+        api.reactionRequests.push({
+          type: "DELETE",
+          topicId: request.params.topicId,
+        });
+        return helper.response({ reaction: null });
+      }
+    );
 
     server.post("/where-is-my-friends/dynamics.json", (request) => {
       const params = new URLSearchParams(request.requestBody);
@@ -228,11 +259,42 @@ acceptance("Where Is My Friends | personal dynamics", function (needs) {
       .dom(
         "[data-test-personal-dynamics-homepage] [data-test-personal-dynamic]"
       )
-      .exists({ count: 1 });
+      .exists({ count: 2 });
     assert.strictEqual(api.homepageFeedRequests.length, 1);
+    assert.strictEqual(api.homepageFeedRequests[0].limit, "2");
     assert
       .dom("[data-test-personal-dynamics-browse]")
       .hasAttribute("href", "/where-is-my-friends/dynamics");
+    assert
+      .dom("[data-test-personal-dynamics-homepage-load-more]")
+      .doesNotExist();
+  });
+
+  test("a lightweight response can be selected and removed without a public count", async function (assert) {
+    await visit("/latest");
+    const selector =
+      "[data-test-personal-dynamic='4'] [data-test-dynamic-reaction='curious']";
+
+    assert.dom(selector).hasAttribute("aria-pressed", "false");
+    await click(selector);
+
+    assert.deepEqual(api.reactionRequests[0], {
+      type: "POST",
+      topicId: "4",
+      kind: "curious",
+    });
+    assert.dom(selector).hasAttribute("aria-pressed", "true");
+    assert
+      .dom("[data-test-personal-dynamic='4'] [data-test-reaction-count]")
+      .doesNotExist();
+
+    await click(selector);
+
+    assert.deepEqual(api.reactionRequests[1], {
+      type: "DELETE",
+      topicId: "4",
+    });
+    assert.dom(selector).hasAttribute("aria-pressed", "false");
   });
 
   test("the browse page exposes other members' dynamics with pagination", async function (assert) {

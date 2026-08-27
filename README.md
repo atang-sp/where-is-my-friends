@@ -149,7 +149,9 @@ OpenStreetMap 无需密钥，是默认回退。高德和百度 key 是公开的�
 | `GET` | `/where-is-my-friends/dynamics.json?username=...&before_id=...` | 读取某成员的动态，每页 20 条并显式返回较早分页游标 |
 | `POST` | `/where-is-my-friends/dynamics.json` | 当前用户通过正常 Discourse 发帖/审核链路创建纯文字动态；只接受 `raw` |
 | `GET` | `/where-is-my-friends/dynamics/recent.json` | 首页第四栏读取最近 30 天、作者去重、最多 3 条动态 |
-| `GET` | `/where-is-my-friends/dynamics/feed.json?before_id=...` | 首页推荐流和“查看全部动态”页读取其他成员最近 30 天动态；每页 10 条、作者去重并支持较早分页 |
+| `GET` | `/where-is-my-friends/dynamics/feed.json?before_id=...&limit=...` | 首页推荐流固定请求 2 条；“查看全部动态”页默认每页 10 条，作者去重并支持较早分页 |
+| `POST` | `/where-is-my-friends/dynamics/:topic_id/reaction.json` | 对可见的他人动态发送或切换一种无公开计数的轻回应 |
+| `DELETE` | `/where-is-my-friends/dynamics/:topic_id/reaction.json` | 撤回当前用户对该动态的轻回应 |
 | `PUT` | `/where-is-my-friends/recommendations/profile.json` | 保存兴趣、目的与隐私选项 |
 | `DELETE` | `/where-is-my-friends/recommendations/profile.json` | 关闭并清空个性化数据 |
 | `POST` | `/where-is-my-friends/recommendations/skip.json` | 跳过一次性引导 |
