@@ -107,7 +107,7 @@ export default class PersonalDynamicsCard extends Component {
               "btn-flat personal-dynamics__reaction is-active"
               "btn-flat personal-dynamics__reaction"
             }}
-            aria-pressed={{this.relateSelected}}
+            aria-pressed={{if this.relateSelected "true" "false"}}
             data-test-dynamic-reaction="relate"
           />
           <DButton
@@ -119,7 +119,7 @@ export default class PersonalDynamicsCard extends Component {
               "btn-flat personal-dynamics__reaction is-active"
               "btn-flat personal-dynamics__reaction"
             }}
-            aria-pressed={{this.curiousSelected}}
+            aria-pressed={{if this.curiousSelected "true" "false"}}
             data-test-dynamic-reaction="curious"
           />
           <DButton
@@ -131,7 +131,7 @@ export default class PersonalDynamicsCard extends Component {
               "btn-flat personal-dynamics__reaction is-active"
               "btn-flat personal-dynamics__reaction"
             }}
-            aria-pressed={{this.openToChatSelected}}
+            aria-pressed={{if this.openToChatSelected "true" "false"}}
             data-test-dynamic-reaction="open_to_chat"
           />
           <DButton
@@ -143,7 +143,7 @@ export default class PersonalDynamicsCard extends Component {
               "btn-flat personal-dynamics__reaction is-active"
               "btn-flat personal-dynamics__reaction"
             }}
-            aria-pressed={{this.supportSelected}}
+            aria-pressed={{if this.supportSelected "true" "false"}}
             data-test-dynamic-reaction="support"
           />
         </div>
