@@ -142,7 +142,8 @@ export default class UserTagProposeDialog extends Component {
                   {{#each group.tags as |tag|}}
                     <button
                       type="button"
-                      class="btn btn-default btn-small where-is-my-friends__preset-chip {{if (eq this.label tag) 'is-selected'}}"
+                      class="btn btn-default btn-small where-is-my-friends__preset-chip
+                        {{if (eq this.label tag) 'is-selected'}}"
                       data-test-user-tag-preset-chip={{tag}}
                       {{on "click" (fn this.selectPreset tag)}}
                     >

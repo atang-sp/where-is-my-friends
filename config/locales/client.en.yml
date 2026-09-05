@@ -353,7 +353,7 @@ en:
         note: "Note (optional, 500 characters maximum)"
         preset_message: "Invite @%{username} to a one-to-one practice session about %{interest}."
         safety_section_title: "Practice Safety & Boundaries Protocol"
-        safety_section_desc: "Select the safety principles you commit to upholding for this session (will be included in the private message upon acceptance):"
+        safety_section_desc: "Select the safety principles you commit to upholding for this session (will be included in the personal message upon acceptance):"
         safety_badges_title: "Sender's Safety Commitments:"
         safety_items:
           ssc_consensus: "Abide by SSC (Safe, Sane, Consensual) principles, strictly respecting boundaries"

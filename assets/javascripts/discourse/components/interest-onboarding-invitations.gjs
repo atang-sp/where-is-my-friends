@@ -9,19 +9,23 @@ import { i18n } from "discourse-i18n";
 const SAFETY_OPTIONS = Object.freeze([
   {
     key: "ssc_consensus",
-    labelKey: "where_is_my_friends.practice_invitations.safety_items.ssc_consensus",
+    labelKey:
+      "where_is_my_friends.practice_invitations.safety_items.ssc_consensus",
   },
   {
     key: "pure_practice",
-    labelKey: "where_is_my_friends.practice_invitations.safety_items.pure_practice",
+    labelKey:
+      "where_is_my_friends.practice_invitations.safety_items.pure_practice",
   },
   {
     key: "safeword_mechanism",
-    labelKey: "where_is_my_friends.practice_invitations.safety_items.safeword_mechanism",
+    labelKey:
+      "where_is_my_friends.practice_invitations.safety_items.safeword_mechanism",
   },
   {
     key: "body_safety",
-    labelKey: "where_is_my_friends.practice_invitations.safety_items.body_safety",
+    labelKey:
+      "where_is_my_friends.practice_invitations.safety_items.body_safety",
   },
   {
     key: "aftercare",
@@ -29,7 +33,8 @@ const SAFETY_OPTIONS = Object.freeze([
   },
   {
     key: "public_first_meet",
-    labelKey: "where_is_my_friends.practice_invitations.safety_items.public_first_meet",
+    labelKey:
+      "where_is_my_friends.practice_invitations.safety_items.public_first_meet",
   },
 ]);
 
@@ -261,7 +266,8 @@ export default class InterestOnboardingInvitations extends Component {
                         class="interest-onboarding__safety-badge"
                         data-test-safety-badge={{itemKey}}
                       >
-                        🛡️ {{i18n
+                        🛡️
+                        {{i18n
                           (concat
                             "where_is_my_friends.practice_invitations.safety_items_short."
                             itemKey
