@@ -3,7 +3,7 @@
 RSpec.describe WhereIsMyFriendsPracticeInvitation do
   fab!(:sender, :user)
   fab!(:recipient, :user)
-  fab!(:tag) { Fabricate(:tag) }
+  fab!(:tag)
 
   def build_invitation(overrides = {})
     described_class.new(

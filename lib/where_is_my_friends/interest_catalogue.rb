@@ -179,6 +179,8 @@ module WhereIsMyFriends
           end
           .reject { |candidate| selected_names.include?(candidate[:name]) }
           .uniq { |candidate| candidate[:name] }
+      end
+
       def pair_score(viewer_name, candidate_name)
         viewer_entries = entries_for_name(viewer_name)
         candidate_entries = entries_for_name(candidate_name)
