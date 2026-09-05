@@ -184,18 +184,20 @@ module WhereIsMyFriends
       def pair_score(viewer_name, candidate_name)
         viewer_entries = entries_for_name(viewer_name)
         candidate_entries = entries_for_name(candidate_name)
-        return 0 if viewer_entries.empty? || candidate_entries.empty?
 
-        viewer_keys = viewer_entries.map { |entry| entry.fetch("key") }
-        candidate_keys = candidate_entries.map { |entry| entry.fetch("key") }
+        if viewer_entries.present? && candidate_entries.present?
+          viewer_keys = viewer_entries.map { |entry| entry.fetch("key") }
+          candidate_keys = candidate_entries.map { |entry| entry.fetch("key") }
 
-        viewer_role = (viewer_keys & ROLE_KEYS).first
-        candidate_role = (candidate_keys & ROLE_KEYS).first
-        if viewer_role && candidate_role
-          return ROLE_COMPLEMENT_SCORES.dig(viewer_role, candidate_role) || 0
+          viewer_role = (viewer_keys & ROLE_KEYS).first
+          candidate_role = (candidate_keys & ROLE_KEYS).first
+          if viewer_role && candidate_role
+            return ROLE_COMPLEMENT_SCORES.dig(viewer_role, candidate_role) || 0
+          end
         end
 
         return 6 if viewer_name == candidate_name
+        return 0 if viewer_entries.empty? || candidate_entries.empty?
         return 5 if (viewer_keys & candidate_keys).present?
 
         related_keys =
