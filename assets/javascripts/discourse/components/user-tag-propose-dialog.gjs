@@ -1,16 +1,37 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
-import { not } from "discourse/truth-helpers";
+import { eq, not } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import DModal from "discourse/ui-kit/d-modal";
 import { i18n } from "discourse-i18n";
 
+const PRESET_GROUPS = Object.freeze([
+  {
+    key: "practice",
+    titleKey: "where_is_my_friends.user_tags.preset_groups.practice",
+    tags: ["手法温和", "严格守信", "注重沟通", "Aftercare细致", "情绪稳定"],
+  },
+  {
+    key: "personality",
+    titleKey: "where_is_my_friends.user_tags.preset_groups.personality",
+    tags: ["温柔体贴", "谈吐文雅", "靠谱真诚", "幽默风趣", "善于倾听"],
+  },
+  {
+    key: "community",
+    titleKey: "where_is_my_friends.user_tags.preset_groups.community",
+    tags: ["小说大触", "棋力高超", "干货满满", "理论扎实", "安全意识高"],
+  },
+]);
+
 export default class UserTagProposeDialog extends Component {
   @service siteSettings;
+
+  presetGroups = PRESET_GROUPS;
 
   @tracked label = "";
   @tracked submitting = false;
@@ -30,6 +51,15 @@ export default class UserTagProposeDialog extends Component {
       count: this.label.length,
       max: this.maxLength,
     });
+  }
+
+  @action
+  selectPreset(tag) {
+    if (this.label.trim() === tag) {
+      this.label = "";
+    } else {
+      this.label = tag;
+    }
   }
 
   @action
@@ -95,6 +125,36 @@ export default class UserTagProposeDialog extends Component {
         <span class="where-is-my-friends__user-tag-count">
           {{this.characterCountLabel}}
         </span>
+        <div
+          class="where-is-my-friends__user-tag-presets"
+          data-test-user-tag-presets
+        >
+          <span class="where-is-my-friends__user-tag-presets-title">
+            {{i18n "where_is_my_friends.user_tags.preset_title"}}
+          </span>
+          <div class="where-is-my-friends__user-tag-preset-groups">
+            {{#each this.presetGroups as |group|}}
+              <div class="where-is-my-friends__user-tag-preset-group">
+                <span class="where-is-my-friends__user-tag-preset-group-title">
+                  {{i18n group.titleKey}}
+                </span>
+                <div class="where-is-my-friends__user-tag-preset-chips">
+                  {{#each group.tags as |tag|}}
+                    <button
+                      type="button"
+                      class="btn btn-default btn-small where-is-my-friends__preset-chip
+                        {{if (eq this.label tag) 'is-selected'}}"
+                      data-test-user-tag-preset-chip={{tag}}
+                      {{on "click" (fn this.selectPreset tag)}}
+                    >
+                      {{tag}}
+                    </button>
+                  {{/each}}
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        </div>
         {{#if this.error}}
           <p
             class="alert alert-error"

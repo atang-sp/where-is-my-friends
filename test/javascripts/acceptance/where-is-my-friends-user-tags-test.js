@@ -60,6 +60,11 @@ acceptance("Where Is My Friends | impression tags", function (needs) {
     endorsements: [],
   };
 
+  needs.hooks.beforeEach(() => {
+    api.proposals = [];
+    api.endorsements = [];
+  });
+
   needs.pretender((server, helper) => {
     server.get("/where-is-my-friends.json", () =>
       helper.response(locationResponse())
@@ -147,6 +152,19 @@ acceptance("Where Is My Friends | impression tags", function (needs) {
     await fillIn("[data-test-user-tag-input]", "靠谱");
     await click("[data-test-user-tag-propose-submit]");
 
+    assert.strictEqual(api.proposals.length, 1);
+  });
+
+  test("proposes a tag by clicking a preset chip in the dialog", async function (assert) {
+    await visit("/where-is-my-friends");
+    await click('[data-test-user-tag-propose="friend"]');
+    assert.dom("[data-test-user-tag-presets]").exists();
+    assert.dom('[data-test-user-tag-preset-chip="手法温和"]').exists();
+
+    await click('[data-test-user-tag-preset-chip="手法温和"]');
+    assert.dom("[data-test-user-tag-input]").hasValue("手法温和");
+
+    await click("[data-test-user-tag-propose-submit]");
     assert.strictEqual(api.proposals.length, 1);
   });
 

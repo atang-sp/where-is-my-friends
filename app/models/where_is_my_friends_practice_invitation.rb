@@ -5,6 +5,15 @@ class WhereIsMyFriendsPracticeInvitation < ActiveRecord::Base
   SOURCES = %w[native legacy_reconfirmed].freeze
   MAX_NOTE_LENGTH = 500
 
+  VALID_SAFETY_ITEMS = %w[
+    ssc_consensus
+    pure_practice
+    safeword_mechanism
+    body_safety
+    aftercare
+    public_first_meet
+  ].freeze
+
   belongs_to :sender, class_name: "User"
   belongs_to :recipient, class_name: "User"
   belongs_to :tag, optional: true
@@ -17,6 +26,7 @@ class WhereIsMyFriendsPracticeInvitation < ActiveRecord::Base
   validates :interest_name, presence: true, length: { maximum: 255 }
   validates :note, length: { maximum: MAX_NOTE_LENGTH }, allow_blank: true
   validate :participants_must_be_distinct
+  validate :safety_items_must_be_valid
 
   scope :recent_first, -> { order(created_at: :desc, id: :desc) }
 
@@ -56,10 +66,44 @@ class WhereIsMyFriendsPracticeInvitation < ActiveRecord::Base
         locale: locale
       )
     end
+    if safety_items.present?
+      safety_lines = [
+        I18n.t(
+          "where_is_my_friends.practice_invitations.safety_agreement_header",
+          locale: locale
+        )
+      ]
+      safety_items.each do |item|
+        item_text =
+          I18n.t(
+            "where_is_my_friends.practice_invitations.safety_items.#{item}",
+            locale: locale,
+            default: item.to_s
+          )
+        safety_lines << "- ✅ #{item_text}"
+      end
+      tips =
+        I18n.t(
+          "where_is_my_friends.practice_invitations.safety_tips",
+          locale: locale,
+          default: ""
+        )
+      safety_lines << "\n> #{tips}" if tips.present?
+      lines << safety_lines.join("\n")
+    end
     lines.join("\n\n")
   end
 
   private
+
+  def safety_items_must_be_valid
+    return if safety_items.blank?
+
+    unless safety_items.is_a?(Array) &&
+             (safety_items - VALID_SAFETY_ITEMS).empty?
+      errors.add(:safety_items, :invalid)
+    end
+  end
 
   def snapshot_interest_name
     self.interest_name = tag.name if interest_name.blank? && tag
@@ -81,6 +125,7 @@ end
 #  note          :text
 #  proposed_at   :datetime
 #  responded_at  :datetime
+#  safety_items  :jsonb            not null
 #  source        :string           default("native"), not null
 #  status        :string           default("pending"), not null
 #  created_at    :datetime         not null

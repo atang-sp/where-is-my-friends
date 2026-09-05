@@ -95,6 +95,41 @@ RSpec.describe WhereIsMyFriends::PracticeInvitationsController do
     expect(response.status).to eq(404)
   end
 
+  it "saves recognized safety items and serializes them in responses" do
+    post "/where-is-my-friends/practice-invitations.json",
+         params: {
+           recipient_id: recipient.id,
+           tag_id: ruby_tag.id,
+           safety_items: %w[ssc_consensus pure_practice unrecognized_flag]
+         }
+
+    expect(response.status).to eq(200)
+    invitation = WhereIsMyFriendsPracticeInvitation.last
+    expect(invitation.safety_items).to contain_exactly(
+      "ssc_consensus",
+      "pure_practice"
+    )
+    expect(
+      response.parsed_body.dig("invitation", "safety_items")
+    ).to contain_exactly("ssc_consensus", "pure_practice")
+  end
+
+  it "embeds the structured safety agreement protocol into the accepted PM" do
+    invitation =
+      create_invitation(
+        safety_items: %w[ssc_consensus pure_practice safeword_mechanism]
+      )
+    sign_in(recipient)
+
+    put "/where-is-my-friends/practice-invitations/#{invitation.id}/accept.json"
+
+    expect(response.status).to eq(200)
+    topic = Topic.find(invitation.reload.pm_topic_id)
+    expect(topic.first_post.raw).to include("Practice Safety & Boundaries Protocol")
+    expect(topic.first_post.raw).to include("SSC")
+    expect(topic.first_post.raw).to include("Pure Exchange")
+  end
+
   it "rechecks communication blocks before accepting an invitation" do
     invitation = create_invitation
     MutedUser.create!(user: sender, muted_user: recipient)
@@ -285,12 +320,17 @@ RSpec.describe WhereIsMyFriends::PracticeInvitationsController do
     profile
   end
 
-  def create_invitation(sender: self.sender, recipient: self.recipient)
+  def create_invitation(
+    sender: self.sender,
+    recipient: self.recipient,
+    safety_items: []
+  )
     WhereIsMyFriendsPracticeInvitation.create!(
       sender: sender,
       recipient: recipient,
       tag: ruby_tag,
-      status: "pending"
+      status: "pending",
+      safety_items: safety_items
     )
   end
 

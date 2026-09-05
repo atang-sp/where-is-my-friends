@@ -3,6 +3,15 @@ import { action } from "@ember/object";
 import { ajax } from "discourse/lib/ajax";
 import { i18n } from "discourse-i18n";
 
+export const DEFAULT_SAFETY_ITEMS = Object.freeze([
+  "ssc_consensus",
+  "pure_practice",
+  "safeword_mechanism",
+  "body_safety",
+  "aftercare",
+  "public_first_meet",
+]);
+
 export default class InvitationInbox {
   @tracked success = null;
   @tracked incomingInvitations = [];
@@ -12,6 +21,7 @@ export default class InvitationInbox {
   @tracked invitationInterestId = null;
   @tracked invitationProposedAt = "";
   @tracked invitationNote = "";
+  @tracked invitationSafetyItems = [...DEFAULT_SAFETY_ITEMS];
   @tracked loading = false;
   @tracked error = null;
 
@@ -44,6 +54,7 @@ export default class InvitationInbox {
           interests: this.invitationInterests,
           proposedAt: this.invitationProposedAt,
           note: this.invitationNote,
+          safetyItems: this.invitationSafetyItems,
           preview: this.invitationPreview,
         },
         inbox: {
@@ -101,6 +112,7 @@ export default class InvitationInbox {
     this.invitationInterestId = interests[0].id;
     this.invitationProposedAt = "";
     this.invitationNote = "";
+    this.invitationSafetyItems = [...DEFAULT_SAFETY_ITEMS];
     this.success = null;
     this.error = null;
   }
@@ -111,6 +123,7 @@ export default class InvitationInbox {
     this.invitationInterestId = null;
     this.invitationProposedAt = "";
     this.invitationNote = "";
+    this.invitationSafetyItems = [...DEFAULT_SAFETY_ITEMS];
   }
 
   @action
@@ -123,6 +136,9 @@ export default class InvitationInbox {
     }
     if (Object.hasOwn(patch, "note")) {
       this.invitationNote = patch.note;
+    }
+    if (Object.hasOwn(patch, "safetyItems")) {
+      this.invitationSafetyItems = patch.safetyItems;
     }
   }
 
@@ -146,6 +162,7 @@ export default class InvitationInbox {
               ? new Date(this.invitationProposedAt).toISOString()
               : null,
             note: this.invitationNote,
+            safety_items: this.invitationSafetyItems,
           },
         }
       );

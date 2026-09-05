@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.25.0 — 2026-09-06
+
+- Add role-complementary matching scoring in InterestCatalogue: complementary
+  roles (active ↔ passive, active ↔ brat) score 6, switch roles score 5, while
+  identical active or passive roles are deprioritized to 1 point to prioritize
+  partner compatibility over peer discussion.
+- Add structured practice invitation safety and consent protocol: database
+  migration `safety_items :jsonb`, whitelist validation, accepted PM markdown
+  protocol formatting, and frontend checklist in composer and badges in
+  incoming inbox.
+- Add preset tag chips in UserTagProposeDialog: categorized by practice style,
+  personality, and community strengths for quick 1-click selection and reduced
+  friction.
+
 ## 1.24.0 — 2026-08-27
 
 - Keep the homepage dynamics preview to two author-diverse updates and route
