@@ -125,6 +125,7 @@ end
 #  note          :text
 #  proposed_at   :datetime
 #  responded_at  :datetime
+#  safety_items  :jsonb            not null
 #  source        :string           default("native"), not null
 #  status        :string           default("pending"), not null
 #  created_at    :datetime         not null

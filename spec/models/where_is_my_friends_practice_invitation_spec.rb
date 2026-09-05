@@ -3,7 +3,7 @@
 RSpec.describe WhereIsMyFriendsPracticeInvitation do
   fab!(:sender, :user)
   fab!(:recipient, :user)
-  fab!(:tag) { Fabricate(:tag, name: "戒尺") }
+  fab!(:tag) { Fabricate(:tag) }
 
   def build_invitation(overrides = {})
     described_class.new(
@@ -46,7 +46,7 @@ RSpec.describe WhereIsMyFriendsPracticeInvitation do
       )
 
     message = invitation.response_message(locale: :zh_CN)
-    expect(message).to include("戒尺")
+    expect(message).to include(tag.name)
     expect(message).to include("线上详细沟通")
     expect(message).to include("双方安全与实践共识")
     expect(message).to include("SSC")

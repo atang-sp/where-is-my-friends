@@ -60,6 +60,11 @@ acceptance("Where Is My Friends | impression tags", function (needs) {
     endorsements: [],
   };
 
+  needs.hooks.beforeEach(() => {
+    api.proposals = [];
+    api.endorsements = [];
+  });
+
   needs.pretender((server, helper) => {
     server.get("/where-is-my-friends.json", () =>
       helper.response(locationResponse())
@@ -160,7 +165,7 @@ acceptance("Where Is My Friends | impression tags", function (needs) {
     assert.dom("[data-test-user-tag-input]").hasValue("手法温和");
 
     await click("[data-test-user-tag-propose-submit]");
-    assert.strictEqual(api.proposals.length, 2);
+    assert.strictEqual(api.proposals.length, 1);
   });
 
   test("approves a pending tag from the inbox page", async function (assert) {

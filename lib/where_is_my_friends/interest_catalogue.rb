@@ -179,6 +179,28 @@ module WhereIsMyFriends
           end
           .reject { |candidate| selected_names.include?(candidate[:name]) }
           .uniq { |candidate| candidate[:name] }
+      def pair_score(viewer_name, candidate_name)
+        viewer_entries = entries_for_name(viewer_name)
+        candidate_entries = entries_for_name(candidate_name)
+        return 0 if viewer_entries.empty? || candidate_entries.empty?
+
+        viewer_keys = viewer_entries.map { |entry| entry.fetch("key") }
+        candidate_keys = candidate_entries.map { |entry| entry.fetch("key") }
+
+        viewer_role = (viewer_keys & ROLE_KEYS).first
+        candidate_role = (candidate_keys & ROLE_KEYS).first
+        if viewer_role && candidate_role
+          return ROLE_COMPLEMENT_SCORES.dig(viewer_role, candidate_role) || 0
+        end
+
+        return 6 if viewer_name == candidate_name
+        return 5 if (viewer_keys & candidate_keys).present?
+
+        related_keys =
+          viewer_entries.flat_map do |entry|
+            related_keys_for(entry.fetch("key"))
+          end
+        (related_keys & candidate_keys).present? ? 2 : 0
       end
 
       private
@@ -234,30 +256,6 @@ module WhereIsMyFriends
 
       def entries_by_key
         @entries_by_key ||= entries.index_by { |entry| entry.fetch("key") }
-      end
-
-      def pair_score(viewer_name, candidate_name)
-        viewer_entries = entries_for_name(viewer_name)
-        candidate_entries = entries_for_name(candidate_name)
-        return 0 if viewer_entries.empty? || candidate_entries.empty?
-
-        viewer_keys = viewer_entries.map { |entry| entry.fetch("key") }
-        candidate_keys = candidate_entries.map { |entry| entry.fetch("key") }
-
-        viewer_role = (viewer_keys & ROLE_KEYS).first
-        candidate_role = (candidate_keys & ROLE_KEYS).first
-        if viewer_role && candidate_role
-          return ROLE_COMPLEMENT_SCORES.dig(viewer_role, candidate_role) || 0
-        end
-
-        return 6 if viewer_name == candidate_name
-        return 5 if (viewer_keys & candidate_keys).present?
-
-        related_keys =
-          viewer_entries.flat_map do |entry|
-            related_keys_for(entry.fetch("key"))
-          end
-        (related_keys & candidate_keys).present? ? 2 : 0
       end
 
       def related_keys_for(key)
