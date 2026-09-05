@@ -150,6 +150,19 @@ acceptance("Where Is My Friends | impression tags", function (needs) {
     assert.strictEqual(api.proposals.length, 1);
   });
 
+  test("proposes a tag by clicking a preset chip in the dialog", async function (assert) {
+    await visit("/where-is-my-friends");
+    await click('[data-test-user-tag-propose="friend"]');
+    assert.dom("[data-test-user-tag-presets]").exists();
+    assert.dom('[data-test-user-tag-preset-chip="手法温和"]').exists();
+
+    await click('[data-test-user-tag-preset-chip="手法温和"]');
+    assert.dom("[data-test-user-tag-input]").hasValue("手法温和");
+
+    await click("[data-test-user-tag-propose-submit]");
+    assert.strictEqual(api.proposals.length, 2);
+  });
+
   test("approves a pending tag from the inbox page", async function (assert) {
     await visit("/where-is-my-friends/tags");
 

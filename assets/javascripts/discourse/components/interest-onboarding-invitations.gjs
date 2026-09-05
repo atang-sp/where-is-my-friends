@@ -6,7 +6,36 @@ import { eq } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 
+const SAFETY_OPTIONS = Object.freeze([
+  {
+    key: "ssc_consensus",
+    labelKey: "where_is_my_friends.practice_invitations.safety_items.ssc_consensus",
+  },
+  {
+    key: "pure_practice",
+    labelKey: "where_is_my_friends.practice_invitations.safety_items.pure_practice",
+  },
+  {
+    key: "safeword_mechanism",
+    labelKey: "where_is_my_friends.practice_invitations.safety_items.safeword_mechanism",
+  },
+  {
+    key: "body_safety",
+    labelKey: "where_is_my_friends.practice_invitations.safety_items.body_safety",
+  },
+  {
+    key: "aftercare",
+    labelKey: "where_is_my_friends.practice_invitations.safety_items.aftercare",
+  },
+  {
+    key: "public_first_meet",
+    labelKey: "where_is_my_friends.practice_invitations.safety_items.public_first_meet",
+  },
+]);
+
 export default class InterestOnboardingInvitations extends Component {
+  safetyOptions = SAFETY_OPTIONS;
+
   @action
   updateInterest(event) {
     this.args.on.changeDraft({ interestId: event.target.value });
@@ -20,6 +49,23 @@ export default class InterestOnboardingInvitations extends Component {
   @action
   updateNote(event) {
     this.args.on.changeDraft({ note: event.target.value });
+  }
+
+  @action
+  isSafetyChecked(key) {
+    return (this.args.state.composer.safetyItems || []).includes(key);
+  }
+
+  @action
+  toggleSafetyItem(key, event) {
+    const current = this.args.state.composer.safetyItems || [];
+    let updated;
+    if (event.target.checked) {
+      updated = [...new Set([...current, key])];
+    } else {
+      updated = current.filter((item) => item !== key);
+    }
+    this.args.on.changeDraft({ safetyItems: updated });
   }
 
   <template>
@@ -139,6 +185,33 @@ export default class InterestOnboardingInvitations extends Component {
           ></textarea>
         </label>
 
+        <div
+          class="interest-onboarding__safety-section"
+          data-test-practice-invitation-safety-section
+        >
+          <div class="interest-onboarding__safety-header">
+            <strong>{{i18n
+                "where_is_my_friends.practice_invitations.safety_section_title"
+              }}</strong>
+            <p>{{i18n
+                "where_is_my_friends.practice_invitations.safety_section_desc"
+              }}</p>
+          </div>
+          <div class="interest-onboarding__safety-items">
+            {{#each this.safetyOptions as |option|}}
+              <label class="interest-onboarding__safety-item">
+                <input
+                  type="checkbox"
+                  checked={{this.isSafetyChecked option.key}}
+                  data-test-safety-item={{option.key}}
+                  {{on "change" (fn this.toggleSafetyItem option.key)}}
+                />
+                <span>{{i18n option.labelKey}}</span>
+              </label>
+            {{/each}}
+          </div>
+        </div>
+
         <p
           class="interest-onboarding__invitation-preview"
           data-test-practice-invitation-preview
@@ -174,6 +247,31 @@ export default class InterestOnboardingInvitations extends Component {
             <article data-test-incoming-invitation={{invitation.id}}>
               <h3>@{{invitation.sender.username}}</h3>
               <p>{{invitation.preset_message}}</p>
+              {{#if invitation.safety_items.length}}
+                <div
+                  class="interest-onboarding__safety-badges"
+                  data-test-incoming-safety-badges={{invitation.id}}
+                >
+                  <span class="interest-onboarding__safety-badges-title">{{i18n
+                      "where_is_my_friends.practice_invitations.safety_badges_title"
+                    }}</span>
+                  <div class="interest-onboarding__safety-badges-list">
+                    {{#each invitation.safety_items as |itemKey|}}
+                      <span
+                        class="interest-onboarding__safety-badge"
+                        data-test-safety-badge={{itemKey}}
+                      >
+                        🛡️ {{i18n
+                          (concat
+                            "where_is_my_friends.practice_invitations.safety_items_short."
+                            itemKey
+                          )
+                        }}
+                      </span>
+                    {{/each}}
+                  </div>
+                </div>
+              {{/if}}
               {{#if invitation.proposed_at}}
                 <p>{{i18n
                     "where_is_my_friends.practice_invitations.proposed_time_value"

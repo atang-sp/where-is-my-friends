@@ -10,6 +10,35 @@ module WhereIsMyFriends
     SELECTION_MODES = %w[single multi].freeze
     DEFAULT_SELECTION_MODE = "multi"
 
+    ROLE_KEYS = %w[active_role passive_role switch_role brat_interaction].freeze
+
+    ROLE_COMPLEMENT_SCORES = {
+      "active_role" => {
+        "passive_role" => 6,
+        "brat_interaction" => 6,
+        "switch_role" => 5,
+        "active_role" => 1
+      },
+      "passive_role" => {
+        "active_role" => 6,
+        "switch_role" => 5,
+        "passive_role" => 1,
+        "brat_interaction" => 1
+      },
+      "switch_role" => {
+        "active_role" => 5,
+        "passive_role" => 5,
+        "switch_role" => 5,
+        "brat_interaction" => 4
+      },
+      "brat_interaction" => {
+        "active_role" => 6,
+        "switch_role" => 5,
+        "brat_interaction" => 2,
+        "passive_role" => 1
+      }
+    }.freeze
+
     class << self
       def groups
         @groups ||= load_groups.freeze
@@ -208,14 +237,20 @@ module WhereIsMyFriends
       end
 
       def pair_score(viewer_name, candidate_name)
-        return 6 if viewer_name == candidate_name
-
         viewer_entries = entries_for_name(viewer_name)
         candidate_entries = entries_for_name(candidate_name)
         return 0 if viewer_entries.empty? || candidate_entries.empty?
 
         viewer_keys = viewer_entries.map { |entry| entry.fetch("key") }
         candidate_keys = candidate_entries.map { |entry| entry.fetch("key") }
+
+        viewer_role = (viewer_keys & ROLE_KEYS).first
+        candidate_role = (candidate_keys & ROLE_KEYS).first
+        if viewer_role && candidate_role
+          return ROLE_COMPLEMENT_SCORES.dig(viewer_role, candidate_role) || 0
+        end
+
+        return 6 if viewer_name == candidate_name
         return 5 if (viewer_keys & candidate_keys).present?
 
         related_keys =

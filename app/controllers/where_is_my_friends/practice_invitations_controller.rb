@@ -79,6 +79,11 @@ module WhereIsMyFriends
         1.day
       ).performed!
 
+      filtered_safety_items =
+        Array(params[:safety_items]).map(&:to_s).select do |item|
+          WhereIsMyFriendsPracticeInvitation::VALID_SAFETY_ITEMS.include?(item)
+        end
+
       invitation = nil
       WhereIsMyFriendsPracticeInvitation.transaction do
         invitation =
@@ -88,7 +93,8 @@ module WhereIsMyFriends
             tag: tag,
             interest_name: tag.name,
             proposed_at: proposed_at,
-            note: params[:note].to_s.strip.presence
+            note: params[:note].to_s.strip.presence,
+            safety_items: filtered_safety_items
           )
         create_notification(invitation)
       end
@@ -267,6 +273,7 @@ module WhereIsMyFriends
         },
         proposed_at: invitation.proposed_at,
         note: invitation.note,
+        safety_items: Array(invitation.safety_items),
         preset_message:
           invitation.preset_message(locale: current_user.effective_locale),
         responded_at: invitation.responded_at,
