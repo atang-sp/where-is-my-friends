@@ -27,6 +27,20 @@
     inset: 0;
     border-radius: 50%;
     box-sizing: border-box;
+    pointer-events: none;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      box-sizing: border-box;
+      pointer-events: none;
+      mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+    }
   }
 
   // ----------------------------------------------------------------------------
@@ -41,6 +55,10 @@
       transition:
         box-shadow 0.3s ease,
         border-color 0.3s ease;
+
+      &::before {
+        display: none;
+      }
     }
 
     &:hover .community-avatar-frame__ring {
@@ -56,24 +74,28 @@
   // ----------------------------------------------------------------------------
   &--level-3 {
     .community-avatar-frame__ring {
-      border: 2px solid transparent;
-      background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
-          padding-box,
-        linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #38bdf8 100%)
-          border-box;
       box-shadow:
-        0 0 8px rgb(16, 185, 129, 0.35),
-        inset 0 0 4px rgb(56, 189, 248, 0.25);
+        0 0 8px rgb(16, 185, 129, 0.4),
+        0 0 4px rgb(56, 189, 248, 0.3);
       transition:
         transform 0.3s ease,
         box-shadow 0.3s ease;
+
+      &::before {
+        padding: 2px;
+        background: linear-gradient(
+          135deg,
+          #10b981 0%,
+          #06b6d4 50%,
+          #38bdf8 100%
+        );
+      }
     }
 
     &:hover .community-avatar-frame__ring {
       box-shadow:
-        0 0 14px rgb(16, 185, 129, 0.6),
-        0 0 6px rgb(56, 189, 248, 0.5);
+        0 0 14px rgb(16, 185, 129, 0.65),
+        0 0 8px rgb(56, 189, 248, 0.5);
     }
   }
 
@@ -82,14 +104,14 @@
   // ----------------------------------------------------------------------------
   &--level-4 {
     .community-avatar-frame__ring {
-      border: 2px solid transparent;
-      background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
-          padding-box,
-        linear-gradient(135deg, #0284c7, #3b82f6 50%, #6366f1 100%) border-box;
       box-shadow:
         0 0 10px rgb(59, 130, 246, 0.5),
-        inset 0 0 6px rgb(2, 132, 199, 0.3);
+        0 0 4px rgb(2, 132, 199, 0.3);
+
+      &::before {
+        padding: 2px;
+        background: linear-gradient(135deg, #0284c7, #3b82f6 50%, #6366f1 100%);
+      }
     }
 
     // 4 Corner Anchor Pips
@@ -123,12 +145,12 @@
   // ----------------------------------------------------------------------------
   &--level-5 {
     .community-avatar-frame__ring {
-      border: 2.5px solid transparent;
-      background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
-          padding-box,
-        linear-gradient(135deg, #8b5cf6, #ec4899 50%, #d946ef 100%) border-box;
       animation: community-frame-pulse-5 3.5s ease-in-out infinite;
+
+      &::before {
+        padding: 2.5px;
+        background: linear-gradient(135deg, #8b5cf6, #ec4899 50%, #d946ef 100%);
+      }
     }
   }
 
@@ -139,15 +161,22 @@
     overflow: visible;
 
     .community-avatar-frame__ring {
-      border: 2.5px solid transparent;
-      border-radius: 50%;
-      background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
-          padding-box,
-        conic-gradient(from 0deg, #6366f1, #a855f7, #ec4899, #06b6d4, #6366f1)
-          border-box;
-      box-shadow: 0 0 12px rgb(168, 85, 247, 0.5);
-      animation: community-frame-spin 6s linear infinite;
+      box-shadow:
+        0 0 12px rgb(168, 85, 247, 0.55),
+        0 0 6px rgb(236, 72, 153, 0.35);
+
+      &::before {
+        padding: 2.5px;
+        background: conic-gradient(
+          from 0deg,
+          #6366f1,
+          #a855f7,
+          #ec4899,
+          #06b6d4,
+          #6366f1
+        );
+        animation: community-frame-spin 6s linear infinite;
+      }
     }
 
     // Twinkling Star Particle
@@ -171,17 +200,22 @@
     overflow: visible;
 
     .community-avatar-frame__ring {
-      border: 3px solid transparent;
-      border-radius: 50%;
-      background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
-          padding-box,
-        conic-gradient(from 0deg, #ffd700, #ff8c00, #fff2a3, #d4af37, #ffd700)
-          border-box;
       box-shadow:
         0 0 14px rgb(255, 215, 0, 0.55),
         0 0 6px rgb(255, 140, 0, 0.4);
-      animation: community-frame-spin 4s linear infinite;
+
+      &::before {
+        padding: 3px;
+        background: conic-gradient(
+          from 0deg,
+          #ffd700,
+          #ff8c00,
+          #fff2a3,
+          #d4af37,
+          #ffd700
+        );
+        animation: community-frame-spin 4s linear infinite;
+      }
     }
 
     // Micro flanking gold wings
@@ -228,17 +262,21 @@
     overflow: visible;
 
     .community-avatar-frame__ring {
-      border: 3px solid transparent;
-      border-radius: 50%;
-      background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
-          padding-box,
-        conic-gradient(from 0deg, #ffd700, #ec4899, #38bdf8, #ffd700) border-box;
       box-shadow:
         0 0 18px rgb(255, 215, 0, 0.7),
-        0 0 28px rgb(245, 158, 11, 0.4),
-        inset 0 0 8px rgb(255, 215, 0, 0.5);
-      animation: community-frame-spin 3s linear infinite;
+        0 0 28px rgb(245, 158, 11, 0.4);
+
+      &::before {
+        padding: 3px;
+        background: conic-gradient(
+          from 0deg,
+          #ffd700,
+          #ec4899,
+          #38bdf8,
+          #ffd700
+        );
+        animation: community-frame-spin 3s linear infinite;
+      }
     }
 
     // Grand Wings
@@ -308,7 +346,7 @@
   }
 
   // ----------------------------------------------------------------------------
-  // SP Role Flair Micro Badge (右下角 3D 立体软胶微章)
+  // SP Role Flair Micro Badge (右下角 3D 立体软胶微章: 🔴 主 / 🔵 被 / 🟣 双)
   // ----------------------------------------------------------------------------
   &__role {
     position: absolute;
@@ -409,14 +447,13 @@
   100% {
     box-shadow:
       0 0 8px rgb(168, 85, 247, 0.45),
-      inset 0 0 4px rgb(236, 72, 153, 0.3);
+      0 0 4px rgb(236, 72, 153, 0.3);
   }
 
   50% {
     box-shadow:
       0 0 18px rgb(236, 72, 153, 0.75),
-      0 0 24px rgb(168, 85, 247, 0.45),
-      inset 0 0 8px rgb(236, 72, 153, 0.5);
+      0 0 24px rgb(168, 85, 247, 0.45);
   }
 }
 
@@ -445,20 +482,16 @@
 }
 
 // ==============================================================================
-// Multi-Context Adaptations (Posts, User Cards, User Profiles)
+// Multi-Context Adaptations (Posts, User Cards, User Profiles, Header, Homepage)
 // ==============================================================================
 
 // Topic Post Stream Avatar
-.topic-avatar {
+.topic-avatar,
+.post-avatar {
   position: relative;
 
-  .poster-avatar {
-    position: relative;
-    display: inline-block;
-  }
-
-  .poster-avatar-flair-outlet {
-    position: static;
+  .community-avatar-frame {
+    --frame-inset: -4px;
   }
 }
 
@@ -510,6 +543,7 @@
 }
 
 // User Profile Avatar (120px)
+.user-profile-avatar,
 .primary-avatar {
   position: relative;
 
@@ -529,7 +563,143 @@
       padding: 1px 7px;
       font-size: 10px;
     }
+
+    &--level-7 {
+      .community-avatar-frame__wing-left,
+      .community-avatar-frame__wing-right {
+        width: 12px;
+        height: 28px;
+        margin-top: -14px;
+      }
+    }
+
+    &--level-8 {
+      .community-avatar-frame__wing-grand-left,
+      .community-avatar-frame__wing-grand-right {
+        width: 20px;
+        height: 42px;
+        margin-top: -21px;
+      }
+
+      .community-avatar-frame__crown {
+        top: -16px;
+        width: 24px;
+        height: 15px;
+      }
+    }
   }
+}
+
+// Header Current User Avatar (32px)
+#toggle-current-user,
+.header-dropdown-toggle.current-user {
+  position: relative;
+  overflow: visible;
+
+  .community-avatar-frame {
+    --frame-inset: -3px;
+
+    &__role {
+      width: 14px;
+      height: 14px;
+      font-size: 8px;
+      bottom: -2px;
+      right: -2px;
+    }
+
+    &__pill {
+      display: none;
+    }
+
+    &--level-7 {
+      .community-avatar-frame__wing-left,
+      .community-avatar-frame__wing-right {
+        width: 6px;
+        height: 14px;
+        margin-top: -7px;
+      }
+    }
+
+    &--level-8 {
+      .community-avatar-frame__wing-grand-left,
+      .community-avatar-frame__wing-grand-right {
+        width: 10px;
+        height: 20px;
+        margin-top: -10px;
+      }
+
+      .community-avatar-frame__crown {
+        top: -8px;
+        width: 12px;
+        height: 8px;
+      }
+    }
+  }
+}
+
+// Homepage Latest Topic List Items & Mobile Item Posters
+.latest-topic-list-item .topic-poster,
+.topic-list-mobile-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+
+  .community-avatar-frame {
+    --frame-inset: -4px;
+  }
+}
+
+// Universal Avatar Level Accent Rings (covers topic list table rows, search results, directory)
+img.avatar {
+  &.community-avatar-level-2 {
+    box-shadow:
+      0 0 0 1.5px rgb(210, 225, 240, 0.85),
+      0 0 5px rgb(210, 225, 240, 0.4);
+  }
+
+  &.community-avatar-level-3 {
+    box-shadow:
+      0 0 0 2px #10b981,
+      0 0 6px rgb(16, 185, 129, 0.45);
+  }
+
+  &.community-avatar-level-4 {
+    box-shadow:
+      0 0 0 2px #3b82f6,
+      0 0 8px rgb(59, 130, 246, 0.5);
+  }
+
+  &.community-avatar-level-5 {
+    box-shadow:
+      0 0 0 2px #ec4899,
+      0 0 10px rgb(236, 72, 153, 0.6);
+  }
+
+  &.community-avatar-level-6 {
+    box-shadow:
+      0 0 0 2px #a855f7,
+      0 0 12px rgb(168, 85, 247, 0.65);
+  }
+
+  &.community-avatar-level-7 {
+    box-shadow:
+      0 0 0 2.5px #ffd700,
+      0 0 14px rgb(255, 215, 0, 0.7);
+  }
+
+  &.community-avatar-level-8 {
+    box-shadow:
+      0 0 0 2.5px #ffd700,
+      0 0 18px rgb(255, 215, 0, 0.85),
+      0 0 24px rgb(236, 72, 153, 0.4);
+  }
+}
+
+// Suppress avatar img box-shadow when enclosed by a full community-avatar-frame container
+.user-profile-avatar img.avatar,
+.post-avatar img.avatar,
+.user-card-avatar img.avatar,
+#toggle-current-user img.avatar {
+  box-shadow: none;
 }
 
 // Reduced Motion Accessibility

@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.26.1
+# version: 1.26.2
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0-latest
@@ -31,6 +31,7 @@ after_initialize do
 
   Rails.application.config.filter_parameters |= %i[api_key token claim_token]
 
+  require_relative "lib/where_is_my_friends/avatar_frame_helper"
   require_relative "lib/where_is_my_friends/interest_visibility"
   require_relative "lib/where_is_my_friends/flying_chess"
   require_relative "lib/where_is_my_friends/flying_chess/claim_token"
@@ -252,6 +253,26 @@ after_initialize do
     else
       []
     end
+  end
+
+  # Enrich basic user representations so all topic posters, header current_user, etc. receive community_level
+  %i[basic_user current_user poster].each do |serializer|
+    add_to_serializer(serializer, :community_level) do
+      user_obj = respond_to?(:user) ? user : object
+      WhereIsMyFriends::AvatarFrameHelper.community_level_for(user_obj)
+    end
+  end
+
+  # Enrich user representations and posts with role_key for micro badges (主 / 被 / 双)
+  %i[basic_user current_user poster user_card user].each do |serializer|
+    add_to_serializer(serializer, :role_key) do
+      user_obj = respond_to?(:user) ? user : object
+      WhereIsMyFriends::AvatarFrameHelper.role_key_for(user_obj)
+    end
+  end
+
+  add_to_serializer(:post, :role_key) do
+    WhereIsMyFriends::AvatarFrameHelper.role_key_for(object.user)
   end
 
   on(:user_destroyed) do |user|
