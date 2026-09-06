@@ -17,7 +17,9 @@ class UserLocationSerializer < ApplicationSerializer
              :last_posted_at,
              :bio_excerpt,
              :custom_fields,
-             :user_tags
+             :user_tags,
+             :community_level,
+             :role_key
 
   def id
     user.id
@@ -94,7 +96,67 @@ class UserLocationSerializer < ApplicationSerializer
     )
   end
 
+  def community_level
+    if object.key?(:community_level)
+      object[:community_level]
+    elsif defined?(::DiscourseCommunityLevels::SerializerHelpers) &&
+          defined?(::DiscourseCommunityLevels::GamificationScoreProvider) &&
+          DiscourseCommunityLevels::SerializerHelpers.enabled?
+      DiscourseCommunityLevels::SerializerHelpers.public_level_payload(
+        DiscourseCommunityLevels::GamificationScoreProvider.score_for(user)
+      )
+    end
+  rescue StandardError
+    nil
+  end
+
+  def role_key
+    if object.key?(:role_key)
+      object[:role_key]
+    else
+      resolve_role_key
+    end
+  end
+
   private
+
+  def resolve_role_key
+    cf = custom_fields
+    if cf.is_a?(Hash)
+      role_val = cf.values.find do |v|
+        self.class.map_role_value(v).present?
+      end
+      return self.class.map_role_value(role_val) if role_val.present?
+    end
+
+    if defined?(WhereIsMyFriendsUserInterest)
+      WhereIsMyFriendsUserInterest
+        .where(user_id: user.id)
+        .joins(:tag)
+        .pluck("tags.name")
+        .each do |tname|
+          mapped = self.class.map_role_value(tname)
+          return mapped if mapped.present?
+        end
+    end
+
+    nil
+  rescue StandardError
+    nil
+  end
+
+  def self.map_role_value(val)
+    case val.to_s.strip.downcase
+    when "active_role", "active", "主动", "主"
+      "active_role"
+    when "passive_role", "passive", "被动", "被"
+      "passive_role"
+    when "switch_role", "switch", "双向", "双"
+      "switch_role"
+    when "brat_interaction", "brat", "brat互动", "管"
+      "brat_interaction"
+    end
+  end
 
   def user
     object[:user]

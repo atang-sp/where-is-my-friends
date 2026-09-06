@@ -308,3 +308,27 @@ plugins:
     description: "每天最多创建的英文精选数量（固定为 1）"
     category: "where_is_my_friends"
     translated: true
+
+  where_is_my_friends_avatar_frames_enabled:
+    default: true
+    client: true
+    type: bool
+    description: "启用社区等级头像框与装饰系统"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_avatar_frames_animated:
+    default: true
+    client: true
+    type: bool
+    description: "开启动态流光头像框特效"
+    category: "where_is_my_friends"
+    translated: true
+
+  where_is_my_friends_avatar_frames_show_pill:
+    default: true
+    client: true
+    type: bool
+    description: "在头像下方显示等级数字微型胶囊"
+    category: "where_is_my_friends"
+    translated: true

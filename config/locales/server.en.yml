@@ -239,3 +239,6 @@ en:
     licensed_import_publish_hour: "Beijing-time hour for licensed import runs"
     licensed_import_monthly_token_budget: "Maximum monthly generation tokens for licensed imports"
     licensed_import_max_per_day: "Maximum licensed imports per day (fixed at 1)"
+    where_is_my_friends_avatar_frames_enabled: "Enable community level avatar frames and decoration system"
+    where_is_my_friends_avatar_frames_animated: "Enable animated glow effects on avatar frames"
+    where_is_my_friends_avatar_frames_show_pill: "Show level mini-pill badge under avatar"

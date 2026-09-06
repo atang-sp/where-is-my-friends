@@ -239,3 +239,6 @@ zh_CN:
     licensed_import_publish_hour: "英文精选任务的北京时间发布小时"
     licensed_import_monthly_token_budget: "英文精选每月最多使用的生成 token 总量"
     licensed_import_max_per_day: "每天最多创建的英文精选数量（固定为 1）"
+    where_is_my_friends_avatar_frames_enabled: "启用社区等级头像框与装饰系统"
+    where_is_my_friends_avatar_frames_animated: "开启动态流光头像框特效"
+    where_is_my_friends_avatar_frames_show_pill: "在头像下方显示等级数字微型胶囊"

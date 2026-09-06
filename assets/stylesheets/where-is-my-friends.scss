@@ -1914,8 +1914,18 @@
     transform: translateY(-2px);
   }
 
-  .avatar {
-    border-radius: 50%;
+  .where-is-my-friends__avatar-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.25rem 0.35rem 0.25rem 0.15rem;
+    overflow: visible;
+
+    .avatar {
+      border-radius: 50%;
+      display: block;
+    }
   }
 
   h3 {

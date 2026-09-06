@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.26.0 — 2026-09-06
+
+- Integrate community level avatar frames and SP role flair badges on member discovery cards.
+- Add batched score and role preloading in `LocationDiscovery` to prevent N+1 queries.
+- Support Lv 1~8 tier styling with zero frame on Lv 1, level mini-pills, and 3D role seals (active, passive, switch, brat).
+
 ## 1.25.0 — 2026-09-06
 
 - Add role-complementary matching scoring in InterestCatalogue: complementary

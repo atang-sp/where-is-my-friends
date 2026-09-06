@@ -1,0 +1,548 @@
+// ==============================================================================
+// Community Levels - Avatar Frame & Prestige System (Lv 1 ~ Lv 8)
+// Pure CSS3/SVG, hardware accelerated (GPU), zero layout shift, accessibility-first
+// ==============================================================================
+
+// Base Frame Container
+.community-avatar-frame {
+  --frame-inset: -4px;
+  --frame-size: 100%;
+  --frame-glow: transparent;
+  position: absolute;
+  inset: var(--frame-inset);
+  pointer-events: none;
+  border-radius: 50%;
+  box-sizing: border-box;
+  z-index: 3;
+  display: block;
+
+  // Level 1: 圈外探头 (Lowest level: NO frame per user requirement)
+  &--level-1 {
+    display: none !important;
+  }
+
+  // Common pseudo-element base for rings
+  &__ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-sizing: border-box;
+  }
+
+  // ----------------------------------------------------------------------------
+  // Level 2: 初来乍圈 (20 XP) - 雾银微澜细环
+  // ----------------------------------------------------------------------------
+  &--level-2 {
+    .community-avatar-frame__ring {
+      border: 1.5px solid rgb(210, 225, 240, 0.85);
+      box-shadow:
+        0 0 6px rgb(210, 225, 240, 0.4),
+        inset 0 0 4px rgb(255, 255, 255, 0.3);
+      transition:
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+    }
+
+    &:hover .community-avatar-frame__ring {
+      border-color: rgb(240, 248, 255, 0.95);
+      box-shadow:
+        0 0 10px rgb(210, 230, 255, 0.65),
+        inset 0 0 6px rgb(255, 255, 255, 0.5);
+    }
+  }
+
+  // ----------------------------------------------------------------------------
+  // Level 3: 日常冒泡 (80 XP) - 青碧同好双重环
+  // ----------------------------------------------------------------------------
+  &--level-3 {
+    .community-avatar-frame__ring {
+      border: 2px solid transparent;
+      background:
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
+        linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #38bdf8 100%)
+          border-box;
+      box-shadow:
+        0 0 8px rgb(16, 185, 129, 0.35),
+        inset 0 0 4px rgb(56, 189, 248, 0.25);
+      transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+    }
+
+    &:hover .community-avatar-frame__ring {
+      box-shadow:
+        0 0 14px rgb(16, 185, 129, 0.6),
+        0 0 6px rgb(56, 189, 248, 0.5);
+    }
+  }
+
+  // ----------------------------------------------------------------------------
+  // Level 4: 圈内熟脸 (200 XP) - 苍蓝天穹灵能框
+  // ----------------------------------------------------------------------------
+  &--level-4 {
+    .community-avatar-frame__ring {
+      border: 2px solid transparent;
+      background:
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
+        linear-gradient(135deg, #0284c7, #3b82f6 50%, #6366f1 100%) border-box;
+      box-shadow:
+        0 0 10px rgb(59, 130, 246, 0.5),
+        inset 0 0 6px rgb(2, 132, 199, 0.3);
+    }
+
+    // 4 Corner Anchor Pips
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #38bdf8;
+      border-radius: 50%;
+      box-shadow: 0 0 4px #38bdf8;
+      z-index: 2;
+    }
+
+    &::before {
+      top: 1px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    &::after {
+      bottom: 1px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+
+  // ----------------------------------------------------------------------------
+  // Level 5: 气氛担当 (500 XP) - 紫晶魅影脉冲框 (常驻 3.5s 柔和脉冲光环)
+  // ----------------------------------------------------------------------------
+  &--level-5 {
+    .community-avatar-frame__ring {
+      border: 2.5px solid transparent;
+      background:
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
+        linear-gradient(135deg, #8b5cf6, #ec4899 50%, #d946ef 100%) border-box;
+      animation: community-frame-pulse-5 3.5s ease-in-out infinite;
+    }
+  }
+
+  // ----------------------------------------------------------------------------
+  // Level 6: 圈内红人 (1000 XP) - 极光幻彩动态星河框 (360° 流彩旋转)
+  // ----------------------------------------------------------------------------
+  &--level-6 {
+    overflow: visible;
+
+    .community-avatar-frame__ring {
+      border: 2.5px solid transparent;
+      border-radius: 50%;
+      background:
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
+        conic-gradient(from 0deg, #6366f1, #a855f7, #ec4899, #06b6d4, #6366f1)
+          border-box;
+      box-shadow: 0 0 12px rgb(168, 85, 247, 0.5);
+      animation: community-frame-spin 6s linear infinite;
+    }
+
+    // Twinkling Star Particle
+    &::after {
+      content: "✦";
+      position: absolute;
+      top: -3px;
+      right: 2px;
+      font-size: 10px;
+      color: #ec4899;
+      text-shadow: 0 0 6px #f43f5e;
+      animation: community-star-twinkle 2s ease-in-out infinite;
+      z-index: 4;
+    }
+  }
+
+  // ----------------------------------------------------------------------------
+  // Level 7: 镇圈前辈 (2000 XP) - 炽金曜石神羽流金框
+  // ----------------------------------------------------------------------------
+  &--level-7 {
+    overflow: visible;
+
+    .community-avatar-frame__ring {
+      border: 3px solid transparent;
+      border-radius: 50%;
+      background:
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
+        conic-gradient(from 0deg, #ffd700, #ff8c00, #fff2a3, #d4af37, #ffd700)
+          border-box;
+      box-shadow:
+        0 0 14px rgb(255, 215, 0, 0.55),
+        0 0 6px rgb(255, 140, 0, 0.4);
+      animation: community-frame-spin 4s linear infinite;
+    }
+
+    // Micro flanking gold wings
+    .community-avatar-frame__wing-left,
+    .community-avatar-frame__wing-right {
+      position: absolute;
+      top: 50%;
+      width: 8px;
+      height: 18px;
+      margin-top: -9px;
+      background: linear-gradient(135deg, #ffd700, #f59e0b);
+      box-shadow: 0 0 6px rgb(255, 215, 0, 0.6);
+      z-index: 1;
+      transition: transform 0.3s ease;
+    }
+
+    .community-avatar-frame__wing-left {
+      left: -6px;
+      border-radius: 12px 0 0 12px;
+      clip-path: polygon(100% 0, 0 50%, 100% 100%, 70% 50%);
+    }
+
+    .community-avatar-frame__wing-right {
+      right: -6px;
+      border-radius: 0 12px 12px 0;
+      clip-path: polygon(0 0, 100% 50%, 0 100%, 30% 50%);
+    }
+
+    &:hover {
+      .community-avatar-frame__wing-left {
+        transform: translateX(-2px) scale(1.1);
+      }
+
+      .community-avatar-frame__wing-right {
+        transform: translateX(2px) scale(1.1);
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------------
+  // Level 8: 圈子传说 (5000+ XP) - 创世神翼悬浮天冠框 (巅峰排面)
+  // ----------------------------------------------------------------------------
+  &--level-8 {
+    overflow: visible;
+
+    .community-avatar-frame__ring {
+      border: 3px solid transparent;
+      border-radius: 50%;
+      background:
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
+        conic-gradient(from 0deg, #ffd700, #ec4899, #38bdf8, #ffd700) border-box;
+      box-shadow:
+        0 0 18px rgb(255, 215, 0, 0.7),
+        0 0 28px rgb(245, 158, 11, 0.4),
+        inset 0 0 8px rgb(255, 215, 0, 0.5);
+      animation: community-frame-spin 3s linear infinite;
+    }
+
+    // Grand Wings
+    .community-avatar-frame__wing-grand-left,
+    .community-avatar-frame__wing-grand-right {
+      position: absolute;
+      top: 50%;
+      width: 14px;
+      height: 26px;
+      margin-top: -13px;
+      background: linear-gradient(135deg, #fff2a3, #ffd700 60%, #b45309 100%);
+      box-shadow: 0 0 10px rgb(255, 215, 0, 0.8);
+      z-index: 1;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .community-avatar-frame__wing-grand-left {
+      left: -10px;
+      border-radius: 14px 0 0 14px;
+      clip-path: polygon(100% 0, 0 35%, 15% 65%, 0 85%, 100% 100%, 75% 50%);
+    }
+
+    .community-avatar-frame__wing-grand-right {
+      right: -10px;
+      border-radius: 0 14px 14px 0;
+      clip-path: polygon(0 0, 100% 35%, 85% 65%, 100% 85%, 0 100%, 25% 50%);
+    }
+
+    // Floating Celestial Crown
+    .community-avatar-frame__crown {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      height: 10px;
+      background: linear-gradient(135deg, #fff2a3, #ffd700 70%, #d97706);
+      clip-path: polygon(
+        0 100%,
+        0 20%,
+        25% 60%,
+        50% 0,
+        75% 60%,
+        100% 20%,
+        100% 100%
+      );
+      filter: drop-shadow(0 0 4px rgb(255, 215, 0, 0.9));
+      animation: community-crown-float 2.5s ease-in-out infinite;
+      z-index: 5;
+    }
+
+    &:hover {
+      .community-avatar-frame__wing-grand-left {
+        transform: translateX(-4px) scale(1.15) rotate(-5deg);
+      }
+
+      .community-avatar-frame__wing-grand-right {
+        transform: translateX(4px) scale(1.15) rotate(5deg);
+      }
+
+      .community-avatar-frame__ring {
+        box-shadow:
+          0 0 26px rgb(255, 215, 0, 0.9),
+          0 0 38px rgb(236, 72, 153, 0.6);
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------------
+  // SP Role Flair Micro Badge (右下角 3D 立体软胶微章)
+  // ----------------------------------------------------------------------------
+  &__role {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+    color: #fff;
+    border: 1.5px solid rgb(255, 255, 255, 0.95);
+    box-shadow:
+      0 2px 4px rgb(0, 0, 0, 0.35),
+      inset 0 1px 1px rgb(255, 255, 255, 0.7),
+      inset 0 -1px 2px rgb(0, 0, 0, 0.25);
+    z-index: 6;
+    pointer-events: auto;
+    cursor: default;
+    user-select: none;
+
+    &.role-active,
+    &.role-active_role {
+      background: linear-gradient(145deg, #f43f5e, #be123c);
+      text-shadow: 0 1px 2px rgb(0, 0, 0, 0.4);
+    }
+
+    &.role-passive,
+    &.role-passive_role {
+      background: linear-gradient(145deg, #38bdf8, #1d4ed8);
+      text-shadow: 0 1px 2px rgb(0, 0, 0, 0.4);
+    }
+
+    &.role-switch,
+    &.role-switch_role {
+      background: linear-gradient(145deg, #c084fc, #7e22ce);
+      text-shadow: 0 1px 2px rgb(0, 0, 0, 0.4);
+    }
+
+    &.role-brat,
+    &.role-brat_interaction {
+      background: linear-gradient(145deg, #fbbf24, #d97706);
+      text-shadow: 0 1px 2px rgb(0, 0, 0, 0.4);
+    }
+  }
+
+  // ----------------------------------------------------------------------------
+  // Level Mini-Pill (底部居中等级徽标胶囊)
+  // ----------------------------------------------------------------------------
+  &__pill {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5px 4.5px;
+    border-radius: 999px;
+    font-size: 8.5px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    background: rgb(15, 23, 42, 0.88);
+    color: #f8fafc;
+    border: 1px solid rgb(255, 255, 255, 0.3);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 1px 3px rgb(0, 0, 0, 0.3);
+    z-index: 5;
+    user-select: none;
+
+    &--high {
+      border-color: #ec4899;
+      color: #fdf2f8;
+      text-shadow: 0 0 4px #ec4899;
+    }
+
+    &--legend {
+      background: linear-gradient(135deg, #ffd700, #b45309);
+      color: #1e1b18;
+      font-weight: 900;
+      border: 1px solid #fff;
+      box-shadow: 0 0 6px rgb(255, 215, 0, 0.7);
+    }
+  }
+}
+
+// ==============================================================================
+// Animation Keyframes (Hardware Accelerated)
+// ==============================================================================
+@keyframes community-frame-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes community-frame-pulse-5 {
+  0%,
+  100% {
+    box-shadow:
+      0 0 8px rgb(168, 85, 247, 0.45),
+      inset 0 0 4px rgb(236, 72, 153, 0.3);
+  }
+
+  50% {
+    box-shadow:
+      0 0 18px rgb(236, 72, 153, 0.75),
+      0 0 24px rgb(168, 85, 247, 0.45),
+      inset 0 0 8px rgb(236, 72, 153, 0.5);
+  }
+}
+
+@keyframes community-crown-float {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+@keyframes community-star-twinkle {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+}
+
+// ==============================================================================
+// Multi-Context Adaptations (Posts, User Cards, User Profiles)
+// ==============================================================================
+
+// Topic Post Stream Avatar
+.topic-avatar {
+  position: relative;
+
+  .poster-avatar {
+    position: relative;
+    display: inline-block;
+  }
+
+  .poster-avatar-flair-outlet {
+    position: static;
+  }
+}
+
+// User Card Avatar (120px)
+.user-card-avatar {
+  position: relative;
+
+  .community-avatar-frame {
+    --frame-inset: -6px;
+
+    &__role {
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      bottom: -1px;
+      right: -1px;
+    }
+
+    &__pill {
+      bottom: -8px;
+      padding: 1px 7px;
+      font-size: 10px;
+    }
+
+    &--level-7 {
+      .community-avatar-frame__wing-left,
+      .community-avatar-frame__wing-right {
+        width: 12px;
+        height: 28px;
+        margin-top: -14px;
+      }
+    }
+
+    &--level-8 {
+      .community-avatar-frame__wing-grand-left,
+      .community-avatar-frame__wing-grand-right {
+        width: 20px;
+        height: 42px;
+        margin-top: -21px;
+      }
+
+      .community-avatar-frame__crown {
+        top: -16px;
+        width: 24px;
+        height: 15px;
+      }
+    }
+  }
+}
+
+// User Profile Avatar (120px)
+.primary-avatar {
+  position: relative;
+
+  .community-avatar-frame {
+    --frame-inset: -6px;
+
+    &__role {
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      bottom: -1px;
+      right: -1px;
+    }
+
+    &__pill {
+      bottom: -8px;
+      padding: 1px 7px;
+      font-size: 10px;
+    }
+  }
+}
+
+// Reduced Motion Accessibility
+@media (prefers-reduced-motion: reduce) {
+  .community-avatar-frame,
+  .community-avatar-frame * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

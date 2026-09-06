@@ -96,7 +96,10 @@ module WhereIsMyFriends
       results_limited = selection.limited
 
       fields = @filterable_fields
-      cf_map = load_custom_field_values(locations.map(&:user_id), fields)
+      user_ids = locations.map(&:user_id)
+      cf_map = load_custom_field_values(user_ids, fields)
+      level_map = load_community_levels(user_ids)
+      role_map = load_interaction_roles(user_ids, cf_map)
 
       users =
         locations.map do |location|
@@ -105,7 +108,9 @@ module WhereIsMyFriends
               user: location.user,
               location: location,
               origin: @origin,
-              custom_field_values: cf_map[location.user_id] || {}
+              custom_field_values: cf_map[location.user_id] || {},
+              community_level: level_map[location.user_id],
+              role_key: role_map[location.user_id]
             },
             root: false,
             scope: @guardian
@@ -204,6 +209,54 @@ module WhereIsMyFriends
             values[name_map[key]] = value if value.present?
           end
         end
+    end
+
+    def load_community_levels(user_ids)
+      return {} if user_ids.empty?
+      return {} unless defined?(::DiscourseCommunityLevels::GamificationScoreProvider) &&
+                       defined?(::DiscourseCommunityLevels::SerializerHelpers) &&
+                       DiscourseCommunityLevels::SerializerHelpers.enabled?
+
+      scores = DiscourseCommunityLevels::GamificationScoreProvider.scores_for(user_ids)
+      user_ids.each_with_object({}) do |uid, map|
+        map[uid] = DiscourseCommunityLevels::SerializerHelpers.public_level_payload(scores[uid].to_i)
+      end
+    rescue StandardError
+      {}
+    end
+
+    def load_interaction_roles(user_ids, cf_map = {})
+      return {} if user_ids.empty?
+
+      role_map = {}
+
+      # 1. First check custom fields map
+      user_ids.each do |uid|
+        cfs = cf_map[uid]
+        if cfs.is_a?(Hash)
+          val = cfs.values.find { |v| UserLocationSerializer.map_role_value(v).present? }
+          role_map[uid] = UserLocationSerializer.map_role_value(val) if val.present?
+        end
+      end
+
+      # 2. For remaining users, query interests
+      missing_ids = user_ids.reject { |uid| role_map[uid].present? }
+      if missing_ids.any? && defined?(WhereIsMyFriendsUserInterest)
+        WhereIsMyFriendsUserInterest
+          .where(user_id: missing_ids)
+          .joins(:tag)
+          .pluck(:user_id, "tags.name")
+          .each do |uid, tname|
+            next if role_map[uid].present?
+
+            mapped = UserLocationSerializer.map_role_value(tname)
+            role_map[uid] = mapped if mapped.present?
+          end
+      end
+
+      role_map
+    rescue StandardError
+      {}
     end
   end
 end
