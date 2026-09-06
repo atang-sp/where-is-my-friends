@@ -153,8 +153,6 @@ class UserLocationSerializer < ApplicationSerializer
       "passive_role"
     when "switch_role", "switch", "双向", "双"
       "switch_role"
-    when "brat_interaction", "brat", "brat互动", "管"
-      "brat_interaction"
     end
   end
 

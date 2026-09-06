@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.26.1 — 2026-09-06
+
+- Refine avatar role flair badges to core trinity: 主 (Active), 被 (Passive), 双 (Switch).
+- Remove ambiguous 管 (Brat) badge from avatar displays to prevent confusion with forum administration.
+
 ## 1.26.0 — 2026-09-06
 
 - Integrate community level avatar frames and SP role flair badges on member discovery cards.
