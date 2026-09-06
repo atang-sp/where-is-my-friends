@@ -4,10 +4,16 @@ import { service } from "@ember/service";
 const ROLE_MAP = {
   active: { label: "主", key: "active_role", title: "角色：主" },
   active_role: { label: "主", key: "active_role", title: "角色：主" },
+  主动: { label: "主", key: "active_role", title: "角色：主" },
+  主: { label: "主", key: "active_role", title: "角色：主" },
   passive: { label: "被", key: "passive_role", title: "角色：被" },
   passive_role: { label: "被", key: "passive_role", title: "角色：被" },
+  被动: { label: "被", key: "passive_role", title: "角色：被" },
+  被: { label: "被", key: "passive_role", title: "角色：被" },
   switch: { label: "双", key: "switch_role", title: "角色：双" },
   switch_role: { label: "双", key: "switch_role", title: "角色：双" },
+  双向: { label: "双", key: "switch_role", title: "角色：双" },
+  双: { label: "双", key: "switch_role", title: "角色：双" },
 };
 
 export default class CommunityAvatarFrame extends Component {
@@ -79,8 +85,12 @@ export default class CommunityAvatarFrame extends Component {
       this.args.post?.user_custom_fields?.interaction_role ||
       this.args.user?.role_key ||
       this.args.user?.user_fields?.interaction_role ||
+      this.args.user?.user_fields?.["1"] ||
+      this.args.user?.custom_fields?.["user_field_1"] ||
       this.args.model?.role_key ||
-      this.args.model?.user_fields?.interaction_role;
+      this.args.model?.user_fields?.interaction_role ||
+      this.args.model?.user_fields?.["1"] ||
+      this.args.model?.custom_fields?.["user_field_1"];
     if (!role) {
       return null;
     }

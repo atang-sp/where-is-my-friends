@@ -1,6 +1,7 @@
 import CommunityAvatarFrame from "../../components/community-avatar-frame";
 
 export default <template>
+  {{yield}}
   {{#if @outletArgs.user.community_level}}
     <CommunityAvatarFrame @user={{@outletArgs.user}} />
   {{else if @outletArgs.model.community_level}}
