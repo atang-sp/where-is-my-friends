@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe UserLocationSerializer do
-  fab!(:user) { Fabricate(:user) }
+  fab!(:user)
   fab!(:location) { UserLocation.upsert_city_location(user.id, city: "上海") }
   fab!(:origin) { UserLocation.upsert_city_location(Fabricate(:user).id, city: "上海") }
 

@@ -6,4 +6,4 @@ export default <template>
   {{else if @outletArgs.user.community_level}}
     <CommunityAvatarFrame @user={{@outletArgs.user}} />
   {{/if}}
-</template>;
+</template>

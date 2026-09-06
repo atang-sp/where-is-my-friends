@@ -16,7 +16,9 @@ export default class CommunityAvatarFrame extends Component {
   @service siteSettings;
 
   get enabled() {
-    if (this.siteSettings?.where_is_my_friends_avatar_frames_enabled === false) {
+    if (
+      this.siteSettings?.where_is_my_friends_avatar_frames_enabled === false
+    ) {
       return false;
     }
     return true;
@@ -57,7 +59,9 @@ export default class CommunityAvatarFrame extends Component {
     if (this.args.showPill === false) {
       return false;
     }
-    return this.siteSettings?.where_is_my_friends_avatar_frames_show_pill !== false;
+    return (
+      this.siteSettings?.where_is_my_friends_avatar_frames_show_pill !== false
+    );
   }
 
   get pillModifier() {
@@ -94,13 +98,25 @@ export default class CommunityAvatarFrame extends Component {
         <span class="community-avatar-frame__ring" aria-hidden="true"></span>
 
         {{#if this.isLevel7}}
-          <span class="community-avatar-frame__wing-left" aria-hidden="true"></span>
-          <span class="community-avatar-frame__wing-right" aria-hidden="true"></span>
+          <span
+            class="community-avatar-frame__wing-left"
+            aria-hidden="true"
+          ></span>
+          <span
+            class="community-avatar-frame__wing-right"
+            aria-hidden="true"
+          ></span>
         {{/if}}
 
         {{#if this.isLevel8}}
-          <span class="community-avatar-frame__wing-grand-left" aria-hidden="true"></span>
-          <span class="community-avatar-frame__wing-grand-right" aria-hidden="true"></span>
+          <span
+            class="community-avatar-frame__wing-grand-left"
+            aria-hidden="true"
+          ></span>
+          <span
+            class="community-avatar-frame__wing-grand-right"
+            aria-hidden="true"
+          ></span>
           <span class="community-avatar-frame__crown" aria-hidden="true"></span>
         {{/if}}
 

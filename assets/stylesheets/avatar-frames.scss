@@ -8,7 +8,6 @@
   --frame-inset: -4px;
   --frame-size: 100%;
   --frame-glow: transparent;
-
   position: absolute;
   inset: var(--frame-inset);
   pointer-events: none;
@@ -35,18 +34,20 @@
   // ----------------------------------------------------------------------------
   &--level-2 {
     .community-avatar-frame__ring {
-      border: 1.5px solid rgba(210, 225, 240, 0.85);
+      border: 1.5px solid rgb(210, 225, 240, 0.85);
       box-shadow:
-        0 0 6px rgba(210, 225, 240, 0.4),
-        inset 0 0 4px rgba(255, 255, 255, 0.3);
-      transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        0 0 6px rgb(210, 225, 240, 0.4),
+        inset 0 0 4px rgb(255, 255, 255, 0.3);
+      transition:
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
     }
 
     &:hover .community-avatar-frame__ring {
-      border-color: rgba(240, 248, 255, 0.95);
+      border-color: rgb(240, 248, 255, 0.95);
       box-shadow:
-        0 0 10px rgba(210, 230, 255, 0.65),
-        inset 0 0 6px rgba(255, 255, 255, 0.5);
+        0 0 10px rgb(210, 230, 255, 0.65),
+        inset 0 0 6px rgb(255, 255, 255, 0.5);
     }
   }
 
@@ -57,18 +58,22 @@
     .community-avatar-frame__ring {
       border: 2px solid transparent;
       background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff)) padding-box,
-        linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #38bdf8 100%) border-box;
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
+        linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #38bdf8 100%)
+          border-box;
       box-shadow:
-        0 0 8px rgba(16, 185, 129, 0.35),
-        inset 0 0 4px rgba(56, 189, 248, 0.25);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+        0 0 8px rgb(16, 185, 129, 0.35),
+        inset 0 0 4px rgb(56, 189, 248, 0.25);
+      transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
     }
 
     &:hover .community-avatar-frame__ring {
       box-shadow:
-        0 0 14px rgba(16, 185, 129, 0.6),
-        0 0 6px rgba(56, 189, 248, 0.5);
+        0 0 14px rgb(16, 185, 129, 0.6),
+        0 0 6px rgb(56, 189, 248, 0.5);
     }
   }
 
@@ -79,11 +84,12 @@
     .community-avatar-frame__ring {
       border: 2px solid transparent;
       background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff)) padding-box,
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
         linear-gradient(135deg, #0284c7, #3b82f6 50%, #6366f1 100%) border-box;
       box-shadow:
-        0 0 10px rgba(59, 130, 246, 0.5),
-        inset 0 0 6px rgba(2, 132, 199, 0.3);
+        0 0 10px rgb(59, 130, 246, 0.5),
+        inset 0 0 6px rgb(2, 132, 199, 0.3);
     }
 
     // 4 Corner Anchor Pips
@@ -119,7 +125,8 @@
     .community-avatar-frame__ring {
       border: 2.5px solid transparent;
       background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff)) padding-box,
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
         linear-gradient(135deg, #8b5cf6, #ec4899 50%, #d946ef 100%) border-box;
       animation: community-frame-pulse-5 3.5s ease-in-out infinite;
     }
@@ -135,9 +142,11 @@
       border: 2.5px solid transparent;
       border-radius: 50%;
       background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff)) padding-box,
-        conic-gradient(from 0deg, #6366f1, #a855f7, #ec4899, #06b6d4, #6366f1) border-box;
-      box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
+        conic-gradient(from 0deg, #6366f1, #a855f7, #ec4899, #06b6d4, #6366f1)
+          border-box;
+      box-shadow: 0 0 12px rgb(168, 85, 247, 0.5);
       animation: community-frame-spin 6s linear infinite;
     }
 
@@ -165,11 +174,13 @@
       border: 3px solid transparent;
       border-radius: 50%;
       background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff)) padding-box,
-        conic-gradient(from 0deg, #ffd700, #ff8c00, #fff2a3, #d4af37, #ffd700) border-box;
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
+        conic-gradient(from 0deg, #ffd700, #ff8c00, #fff2a3, #d4af37, #ffd700)
+          border-box;
       box-shadow:
-        0 0 14px rgba(255, 215, 0, 0.55),
-        0 0 6px rgba(255, 140, 0, 0.4);
+        0 0 14px rgb(255, 215, 0, 0.55),
+        0 0 6px rgb(255, 140, 0, 0.4);
       animation: community-frame-spin 4s linear infinite;
     }
 
@@ -182,7 +193,7 @@
       height: 18px;
       margin-top: -9px;
       background: linear-gradient(135deg, #ffd700, #f59e0b);
-      box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+      box-shadow: 0 0 6px rgb(255, 215, 0, 0.6);
       z-index: 1;
       transition: transform 0.3s ease;
     }
@@ -203,6 +214,7 @@
       .community-avatar-frame__wing-left {
         transform: translateX(-2px) scale(1.1);
       }
+
       .community-avatar-frame__wing-right {
         transform: translateX(2px) scale(1.1);
       }
@@ -219,12 +231,13 @@
       border: 3px solid transparent;
       border-radius: 50%;
       background:
-        linear-gradient(var(--secondary, #fff), var(--secondary, #fff)) padding-box,
+        linear-gradient(var(--secondary, #fff), var(--secondary, #fff))
+          padding-box,
         conic-gradient(from 0deg, #ffd700, #ec4899, #38bdf8, #ffd700) border-box;
       box-shadow:
-        0 0 18px rgba(255, 215, 0, 0.7),
-        0 0 28px rgba(245, 158, 11, 0.4),
-        inset 0 0 8px rgba(255, 215, 0, 0.5);
+        0 0 18px rgb(255, 215, 0, 0.7),
+        0 0 28px rgb(245, 158, 11, 0.4),
+        inset 0 0 8px rgb(255, 215, 0, 0.5);
       animation: community-frame-spin 3s linear infinite;
     }
 
@@ -237,7 +250,7 @@
       height: 26px;
       margin-top: -13px;
       background: linear-gradient(135deg, #fff2a3, #ffd700 60%, #b45309 100%);
-      box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+      box-shadow: 0 0 10px rgb(255, 215, 0, 0.8);
       z-index: 1;
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
@@ -263,8 +276,16 @@
       width: 16px;
       height: 10px;
       background: linear-gradient(135deg, #fff2a3, #ffd700 70%, #d97706);
-      clip-path: polygon(0 100%, 0 20%, 25% 60%, 50% 0, 75% 60%, 100% 20%, 100% 100%);
-      filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.9));
+      clip-path: polygon(
+        0 100%,
+        0 20%,
+        25% 60%,
+        50% 0,
+        75% 60%,
+        100% 20%,
+        100% 100%
+      );
+      filter: drop-shadow(0 0 4px rgb(255, 215, 0, 0.9));
       animation: community-crown-float 2.5s ease-in-out infinite;
       z-index: 5;
     }
@@ -273,13 +294,15 @@
       .community-avatar-frame__wing-grand-left {
         transform: translateX(-4px) scale(1.15) rotate(-5deg);
       }
+
       .community-avatar-frame__wing-grand-right {
         transform: translateX(4px) scale(1.15) rotate(5deg);
       }
+
       .community-avatar-frame__ring {
         box-shadow:
-          0 0 26px rgba(255, 215, 0, 0.9),
-          0 0 38px rgba(236, 72, 153, 0.6);
+          0 0 26px rgb(255, 215, 0, 0.9),
+          0 0 38px rgb(236, 72, 153, 0.6);
       }
     }
   }
@@ -301,11 +324,11 @@
     font-weight: 800;
     line-height: 1;
     color: #fff;
-    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border: 1.5px solid rgb(255, 255, 255, 0.95);
     box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.35),
-      inset 0 1px 1px rgba(255, 255, 255, 0.7),
-      inset 0 -1px 2px rgba(0, 0, 0, 0.25);
+      0 2px 4px rgb(0, 0, 0, 0.35),
+      inset 0 1px 1px rgb(255, 255, 255, 0.7),
+      inset 0 -1px 2px rgb(0, 0, 0, 0.25);
     z-index: 6;
     pointer-events: auto;
     cursor: default;
@@ -314,25 +337,25 @@
     &.role-active,
     &.role-active_role {
       background: linear-gradient(145deg, #f43f5e, #be123c);
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      text-shadow: 0 1px 2px rgb(0, 0, 0, 0.4);
     }
 
     &.role-passive,
     &.role-passive_role {
       background: linear-gradient(145deg, #38bdf8, #1d4ed8);
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      text-shadow: 0 1px 2px rgb(0, 0, 0, 0.4);
     }
 
     &.role-switch,
     &.role-switch_role {
       background: linear-gradient(145deg, #c084fc, #7e22ce);
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      text-shadow: 0 1px 2px rgb(0, 0, 0, 0.4);
     }
 
     &.role-brat,
     &.role-brat_interaction {
       background: linear-gradient(145deg, #fbbf24, #d97706);
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      text-shadow: 0 1px 2px rgb(0, 0, 0, 0.4);
     }
   }
 
@@ -350,11 +373,11 @@
     font-weight: 700;
     line-height: 1.2;
     white-space: nowrap;
-    background: rgba(15, 23, 42, 0.88);
+    background: rgb(15, 23, 42, 0.88);
     color: #f8fafc;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgb(255, 255, 255, 0.3);
     backdrop-filter: blur(4px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 3px rgb(0, 0, 0, 0.3);
     z-index: 5;
     user-select: none;
 
@@ -369,7 +392,7 @@
       color: #1e1b18;
       font-weight: 900;
       border: 1px solid #fff;
-      box-shadow: 0 0 6px rgba(255, 215, 0, 0.7);
+      box-shadow: 0 0 6px rgb(255, 215, 0, 0.7);
     }
   }
 }
@@ -381,6 +404,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -390,14 +414,15 @@
   0%,
   100% {
     box-shadow:
-      0 0 8px rgba(168, 85, 247, 0.45),
-      inset 0 0 4px rgba(236, 72, 153, 0.3);
+      0 0 8px rgb(168, 85, 247, 0.45),
+      inset 0 0 4px rgb(236, 72, 153, 0.3);
   }
+
   50% {
     box-shadow:
-      0 0 18px rgba(236, 72, 153, 0.75),
-      0 0 24px rgba(168, 85, 247, 0.45),
-      inset 0 0 8px rgba(236, 72, 153, 0.5);
+      0 0 18px rgb(236, 72, 153, 0.75),
+      0 0 24px rgb(168, 85, 247, 0.45),
+      inset 0 0 8px rgb(236, 72, 153, 0.5);
   }
 }
 
@@ -406,6 +431,7 @@
   100% {
     transform: translateX(-50%) translateY(0);
   }
+
   50% {
     transform: translateX(-50%) translateY(-2px);
   }
@@ -417,6 +443,7 @@
     opacity: 0.5;
     transform: scale(0.85);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.25);
@@ -478,6 +505,7 @@
         height: 42px;
         margin-top: -21px;
       }
+
       .community-avatar-frame__crown {
         top: -16px;
         width: 24px;

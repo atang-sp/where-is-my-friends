@@ -4,4 +4,4 @@ export default <template>
   {{#if @outletArgs.post.community_level}}
     <CommunityAvatarFrame @post={{@outletArgs.post}} />
   {{/if}}
-</template>;
+</template>

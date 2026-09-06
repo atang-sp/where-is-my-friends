@@ -48,7 +48,11 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
       active_role: { label: "主", key: "active_role", title: "角色：主" },
       passive_role: { label: "被", key: "passive_role", title: "角色：被" },
       switch_role: { label: "双", key: "switch_role", title: "角色：双" },
-      brat_interaction: { label: "管", key: "brat_interaction", title: "角色：管" },
+      brat_interaction: {
+        label: "管",
+        key: "brat_interaction",
+        title: "角色：管",
+      },
     };
     return map[key] || null;
   };
@@ -239,23 +243,33 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
                         >
                           <span class="community-avatar-frame__ring"></span>
                           {{#if (this.isLevel7 user)}}
-                            <span class="community-avatar-frame__wing-left"></span>
-                            <span class="community-avatar-frame__wing-right"></span>
+                            <span
+                              class="community-avatar-frame__wing-left"
+                            ></span>
+                            <span
+                              class="community-avatar-frame__wing-right"
+                            ></span>
                           {{/if}}
                           {{#if (this.isLevel8 user)}}
-                            <span class="community-avatar-frame__wing-grand-left"></span>
-                            <span class="community-avatar-frame__wing-grand-right"></span>
+                            <span
+                              class="community-avatar-frame__wing-grand-left"
+                            ></span>
+                            <span
+                              class="community-avatar-frame__wing-grand-right"
+                            ></span>
                             <span class="community-avatar-frame__crown"></span>
                           {{/if}}
                           <span
-                            class="community-avatar-frame__pill {{this.pillModifier user}}"
+                            class="community-avatar-frame__pill
+                              {{this.pillModifier user}}"
                             title="Lv.{{user.community_level.level}}"
                           >
                             Lv.{{user.community_level.level}}
                           </span>
                           {{#if (this.hasRoleBadge user)}}
                             <span
-                              class="community-avatar-frame__role {{this.roleBadgeClass user}}"
+                              class="community-avatar-frame__role
+                                {{this.roleBadgeClass user}}"
                               title={{this.roleBadgeTitle user}}
                             >
                               {{this.roleBadgeLabel user}}
