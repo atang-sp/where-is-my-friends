@@ -48,11 +48,6 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
       active_role: { label: "主", key: "active_role", title: "角色：主" },
       passive_role: { label: "被", key: "passive_role", title: "角色：被" },
       switch_role: { label: "双", key: "switch_role", title: "角色：双" },
-      brat_interaction: {
-        label: "管",
-        key: "brat_interaction",
-        title: "角色：管",
-      },
     };
     return map[key] || null;
   };

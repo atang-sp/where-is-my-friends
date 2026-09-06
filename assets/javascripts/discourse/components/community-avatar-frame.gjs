@@ -8,8 +8,6 @@ const ROLE_MAP = {
   passive_role: { label: "被", key: "passive_role", title: "角色：被" },
   switch: { label: "双", key: "switch_role", title: "角色：双" },
   switch_role: { label: "双", key: "switch_role", title: "角色：双" },
-  brat: { label: "管", key: "brat_interaction", title: "角色：管" },
-  brat_interaction: { label: "管", key: "brat_interaction", title: "角色：管" },
 };
 
 export default class CommunityAvatarFrame extends Component {

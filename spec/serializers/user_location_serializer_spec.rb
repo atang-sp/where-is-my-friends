@@ -40,7 +40,7 @@ RSpec.describe UserLocationSerializer do
     expect(json[:role_key]).to be_nil
   end
 
-  it "resolves role_key from custom fields when matching active/passive/switch/brat" do
+  it "resolves role_key from custom fields for active, passive, and switch" do
     serializer =
       described_class.new(
         {
@@ -54,5 +54,21 @@ RSpec.describe UserLocationSerializer do
 
     json = serializer.as_json
     expect(json[:role_key]).to eq("active_role")
+  end
+
+  it "does not map brat to role_key for avatar badges" do
+    serializer =
+      described_class.new(
+        {
+          user: user,
+          location: location,
+          origin: origin,
+          custom_field_values: { "身份" => "brat" },
+        },
+        root: false,
+      )
+
+    json = serializer.as_json
+    expect(json[:role_key]).to be_nil
   end
 end
