@@ -5,11 +5,16 @@
 
 // Base Frame Container
 .community-avatar-frame {
-  --frame-inset: -4px;
+  --frame-size-delta: 8px;
   --frame-size: 100%;
   --frame-glow: transparent;
   position: absolute;
-  inset: var(--frame-inset);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + var(--frame-size-delta, 8px));
+  height: auto;
+  aspect-ratio: 1 / 1;
   pointer-events: none;
   border-radius: 50%;
   box-sizing: border-box;
@@ -28,6 +33,7 @@
     border-radius: 50%;
     box-sizing: border-box;
     pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgb(0, 0, 0, 0.25);
 
     &::before {
       content: "";
@@ -40,6 +46,16 @@
         linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
       mask-composite: exclude;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      box-sizing: border-box;
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgb(0, 0, 0, 0.22);
     }
   }
 
@@ -162,8 +178,8 @@
 
     .community-avatar-frame__ring {
       box-shadow:
-        0 0 12px rgb(168, 85, 247, 0.55),
-        0 0 6px rgb(236, 72, 153, 0.35);
+        0 0 8px rgb(168, 85, 247, 0.45),
+        0 0 4px rgb(236, 72, 153, 0.3);
 
       &::before {
         padding: 2.5px;
@@ -201,8 +217,8 @@
 
     .community-avatar-frame__ring {
       box-shadow:
-        0 0 14px rgb(255, 215, 0, 0.55),
-        0 0 6px rgb(255, 140, 0, 0.4);
+        0 0 10px rgb(255, 215, 0, 0.5),
+        0 0 5px rgb(255, 140, 0, 0.35);
 
       &::before {
         padding: 3px;
@@ -263,8 +279,8 @@
 
     .community-avatar-frame__ring {
       box-shadow:
-        0 0 18px rgb(255, 215, 0, 0.7),
-        0 0 28px rgb(245, 158, 11, 0.4);
+        0 0 12px rgb(255, 215, 0, 0.55),
+        0 0 6px rgb(245, 158, 11, 0.35);
 
       &::before {
         padding: 3px;
@@ -339,8 +355,8 @@
 
       .community-avatar-frame__ring {
         box-shadow:
-          0 0 26px rgb(255, 215, 0, 0.9),
-          0 0 38px rgb(236, 72, 153, 0.6);
+          0 0 16px rgb(255, 215, 0, 0.7),
+          0 0 10px rgb(236, 72, 153, 0.45);
       }
     }
   }
@@ -446,14 +462,14 @@
   0%,
   100% {
     box-shadow:
-      0 0 8px rgb(168, 85, 247, 0.45),
-      0 0 4px rgb(236, 72, 153, 0.3);
+      0 0 6px rgb(168, 85, 247, 0.4),
+      0 0 3px rgb(236, 72, 153, 0.25);
   }
 
   50% {
     box-shadow:
-      0 0 18px rgb(236, 72, 153, 0.75),
-      0 0 24px rgb(168, 85, 247, 0.45);
+      0 0 11px rgb(236, 72, 153, 0.55),
+      0 0 7px rgb(168, 85, 247, 0.35);
   }
 }
 
@@ -486,21 +502,38 @@
 // ==============================================================================
 
 // Topic Post Stream Avatar
-.topic-avatar,
 .post-avatar {
+  position: relative;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .community-avatar-frame {
+    --frame-size-delta: 8px;
+  }
+}
+
+.topic-avatar {
   position: relative;
 
   .community-avatar-frame {
-    --frame-inset: -4px;
+    --frame-size-delta: 8px;
   }
 }
 
 // User Card Avatar (120px)
 .user-card-avatar {
   position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   .community-avatar-frame {
-    --frame-inset: -6px;
+    --frame-size-delta: 12px;
 
     &__role {
       width: 22px;
@@ -546,9 +579,14 @@
 .user-profile-avatar,
 .primary-avatar {
   position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   .community-avatar-frame {
-    --frame-inset: -6px;
+    --frame-size-delta: 12px;
 
     &__role {
       width: 22px;
@@ -624,15 +662,15 @@ img.avatar {
 
   &.community-avatar-level-7 {
     box-shadow:
-      0 0 0 2.5px #ffd700,
-      0 0 14px rgb(255, 215, 0, 0.7);
+      0 0 0 2px #ffd700,
+      0 0 8px rgb(255, 215, 0, 0.5);
   }
 
   &.community-avatar-level-8 {
     box-shadow:
-      0 0 0 2.5px #ffd700,
-      0 0 18px rgb(255, 215, 0, 0.85),
-      0 0 24px rgb(236, 72, 153, 0.4);
+      0 0 0 2px #ffd700,
+      0 0 10px rgb(255, 215, 0, 0.6),
+      0 0 6px rgb(236, 72, 153, 0.35);
   }
 }
 

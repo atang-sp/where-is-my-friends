@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.26.4 — 2026-09-06
+
+- Refactor avatar frame geometry with center-point transformation (`top: 50%; left: 50%; transform: translate(-50%, -50%)`) and strict 1:1 `aspect-ratio` to eliminate oval stretching and eccentric offset across viewports.
+- Explicitly enforce dimensions and flex-center alignment on `.post-avatar`, `.user-card-avatar`, and `.user-profile-avatar`.
+- Add subtle 1px inner vignette/delimiter ring on `&__ring::after` for natural physical depth and boundary contrast on any avatar background.
+- Soften and converge glow radii and ambient diffusion for Lv 5~8 frames to prevent visual glare and text obstruction.
+
 ## 1.26.1 — 2026-09-06
 
 - Refine avatar role flair badges to core trinity: 主 (Active), 被 (Passive), 双 (Switch).
