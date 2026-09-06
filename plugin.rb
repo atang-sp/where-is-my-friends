@@ -2,7 +2,7 @@
 
 # name: where-is-my-friends
 # about: Interest-based community introductions and city-first local member discovery
-# version: 1.25.0
+# version: 1.26.0
 # authors: atang
 # url: https://github.com/atang-sp/where-is-my-friends
 # required_version: 2026.7.0-latest
@@ -15,6 +15,7 @@ add_admin_route(
 )
 
 register_asset "stylesheets/where-is-my-friends.scss"
+register_asset "stylesheets/avatar-frames.scss"
 register_svg_icon "plug"
 register_svg_icon "floppy-disk"
 register_svg_icon "plane"

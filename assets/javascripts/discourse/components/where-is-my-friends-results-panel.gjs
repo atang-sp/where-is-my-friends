@@ -15,6 +15,61 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
     this.args.on.setMemberFilter(event.target.value);
   }
 
+  hasAvatarFrame = (user) => {
+    const lvl = user?.community_level?.level;
+    return typeof lvl === "number" && lvl >= 2 && lvl <= 8;
+  };
+
+  isLevel7 = (user) => {
+    return user?.community_level?.level === 7;
+  };
+
+  isLevel8 = (user) => {
+    return user?.community_level?.level === 8;
+  };
+
+  pillModifier = (user) => {
+    const lvl = user?.community_level?.level;
+    if (lvl >= 7) {
+      return "community-avatar-frame__pill--legend";
+    }
+    if (lvl >= 5) {
+      return "community-avatar-frame__pill--high";
+    }
+    return "";
+  };
+
+  roleBadge = (user) => {
+    const key = user?.role_key;
+    if (!key) {
+      return null;
+    }
+    const map = {
+      active_role: { label: "主", key: "active_role", title: "角色：主" },
+      passive_role: { label: "被", key: "passive_role", title: "角色：被" },
+      switch_role: { label: "双", key: "switch_role", title: "角色：双" },
+      brat_interaction: { label: "管", key: "brat_interaction", title: "角色：管" },
+    };
+    return map[key] || null;
+  };
+
+  hasRoleBadge = (user) => {
+    return Boolean(this.roleBadge(user));
+  };
+
+  roleBadgeClass = (user) => {
+    const info = this.roleBadge(user);
+    return info ? `role-${info.key}` : "";
+  };
+
+  roleBadgeLabel = (user) => {
+    return this.roleBadge(user)?.label || "";
+  };
+
+  roleBadgeTitle = (user) => {
+    return this.roleBadge(user)?.title || "";
+  };
+
   <template>
     <section
       class="where-is-my-friends__location-summary"
@@ -175,7 +230,40 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
                   data-test-user-card={{user.username}}
                 >
                   {{#if user.avatar_template}}
-                    {{dAvatar user imageSize="large"}}
+                    <div class="where-is-my-friends__avatar-wrapper">
+                      {{dAvatar user imageSize="large"}}
+                      {{#if (this.hasAvatarFrame user)}}
+                        <div
+                          class="community-avatar-frame community-avatar-frame--level-{{user.community_level.level}}"
+                          aria-hidden="true"
+                        >
+                          <span class="community-avatar-frame__ring"></span>
+                          {{#if (this.isLevel7 user)}}
+                            <span class="community-avatar-frame__wing-left"></span>
+                            <span class="community-avatar-frame__wing-right"></span>
+                          {{/if}}
+                          {{#if (this.isLevel8 user)}}
+                            <span class="community-avatar-frame__wing-grand-left"></span>
+                            <span class="community-avatar-frame__wing-grand-right"></span>
+                            <span class="community-avatar-frame__crown"></span>
+                          {{/if}}
+                          <span
+                            class="community-avatar-frame__pill {{this.pillModifier user}}"
+                            title="Lv.{{user.community_level.level}}"
+                          >
+                            Lv.{{user.community_level.level}}
+                          </span>
+                          {{#if (this.hasRoleBadge user)}}
+                            <span
+                              class="community-avatar-frame__role {{this.roleBadgeClass user}}"
+                              title={{this.roleBadgeTitle user}}
+                            >
+                              {{this.roleBadgeLabel user}}
+                            </span>
+                          {{/if}}
+                        </div>
+                      {{/if}}
+                    </div>
                   {{/if}}
                   <div>
                     <h3>
