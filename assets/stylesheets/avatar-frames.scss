@@ -590,65 +590,7 @@
   }
 }
 
-// Header Current User Avatar (32px)
-#toggle-current-user,
-.header-dropdown-toggle.current-user {
-  position: relative;
-  overflow: visible;
-
-  .community-avatar-frame {
-    --frame-inset: -3px;
-
-    &__role {
-      width: 14px;
-      height: 14px;
-      font-size: 8px;
-      bottom: -2px;
-      right: -2px;
-    }
-
-    &__pill {
-      display: none;
-    }
-
-    &--level-7 {
-      .community-avatar-frame__wing-left,
-      .community-avatar-frame__wing-right {
-        width: 6px;
-        height: 14px;
-        margin-top: -7px;
-      }
-    }
-
-    &--level-8 {
-      .community-avatar-frame__wing-grand-left,
-      .community-avatar-frame__wing-grand-right {
-        width: 10px;
-        height: 20px;
-        margin-top: -10px;
-      }
-
-      .community-avatar-frame__crown {
-        top: -8px;
-        width: 12px;
-        height: 8px;
-      }
-    }
-  }
-}
-
-// Homepage Latest Topic List Items & Mobile Item Posters
-.latest-topic-list-item .topic-poster,
-.topic-list-mobile-avatar-wrapper {
-  position: relative;
-  display: inline-block;
-
-  .community-avatar-frame {
-    --frame-inset: -4px;
-  }
-}
-
-// Universal Avatar Level Accent Rings (covers topic list table rows, search results, directory)
+// Universal Avatar Level Accent Rings (covers topic list table rows, mobile list, header, search results, directory)
 img.avatar {
   &.community-avatar-level-2 {
     box-shadow:
@@ -697,8 +639,7 @@ img.avatar {
 // Suppress avatar img box-shadow when enclosed by a full community-avatar-frame container
 .user-profile-avatar img.avatar,
 .post-avatar img.avatar,
-.user-card-avatar img.avatar,
-#toggle-current-user img.avatar {
+.user-card-avatar img.avatar {
   box-shadow: none;
 }
 
