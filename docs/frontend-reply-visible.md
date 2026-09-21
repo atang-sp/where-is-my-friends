@@ -54,5 +54,14 @@
        ...
    ```
 
+3. **重新编译主题 JS 缓存（关键步骤）：**
+   在 Rails 控制台中直接通过 `ThemeField#save!` 修改 JS 代码并不会自动触发打包编译。Discourse 会继续从 `javascript_caches` 表中下发旧的编译后 bundle。必须显式执行重新编译与缓存清理：
+   ```ruby
+   t = Theme.find_by(name: "回复可见（前端版）")
+   t.update_javascript_cache!
+   Theme.clear_cache!
+   ```
+   执行后，Discourse 会重新生成 `javascript_caches` 并更新 bundle digest，前端刷新时即可获取最新的修复逻辑。
+
 ## 4. 总结与后续建议
 目前“前端回复可见”代码并未直接保存在当前的 `where-is-my-friends` 仓库中，而是作为环境里的独立 Theme Component 存在。本次 Bug 已在服务器端热修复。如果未来需要重建 Discourse 环境，请确保同步更新备份在服务器上的该 Theme Component 代码，或将其单独放入版本库管理。
