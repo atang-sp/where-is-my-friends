@@ -18,17 +18,25 @@ export default class UserTagProposeDialog extends Component {
       {
         key: "practice",
         titleKey: "where_is_my_friends.user_tags.preset_groups.practice",
-        tags: i18n("where_is_my_friends.user_tags.preset_groups.practice_tags").split(",").map(t => t.trim()),
+        tags: i18n("where_is_my_friends.user_tags.preset_groups.practice_tags")
+          .split(",")
+          .map((t) => t.trim()),
       },
       {
         key: "personality",
         titleKey: "where_is_my_friends.user_tags.preset_groups.personality",
-        tags: i18n("where_is_my_friends.user_tags.preset_groups.personality_tags").split(",").map(t => t.trim()),
+        tags: i18n(
+          "where_is_my_friends.user_tags.preset_groups.personality_tags"
+        )
+          .split(",")
+          .map((t) => t.trim()),
       },
       {
         key: "community",
         titleKey: "where_is_my_friends.user_tags.preset_groups.community",
-        tags: i18n("where_is_my_friends.user_tags.preset_groups.community_tags").split(",").map(t => t.trim()),
+        tags: i18n("where_is_my_friends.user_tags.preset_groups.community_tags")
+          .split(",")
+          .map((t) => t.trim()),
       },
     ];
   }

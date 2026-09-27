@@ -45,9 +45,21 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
       return null;
     }
     const map = {
-      active_role: { labelKey: "where_is_my_friends.roles.active.label", titleKey: "where_is_my_friends.roles.active.title", key: "active_role" },
-      passive_role: { labelKey: "where_is_my_friends.roles.passive.label", titleKey: "where_is_my_friends.roles.passive.title", key: "passive_role" },
-      switch_role: { labelKey: "where_is_my_friends.roles.switch.label", titleKey: "where_is_my_friends.roles.switch.title", key: "switch_role" },
+      active_role: {
+        labelKey: "where_is_my_friends.roles.active.label",
+        titleKey: "where_is_my_friends.roles.active.title",
+        key: "active_role",
+      },
+      passive_role: {
+        labelKey: "where_is_my_friends.roles.passive.label",
+        titleKey: "where_is_my_friends.roles.passive.title",
+        key: "passive_role",
+      },
+      switch_role: {
+        labelKey: "where_is_my_friends.roles.switch.label",
+        titleKey: "where_is_my_friends.roles.switch.title",
+        key: "switch_role",
+      },
     };
     return map[key] || null;
   };
