@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.29.0 — 2026-09-27
+
+- Complete Playwright E2E test suites for user tags, interest onboarding, and flying chess achievements.
+- Extract `<CommunityMemberCard>` component from `where-is-my-friends-results-panel.gjs` to decouple avatar framing, role flair badges, and level styling from result filtering.
+- Refactor `DynamicFeed` God Object into cohesive domain modules (`DynamicFeed::Queries`, `DynamicFeed::Publisher`, `DynamicFeed::Reactor`, `DynamicFeed::Serializer`).
+- Refactor `NextAction` stage evaluator into dedicated evaluators under `NextAction::Evaluators::*` namespace (`IncomingInvitation`, `AcceptedConversation`, `Onboarding`, `Recommendation`, `Dynamic`).
+
 ## 1.28.0 — 2026-09-27
 
 - Refactor `RecommendationEngine` God Object into smaller, cohesive domain engines (`TopicEngine`, `UserEngine`, `InterestEngine`, `Serializer`).
