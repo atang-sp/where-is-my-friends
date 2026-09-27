@@ -58,9 +58,9 @@ end
 #
 # Indexes
 #
-#  idx_wimf_licensed_import_daily_active   (scheduled_for_date) UNIQUE WHERE ((status)::text = ANY (ARRAY[('processing'::character varying)::text, ('preview'::character varying)::text, ('published'::character varying)::text]))
+#  idx_wimf_licensed_import_daily_active   (scheduled_for_date) UNIQUE WHERE ((status)::text = ANY ((ARRAY['processing'::character varying, 'preview'::character varying, 'published'::character varying])::text[]))
 #  idx_wimf_licensed_import_source         (source_question_id,created_at)
-#  idx_wimf_licensed_import_source_active  (source_type,source_question_id) UNIQUE WHERE ((status)::text = ANY (ARRAY[('processing'::character varying)::text, ('preview'::character varying)::text, ('published'::character varying)::text]))
+#  idx_wimf_licensed_import_source_active  (source_type,source_question_id) UNIQUE WHERE ((status)::text = ANY ((ARRAY['processing'::character varying, 'preview'::character varying, 'published'::character varying])::text[]))
 #  idx_wimf_licensed_import_status         (status,created_at)
 #  idx_wimf_licensed_import_topic          (topic_id)
 #
