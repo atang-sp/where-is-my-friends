@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.30.0 — 2026-09-27
+
+- Add guest locale switcher component for login modal, signup modal, and static login pages with 9 supported languages (zh_CN, en, ja, de, es, fr, pt, ru, ar).
+- Enable `SiteSetting.set_locale_from_cookie`, `SiteSetting.set_locale_from_param`, and `SiteSetting.allow_user_locale` with `AnonymousLocaleSupport` to allow guests to select language before logging in.
+- Complete domain extraction of `Recommendations::Serializer` with nil-safe interest entrance resolution.
+- Enforce practice invitation acceptance preference checks in bulk invitation eligibility resolution.
+- Standardize database model index schema annotations and fix RuboCop offenses across dynamic feed and recommendation evaluators.
+
 ## 1.29.0 — 2026-09-27
 
 - Complete Playwright E2E test suites for user tags, interest onboarding, and flying chess achievements.
