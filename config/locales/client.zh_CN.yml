@@ -4,477 +4,491 @@ zh_CN:
       logs:
         staff_actions:
           actions:
-            create_where_is_my_friends_ai_provider_profile: "创建同城朋友 AI 供应商"
-            update_where_is_my_friends_ai_provider_profile: "更新同城朋友 AI 供应商"
-            test_where_is_my_friends_ai_provider_profile: "测试同城朋友 AI 供应商"
-            activate_where_is_my_friends_ai_provider_profile: "启用同城朋友 AI 供应商"
-            delete_where_is_my_friends_ai_provider_profile: "删除同城朋友 AI 供应商"
+            create_where_is_my_friends_ai_provider_profile: 创建同城朋友 AI 供应商
+            update_where_is_my_friends_ai_provider_profile: 更新同城朋友 AI 供应商
+            test_where_is_my_friends_ai_provider_profile: 测试同城朋友 AI 供应商
+            activate_where_is_my_friends_ai_provider_profile: 启用同城朋友 AI 供应商
+            delete_where_is_my_friends_ai_provider_profile: 删除同城朋友 AI 供应商
   js:
     where_is_my_friends:
-      title: "同城朋友"
-      eyebrow: "本地社区"
-      description: "找到你身边的同好，把线上的熟悉ID变成线下的真实连接。"
+      title: 同城朋友
+      eyebrow: 本地社区
+      description: 找到你身边的同好，把线上的熟悉ID变成线下的真实连接。
       first_connection:
-        eyebrow: "今天可以做什么"
-        loading: "正在加载今天的建议行动"
-        dismiss: "七天内不再显示今天的建议行动"
-        more: "查看更多推荐"
-        more_people: "查看更多成员"
+        eyebrow: 今天可以做什么
+        loading: 正在加载今天的建议行动
+        dismiss: 七天内不再显示今天的建议行动
+        more: 查看更多推荐
+        more_people: 查看更多成员
         onboarding:
-          title: "找到适合你的话题和成员"
-          description: "先选择 3 个感兴趣的方向，我们会马上给你一个可以参与的社区机会。"
-          cta: "选择兴趣"
+          title: 找到适合你的话题和成员
+          description: 先选择 3 个感兴趣的方向，我们会马上给你一个可以参与的社区机会。
+          cta: 选择兴趣
         incoming_invitation:
-          title: "你收到了一条连接邀请"
-          description: "你可以查看共同兴趣，并自行决定接受、拒绝或忽略。"
-          cta: "查看邀请"
+          title: 你收到了一条连接邀请
+          description: 你可以查看共同兴趣，并自行决定接受、拒绝或忽略。
+          cta: 查看邀请
         continue_conversation:
-          title: "继续刚开始的对话"
-          description: "对方已经接受邀请，可以从共同兴趣开始聊聊。"
-          cta: "继续对话"
+          title: 继续刚开始的对话
+          description: 对方已经接受邀请，可以从共同兴趣开始聊聊。
+          cta: 继续对话
         topic:
-          title: "先从一个容易加入的话题开始"
-          description: "这个讨论与你选择的兴趣有关，目前很适合参与。"
-          cta: "参与讨论"
+          title: 先从一个容易加入的话题开始
+          description: 这个讨论与你选择的兴趣有关，目前很适合参与。
+          cta: 参与讨论
         person:
-          title: "认识一位可能聊得来的成员"
-          description: "你们有共同关注的方向，可以先从公开内容了解对方。"
-          topic_cta: "从共同话题开始"
-          profile_cta: "查看资料"
+          title: 认识一位可能聊得来的成员
+          description: 你们有共同关注的方向，可以先从公开内容了解对方。
+          topic_cta: 从共同话题开始
+          profile_cta: 查看资料
         dynamic:
-          title: "看看社区成员最近在分享什么"
-          description: "这条近期动态对你可见，可以从这里了解社区正在发生的事。"
-          cta: "查看动态"
+          title: 看看社区成员最近在分享什么
+          description: 这条近期动态对你可见，可以从这里了解社区正在发生的事。
+          cta: 查看动态
         local_discovery:
-          title: "发现同城成员"
-          description: "只需从城市开始，无需精确位置，也能认识本地社区成员。"
-          cta: "看看同城成员"
+          title: 发现同城成员
+          description: 只需从城市开始，无需精确位置，也能认识本地社区成员。
+          cta: 看看同城成员
         recommendations:
-          title: "看看为你准备的社区推荐"
-          description: "暂时没有适合单独突出的一项内容，可以继续浏览原有推荐。"
-          cta: "查看推荐"
+          title: 看看为你准备的社区推荐
+          description: 暂时没有适合单独突出的一项内容，可以继续浏览原有推荐。
+          cta: 查看推荐
       flying_chess:
-        eyebrow: "服务器确认成就"
-        claim_title: "保存这局飞行棋成就"
-        unavailable: "飞行棋成就认领当前未启用。"
-        missing_claim: "没有找到可认领的完成凭证。请从游戏结束页重新进入。"
-        login_description: "先登录论坛，再由你确认是否把这局匿名游戏保存到账号。"
-        login: "登录并继续"
-        confirm_description: "这份凭证由房间服务器在终局时签发。确认后将保存“完成第一局”并授予“飞行棋·初次起飞”。"
-        claim_privacy: "论坛不会保存或公开你的游戏昵称；你可以随时隐藏个人资料中的飞行棋卡片和徽章。"
-        confirm: "确认保存本局成就"
-        claimed: "已保存。本局只会被一个论坛账号认领。"
-        claim_error: "暂时无法认领本局，请稍后重试。"
-        profile_update_error: "暂时无法更新成就可见性，请稍后重试。"
-        completed_games_one: "已完成 %{count} 局服务器确认的在线游戏"
-        completed_games_other: "已完成 %{count} 局服务器确认的在线游戏"
-        profile_eyebrow: "飞行棋"
-        profile_title: "在线游戏成就"
-        profile_public: "这张卡片当前对其他论坛成员可见。"
-        profile_private: "这张卡片和徽章当前只对你可见。"
-        start_game: "开始一局飞行棋"
-        hide_profile: "隐藏成就卡片"
-        show_profile: "公开成就卡片"
-      callout_title: "想找同城玩伴？"
-      callout_setup_description: "填一次城市，立刻看到谁在你附近。"
-      callout_returning_description: "你的同城伙伴还在等你——回来看看吧。"
-      callout_proof_count: "%{count} 人已加入——有没有你附近的？"
-      callout_proof_generic: "你附近已经有人在了"
-      callout_set_city: "找找附近的人"
-      callout_view_members: "看看谁在附近"
-      callout_dismiss: "关闭本地发现提示"
-      setup_title: "先选择你所在的城市"
-      setup_description: "无需精确定位。填写城市后，即可发现同城及附近城市的成员。"
-      participant_proof_count: "已有 %{count} 位成员加入本地发现"
-      participant_proof_generic: "已有论坛成员加入本地发现"
-      city: "城市"
-      city_placeholder: "如：上海、Beijing、New York"
-      city_member_count: "%{city} 有 %{count} 位成员"
-      city_will_match_as: "将按「%{normalized}」匹配同城成员"
-      active_cities: "近期活跃城市"
-      growing_cities: "最近增长城市"
-      city_directory_counts: "近 90 天活跃 %{active} 人 · 累计加入 %{joined} 人"
-      aggregate_counts_suppressed: "为保护隐私，精确人数已隐藏"
-      preview_city: "预览附近网络"
-      preview_city_counts: "近 90 天活跃 %{active} 人 · 累计加入 %{joined} 人"
-      preview_radius_summary: "%{radius} 公里 · 活跃 %{active} 人 · 累计 %{joined} 人"
-      preview_radius_counts_suppressed: "%{radius} 公里 · 精确人数已隐藏"
-      join_preview_city: "以 %{city} 加入"
-      unverified_city_notice: "该城市尚未收录进距离库。你仍可加入，管理员确认后将启用附近城市匹配。"
-      recommended_activity_range: "推荐活动范围"
-      nearby_city_network: "附近城市网络"
-      nearby_city_counts: "约 %{distance} 公里 · 活跃 %{active} 人 · 累计 %{joined} 人"
-      nearby_city_counts_suppressed: "约 %{distance} 公里 · 精确人数已隐藏"
-      region_optional: "省份 / 地区（选填）"
-      add_region: "添加省份 / 地区"
-      save_city: "看看附近成员"
-      city_privacy: "城市模式只向其他成员展示城市，不收集你的精确坐标。"
-      your_city: "当前发现城市"
-      update_city: "更新城市"
-      remove_location: "移除位置"
-      location_settings: "位置设置"
-      loading_results: "正在寻找附近成员…"
-      generic_error: "暂时无法加载本地发现，请稍后重试。"
-      people_in_city: "附近成员"
-      results_count_one: "%{city} 附近 %{radius} 公里内有 %{count} 位成员"
-      results_count_other: "%{city} 附近 %{radius} 公里内有 %{count} 位成员"
-      discovery_radius: "发现半径"
-      discovery_radius_option: "%{radius} 公里"
-      filter_members: "筛选成员"
-      filter_members_placeholder: "按昵称或用户名搜索"
-      online_now: "正在在线"
-      seen_recently: "%{time}前来过"
-      presence_privacy_note: "在线状态为近似判断；已隐藏在线状态的成员不会显示为正在在线。"
-      view_profile: "查看主页"
-      view_profile_for: "查看%{username}的主页"
-      send_message: "发消息"
-      start_chat: "聊天"
-      message_user: "给%{username}发消息"
-      empty_title: "成为 %{city} 的第一个连接"
-      empty_description: "暂时还没有其他可见成员。等待社区成长时，也可以先加入本地话题。"
-      browse_local_topics: "浏览本地话题"
-      browse_topics_for: "浏览关于%{city}的话题"
-      start_local_topic: "发起本地话题"
-      safety_title: "安全见面"
-      safety_copy: "先在公开话题中交流，初次见面选择公共场所；如遇不适，可直接使用 Discourse 的屏蔽、忽略或举报。"
-      empty_invitation: "认识同城的朋友？邀请他们来论坛加入这段对话。"
-      copy_invite: "复制邀请链接"
-      invite_copied: "邀请链接已复制到剪贴板"
-      invite_copy_failed: "无法复制邀请链接，请重试。"
+        eyebrow: 服务器确认成就
+        claim_title: 保存这局飞行棋成就
+        unavailable: 飞行棋成就认领当前未启用。
+        missing_claim: 没有找到可认领的完成凭证。请从游戏结束页重新进入。
+        login_description: 先登录论坛，再由你确认是否把这局匿名游戏保存到账号。
+        login: 登录并继续
+        confirm_description: 这份凭证由房间服务器在终局时签发。确认后将保存“完成第一局”并授予“飞行棋·初次起飞”。
+        claim_privacy: 论坛不会保存或公开你的游戏昵称；你可以随时隐藏个人资料中的飞行棋卡片和徽章。
+        confirm: 确认保存本局成就
+        claimed: 已保存。本局只会被一个论坛账号认领。
+        claim_error: 暂时无法认领本局，请稍后重试。
+        profile_update_error: 暂时无法更新成就可见性，请稍后重试。
+        completed_games_one: 已完成 %{count} 局服务器确认的在线游戏
+        completed_games_other: 已完成 %{count} 局服务器确认的在线游戏
+        profile_eyebrow: 飞行棋
+        profile_title: 在线游戏成就
+        profile_public: 这张卡片当前对其他论坛成员可见。
+        profile_private: 这张卡片和徽章当前只对你可见。
+        start_game: 开始一局飞行棋
+        hide_profile: 隐藏成就卡片
+        show_profile: 公开成就卡片
+      callout_title: 想找同城玩伴？
+      callout_setup_description: 填一次城市，立刻看到谁在你附近。
+      callout_returning_description: 你的同城伙伴还在等你——回来看看吧。
+      callout_proof_count: '%{count} 人已加入——有没有你附近的？'
+      callout_proof_generic: 你附近已经有人在了
+      callout_set_city: 找找附近的人
+      callout_view_members: 看看谁在附近
+      callout_dismiss: 关闭本地发现提示
+      setup_title: 先选择你所在的城市
+      setup_description: 无需精确定位。填写城市后，即可发现同城及附近城市的成员。
+      participant_proof_count: 已有 %{count} 位成员加入本地发现
+      participant_proof_generic: 已有论坛成员加入本地发现
+      city: 城市
+      city_placeholder: 如：上海、Beijing、New York
+      city_member_count: '%{city} 有 %{count} 位成员'
+      city_will_match_as: 将按「%{normalized}」匹配同城成员
+      active_cities: 近期活跃城市
+      growing_cities: 最近增长城市
+      city_directory_counts: 近 90 天活跃 %{active} 人 · 累计加入 %{joined} 人
+      aggregate_counts_suppressed: 为保护隐私，精确人数已隐藏
+      preview_city: 预览附近网络
+      preview_city_counts: 近 90 天活跃 %{active} 人 · 累计加入 %{joined} 人
+      preview_radius_summary: '%{radius} 公里 · 活跃 %{active} 人 · 累计 %{joined} 人'
+      preview_radius_counts_suppressed: '%{radius} 公里 · 精确人数已隐藏'
+      join_preview_city: 以 %{city} 加入
+      unverified_city_notice: 该城市尚未收录进距离库。你仍可加入，管理员确认后将启用附近城市匹配。
+      recommended_activity_range: 推荐活动范围
+      nearby_city_network: 附近城市网络
+      nearby_city_counts: 约 %{distance} 公里 · 活跃 %{active} 人 · 累计 %{joined} 人
+      nearby_city_counts_suppressed: 约 %{distance} 公里 · 精确人数已隐藏
+      region_optional: 省份 / 地区（选填）
+      add_region: 添加省份 / 地区
+      save_city: 看看附近成员
+      city_privacy: 城市模式只向其他成员展示城市，不收集你的精确坐标。
+      your_city: 当前发现城市
+      update_city: 更新城市
+      remove_location: 移除位置
+      location_settings: 位置设置
+      loading_results: 正在寻找附近成员…
+      generic_error: 暂时无法加载本地发现，请稍后重试。
+      people_in_city: 附近成员
+      results_count_one: '%{city} 附近 %{radius} 公里内有 %{count} 位成员'
+      results_count_other: '%{city} 附近 %{radius} 公里内有 %{count} 位成员'
+      discovery_radius: 发现半径
+      discovery_radius_option: '%{radius} 公里'
+      filter_members: 筛选成员
+      filter_members_placeholder: 按昵称或用户名搜索
+      online_now: 正在在线
+      seen_recently: '%{time}前来过'
+      presence_privacy_note: 在线状态为近似判断；已隐藏在线状态的成员不会显示为正在在线。
+      view_profile: 查看主页
+      view_profile_for: 查看%{username}的主页
+      send_message: 发消息
+      start_chat: 聊天
+      message_user: 给%{username}发消息
+      empty_title: 成为 %{city} 的第一个连接
+      empty_description: 暂时还没有其他可见成员。等待社区成长时，也可以先加入本地话题。
+      browse_local_topics: 浏览本地话题
+      browse_topics_for: 浏览关于%{city}的话题
+      start_local_topic: 发起本地话题
+      safety_title: 安全见面
+      safety_copy: 先在公开话题中交流，初次见面选择公共场所；如遇不适，可直接使用 Discourse 的屏蔽、忽略或举报。
+      empty_invitation: 认识同城的朋友？邀请他们来论坛加入这段对话。
+      copy_invite: 复制邀请链接
+      invite_copied: 邀请链接已复制到剪贴板
+      invite_copy_failed: 无法复制邀请链接，请重试。
       distance_bands:
-        same_city: "同城"
-        nearby: "附近城市"
-        moderate: "不远"
-        far: "较远"
-        under_5: "约 5 公里以内"
-        5_to_20: "约 5–20 公里"
-        over_20: "约 20 公里以上"
-      advanced_location: "添加隐私距离范围"
-      advanced_location_title: "可选的精确定位"
-      advanced_location_description: "坐标只保存在服务端，仅用于把其他成员归入宽泛的距离范围。"
-      use_gps: "使用当前设备定位"
-      use_gps_description: "服务端会添加隐私偏移后再保存 GPS 坐标。"
-      choose_on_map: "在地图上选择"
-      choose_on_map_description: "可以选择公共区域，无需分享你此刻的真实位置。"
-      gps_city_fallback: "无法取得精确位置，同城发现仍然有效。"
-      select_virtual_location: "选择大致位置"
-      virtual_location_instruction: "点击地图或输入某个公共区域的坐标，不会发送逆地理编码请求。"
-      map_aria_label: "用于选择大致位置的地图"
-      map_loading: "正在加载地图…"
-      map_init_failed: "地图加载失败，你仍可在下方输入坐标。"
-      latitude: "纬度"
-      longitude: "经度"
-      invalid_coordinates: "请输入有效的经纬度。"
-      confirm_selection: "使用这个地图位置"
-      new_member_badge: "新"
-      city_group_same: "%{city}同城"
-      city_group_nearby: "%{city} · 约 %{distance} 公里"
-      city_group_counts: "活跃 %{active} 人 · 累计加入 %{joined} 人"
-      inactive_member: "超过 90 天未活跃"
-      last_active: "最近活跃"
-      empty_notify_prompt: "有人加入%{city}时通知我"
-      empty_nearby_count: "附近城市已有 %{count} 位成员加入"
-      empty_nearby_count_suppressed: "附近城市已有成员加入"
-      results_limited_title: "部分资料未能完成检查"
-      results_limited: "可能还有符合条件的成员，但本次查找已达隐私安全的扫描上限。请减少筛选范围或稍后重试。"
-      join_notifications: "加入后的通知"
-      notify_city_members: "有新成员加入同城时通知我"
-      notify_nearby_members: "附近城市有新成员加入时，每周通知一次"
-      callout_city_placeholder: "输入你的城市"
-      callout_save_city: "加入"
-      callout_joined_title: "已加入！"
-      callout_joined_description: "查看 %{city} 的同城成员"
-      callout_save_error: "无法保存城市，请重试。"
-      user_card_city_title: "%{city} 的同城发现成员"
-      profile_location_suggestion: "我们发现你在 %{city}，加入同城发现来找到附近的朋友吧！"
-      callout_suggestion: "我们发现你在 %{city}，一键加入同城发现？"
-      expanded_radius_notice: "%{original_radius} 公里内暂无成员，已自动扩大到 %{expanded_radius} 公里"
-      global_stats: "已有 %{count} 位成员在 %{city_count} 个城市加入同城发现"
-      global_stats_pioneer: "你是 %{city} 的先行者！"
-      monthly_digest: "上个月有 %{count} 位新成员加入了你附近的同城发现"
-      auto_city_hint: "已为你预填城市「%{city}」，确认即可加入"
-      category_callout_title: "想找同城玩伴？"
-      category_callout_description: "已有 %{count} 位成员在 %{city_count} 个城市使用同城朋友"
-      category_callout_cta: "一键加入，查看你附近的所有人"
-      category_callout_stats: "%{count} 人覆盖 %{city_count} 个城市"
-      composer_hint: "想让更多同城人找到你？加入同城朋友，让 %{city} 的成员直接看到你。"
-      composer_hint_cta: "加入同城朋友"
-      composer_hint_no_city: "小贴士：加入同城朋友，让同城的人更容易找到你"
-      filter_all: "全部"
-      no_results_with_filters: "没有成员符合当前筛选条件，试试减少筛选项。"
-      sidebar_widget_title: "同城朋友"
-      sidebar_widget_new_members: "你附近新增了 %{count} 位成员"
-      sidebar_widget_view: "查看全部"
-      sidebar_widget_no_new: "我的同城社区"
+        same_city: 同城
+        nearby: 附近城市
+        moderate: 不远
+        far: 较远
+        under_5: 约 5 公里以内
+        5_to_20: 约 5–20 公里
+        over_20: 约 20 公里以上
+      advanced_location: 添加隐私距离范围
+      advanced_location_title: 可选的精确定位
+      advanced_location_description: 坐标只保存在服务端，仅用于把其他成员归入宽泛的距离范围。
+      use_gps: 使用当前设备定位
+      use_gps_description: 服务端会添加隐私偏移后再保存 GPS 坐标。
+      choose_on_map: 在地图上选择
+      choose_on_map_description: 可以选择公共区域，无需分享你此刻的真实位置。
+      gps_city_fallback: 无法取得精确位置，同城发现仍然有效。
+      select_virtual_location: 选择大致位置
+      virtual_location_instruction: 点击地图或输入某个公共区域的坐标，不会发送逆地理编码请求。
+      map_aria_label: 用于选择大致位置的地图
+      map_loading: 正在加载地图…
+      map_init_failed: 地图加载失败，你仍可在下方输入坐标。
+      latitude: 纬度
+      longitude: 经度
+      invalid_coordinates: 请输入有效的经纬度。
+      confirm_selection: 使用这个地图位置
+      new_member_badge: 新
+      city_group_same: '%{city}同城'
+      city_group_nearby: '%{city} · 约 %{distance} 公里'
+      city_group_counts: 活跃 %{active} 人 · 累计加入 %{joined} 人
+      inactive_member: 超过 90 天未活跃
+      last_active: 最近活跃
+      empty_notify_prompt: 有人加入%{city}时通知我
+      empty_nearby_count: 附近城市已有 %{count} 位成员加入
+      empty_nearby_count_suppressed: 附近城市已有成员加入
+      results_limited_title: 部分资料未能完成检查
+      results_limited: 可能还有符合条件的成员，但本次查找已达隐私安全的扫描上限。请减少筛选范围或稍后重试。
+      join_notifications: 加入后的通知
+      notify_city_members: 有新成员加入同城时通知我
+      notify_nearby_members: 附近城市有新成员加入时，每周通知一次
+      callout_city_placeholder: 输入你的城市
+      callout_save_city: 加入
+      callout_joined_title: 已加入！
+      callout_joined_description: 查看 %{city} 的同城成员
+      callout_save_error: 无法保存城市，请重试。
+      user_card_city_title: '%{city} 的同城发现成员'
+      profile_location_suggestion: 我们发现你在 %{city}，加入同城发现来找到附近的朋友吧！
+      callout_suggestion: 我们发现你在 %{city}，一键加入同城发现？
+      expanded_radius_notice: '%{original_radius} 公里内暂无成员，已自动扩大到 %{expanded_radius}
+        公里'
+      global_stats: 已有 %{count} 位成员在 %{city_count} 个城市加入同城发现
+      global_stats_pioneer: 你是 %{city} 的先行者！
+      monthly_digest: 上个月有 %{count} 位新成员加入了你附近的同城发现
+      auto_city_hint: 已为你预填城市「%{city}」，确认即可加入
+      category_callout_title: 想找同城玩伴？
+      category_callout_description: 已有 %{count} 位成员在 %{city_count} 个城市使用同城朋友
+      category_callout_cta: 一键加入，查看你附近的所有人
+      category_callout_stats: '%{count} 人覆盖 %{city_count} 个城市'
+      composer_hint: 想让更多同城人找到你？加入同城朋友，让 %{city} 的成员直接看到你。
+      composer_hint_cta: 加入同城朋友
+      composer_hint_no_city: 小贴士：加入同城朋友，让同城的人更容易找到你
+      filter_all: 全部
+      no_results_with_filters: 没有成员符合当前筛选条件，试试减少筛选项。
+      sidebar_widget_title: 同城朋友
+      sidebar_widget_new_members: 你附近新增了 %{count} 位成员
+      sidebar_widget_view: 查看全部
+      sidebar_widget_no_new: 我的同城社区
       interests:
-        sidebar_title: "为我推荐"
-        eyebrow: "认识社区"
-        title: "你为什么来到这里？"
-        description: "从细分兴趣中选出最像你的方向，我们会推荐相关讨论，以及兴趣相同或相近的成员。"
-        callout_title: "先认识一下这个论坛"
-        callout_description: "选择你的兴趣，马上发现相关讨论和兴趣相近的成员。"
-        callout_cta: "定制我的论坛"
-        choose_interests: "选择你的兴趣"
-        choose_interests_help: "部分分类为单选（选一个），其余可以多选。除非你主动公开，否则这些兴趣不会显示在个人资料中。"
-        single_select: "单选"
-        group_count: "%{count} / %{maximum}"
-        search_label: "搜索兴趣"
-        search_placeholder: "例如：游戏、轻度、安全、小说"
-        search_empty: "没有找到这个兴趣，换个关键词试试。"
-        community_group: "社区原有标签"
-        selection_count: "已选择 %{count} / %{maximum} 个"
-        choose_purpose: "你现在最想做什么？"
+        sidebar_title: 为我推荐
+        eyebrow: 认识社区
+        title: 你为什么来到这里？
+        description: 从细分兴趣中选出最像你的方向，我们会推荐相关讨论，以及兴趣相同或相近的成员。
+        callout_title: 先认识一下这个论坛
+        callout_description: 选择你的兴趣，马上发现相关讨论和兴趣相近的成员。
+        callout_cta: 定制我的论坛
+        choose_interests: 选择你的兴趣
+        choose_interests_help: 部分分类为单选（选一个），其余可以多选。除非你主动公开，否则这些兴趣不会显示在个人资料中。
+        single_select: 单选
+        group_count: '%{count} / %{maximum}'
+        search_label: 搜索兴趣
+        search_placeholder: 例如：游戏、轻度、安全、小说
+        search_empty: 没有找到这个兴趣，换个关键词试试。
+        community_group: 社区原有标签
+        selection_count: 已选择 %{count} / %{maximum} 个
+        choose_purpose: 你现在最想做什么？
         purposes:
-          learn: "学习"
-          share: "分享经验"
-          connect: "认识同好"
-          ask: "寻求帮助"
-          help: "帮助别人"
-          browse: "随便逛逛"
-        privacy_title: "隐私与被发现"
-        recommendable: "允许系统在合适时把我推荐给其他成员"
-        public_interests: "在个人资料中展示我选择的兴趣"
-        private_by_default: "兴趣和目的默认私密；相近兴趣只用于匹配，不等于对联系、邀请或任何具体行为的同意。系统绝不会替你修改通知设置。"
-        save: "看看推荐"
-        skip: "暂时不要"
-        catalogue_empty: "兴趣目录暂时不可用，请联系管理员检查插件数据。"
-        dismissed_title: "个性化推荐已关闭"
-        dismissed_description: "系统不会根据兴趣为你推荐。你随时可以重新开启。"
-        enable: "选择兴趣"
-        results_title: "从这些内容开始认识论坛"
-        results_description: "所有建议都只来自你原本就有权限查看的公开讨论。"
-        edit: "修改兴趣"
-        recommended_topics: "值得先看的讨论"
-        topic_reason: "与你选择的兴趣相关："
-        recommended_people: "值得认识的成员"
-        person_reason: "你们的兴趣方向相近："
-        not_interested: "不感兴趣"
-        empty_title: "暂时没有足够匹配"
-        empty_description: "你的偏好已保存。随着可见讨论和参与推荐的成员增加，建议会自然变得更丰富。"
-        settings: "个性化设置"
-        disable_description: "关闭个性化并清空兴趣和“不感兴趣”记录。你的帖子和通知设置不会受到影响。"
-        disable: "关闭并清空我的数据"
-        loading: "正在更新推荐……"
-        generic_error: "暂时无法更新推荐，请稍后重试。"
-        public_profile_title: "感兴趣"
+          learn: 学习
+          share: 分享经验
+          connect: 认识同好
+          ask: 寻求帮助
+          help: 帮助别人
+          browse: 随便逛逛
+        privacy_title: 隐私与被发现
+        recommendable: 允许系统在合适时把我推荐给其他成员
+        public_interests: 在个人资料中展示我选择的兴趣
+        private_by_default: 兴趣和目的默认私密；相近兴趣只用于匹配，不等于对联系、邀请或任何具体行为的同意。系统绝不会替你修改通知设置。
+        save: 看看推荐
+        skip: 暂时不要
+        catalogue_empty: 兴趣目录暂时不可用，请联系管理员检查插件数据。
+        dismissed_title: 个性化推荐已关闭
+        dismissed_description: 系统不会根据兴趣为你推荐。你随时可以重新开启。
+        enable: 选择兴趣
+        results_title: 从这些内容开始认识论坛
+        results_description: 所有建议都只来自你原本就有权限查看的公开讨论。
+        edit: 修改兴趣
+        recommended_topics: 值得先看的讨论
+        topic_reason: 与你选择的兴趣相关：
+        recommended_people: 值得认识的成员
+        person_reason: 你们的兴趣方向相近：
+        not_interested: 不感兴趣
+        empty_title: 暂时没有足够匹配
+        empty_description: 你的偏好已保存。随着可见讨论和参与推荐的成员增加，建议会自然变得更丰富。
+        settings: 个性化设置
+        disable_description: 关闭个性化并清空兴趣和“不感兴趣”记录。你的帖子和通知设置不会受到影响。
+        disable: 关闭并清空我的数据
+        loading: 正在更新推荐……
+        generic_error: 暂时无法更新推荐，请稍后重试。
+        public_profile_title: 感兴趣
       community_discovery:
-        eyebrow: "社区发现"
-        title: "发现现在值得参与的内容"
-        description: "看看新讨论、拥有共同语境的人，以及兴趣之外的一步探索。"
-        compact_title: "为你推荐"
-        compact_description: "发现值得参与的讨论、成员和兴趣"
-        expand: "展开"
-        collapse: "收起"
-        groups_label: "推荐分组"
-        topics_group: "讨论 %{count}"
-        people_group: "成员 %{count}"
-        interests_group: "兴趣 %{count}"
-        dynamics_group: "动态 %{count}"
-        loading: "正在加载推荐……"
-        refresh: "换一批"
-        retry: "重试"
-        error: "暂时无法加载社区发现。"
-        empty: "暂时没有足够匹配；可以修改兴趣，或稍后再来看看。"
-        topics_title: "现在值得参与的讨论"
-        people_title: "你可能聊得来的人"
-        interests_title: "可以继续探索的话题"
-        dynamics_title: "成员最近动态"
-        dynamics_empty: "最近还没有动态，可以先从自己的个人页开始。"
-        share_dynamic: "分享一条动态"
-        latest_dynamic: "最近动态："
-        why: "为什么："
-        topic_reason: "与你选择的兴趣相关："
-        person_reason: "你们在这些方向上有共同语境："
-        interest_reason: "%{topicCount} 个讨论，本周新增 %{newCount} 个，%{memberCount} 位成员近期活跃。"
-        interest_reason_private: "%{topicCount} 个讨论，本周新增 %{newCount} 个；参与人数达到隐私阈值后才显示活跃成员数。"
-        exploration_reason: "这是兴趣之外的一步：从「%{from}」延伸到「%{to}」。"
-        join_discussion: "打开并回复"
-        join_person_discussion: "参与相关讨论"
-        view_profile: "查看资料"
-        invite: "发起一对一邀请"
-        explore: "探索相关讨论"
+        eyebrow: 社区发现
+        title: 发现现在值得参与的内容
+        description: 看看新讨论、拥有共同语境的人，以及兴趣之外的一步探索。
+        compact_title: 为你推荐
+        compact_description: 发现值得参与的讨论、成员和兴趣
+        expand: 展开
+        collapse: 收起
+        groups_label: 推荐分组
+        topics_group: 讨论 %{count}
+        people_group: 成员 %{count}
+        interests_group: 兴趣 %{count}
+        dynamics_group: 动态 %{count}
+        loading: 正在加载推荐……
+        refresh: 换一批
+        retry: 重试
+        error: 暂时无法加载社区发现。
+        empty: 暂时没有足够匹配；可以修改兴趣，或稍后再来看看。
+        topics_title: 现在值得参与的讨论
+        people_title: 你可能聊得来的人
+        interests_title: 可以继续探索的话题
+        dynamics_title: 成员最近动态
+        dynamics_empty: 最近还没有动态，可以先从自己的个人页开始。
+        share_dynamic: 分享一条动态
+        latest_dynamic: 最近动态：
+        why: 为什么：
+        topic_reason: 与你选择的兴趣相关：
+        person_reason: 你们在这些方向上有共同语境：
+        interest_reason: '%{topicCount} 个讨论，本周新增 %{newCount} 个，%{memberCount} 位成员近期活跃。'
+        interest_reason_private: '%{topicCount} 个讨论，本周新增 %{newCount} 个；参与人数达到隐私阈值后才显示活跃成员数。'
+        exploration_reason: 这是兴趣之外的一步：从「%{from}」延伸到「%{to}」。
+        join_discussion: 打开并回复
+        join_person_discussion: 参与相关讨论
+        view_profile: 查看资料
+        invite: 发起一对一邀请
+        explore: 探索相关讨论
         topic_state:
-          awaiting_response: "正在等待回应"
-          unread: "你还没有读过"
-          participated: "你已经参与过"
-          active: "讨论仍在活跃"
+          awaiting_response: 正在等待回应
+          unread: 你还没有读过
+          participated: 你已经参与过
+          active: 讨论仍在活跃
       dynamics:
-        tab: "动态"
-        title: "@%{username} 的动态"
-        description: "展示这位成员最近的短状态，仅登录会员可见。"
-        publisher_title: "分享一条近况"
-        publisher_label: "最近在做什么？"
-        publisher_placeholder: "例如：这周在练习英语口语，想找人一起交流心得。"
-        publisher_guidance: "8–500 个可见字符。仅登录会员可见，默认允许回复。只支持文字、表情和普通链接；不接受图片或附件。"
-        character_count: "%{count}/500"
-        publish: "发布动态"
-        published_notice: "动态已发布，仅登录会员可见。"
-        queued_notice: "动态已进入论坛的正常审核队列。"
-        publish_error: "暂时无法发布动态，请检查内容后重试。"
-        load_error: "暂时无法加载动态，请稍后重试。"
-        loading: "正在加载动态……"
-        empty_self: "你还没有发布过动态。"
-        empty_other: "这位成员还没有发布过动态。"
-        load_older: "查看较早动态"
+        tab: 动态
+        title: '@%{username} 的动态'
+        description: 展示这位成员最近的短状态，仅登录会员可见。
+        publisher_title: 分享一条近况
+        publisher_label: 最近在做什么？
+        publisher_placeholder: 例如：这周在练习英语口语，想找人一起交流心得。
+        publisher_guidance: 8–500 个可见字符。仅登录会员可见，默认允许回复。只支持文字、表情和普通链接；不接受图片或附件。
+        character_count: '%{count}/500'
+        publish: 发布动态
+        published_notice: 动态已发布，仅登录会员可见。
+        queued_notice: 动态已进入论坛的正常审核队列。
+        publish_error: 暂时无法发布动态，请检查内容后重试。
+        load_error: 暂时无法加载动态，请稍后重试。
+        loading: 正在加载动态……
+        empty_self: 你还没有发布过动态。
+        empty_other: 这位成员还没有发布过动态。
+        load_older: 查看较早动态
         reply_count:
-          one: "%{count} 条回复"
-          other: "%{count} 条回复"
-        open_and_reply: "打开并回复"
-        reply_media_guidance: "回复只支持文字、表情和普通链接；暂不支持图片或附件。"
-        emoji_picker: "添加表情"
-        reactions_label: "发送一个轻回应"
-        reaction_error: "暂时无法保存回应，请稍后重试。"
+          one: '%{count} 条回复'
+          other: '%{count} 条回复'
+        open_and_reply: 打开并回复
+        reply_media_guidance: 回复只支持文字、表情和普通链接；暂不支持图片或附件。
+        emoji_picker: 添加表情
+        reactions_label: 发送一个轻回应
+        reaction_error: 暂时无法保存回应，请稍后重试。
         reactions:
-          relate: "同感"
-          curious: "想了解更多"
-          open_to_chat: "欢迎来聊"
-          support: "支持一下"
-        reaction_notification_title: "你的动态收到了一条轻回应"
+          relate: 同感
+          curious: 想了解更多
+          open_to_chat: 欢迎来聊
+          support: 支持一下
+        reaction_notification_title: 你的动态收到了一条轻回应
         reaction_notifications:
-          relate: "对你的动态表示了同感"
-          curious: "想进一步了解你的动态"
-          open_to_chat: "表示愿意聊聊你的动态"
-          support: "支持了你的动态"
-        feed_eyebrow: "社区动态"
-        feed_title: "推荐动态"
-        feed_description: "看看其他成员最近分享的近况。轻回应不公开人数，也不会影响推荐排序。"
-        feed_empty: "暂时还没有其他成员的动态，先分享一条自己的近况吧。"
-        feed_load_error: "暂时无法加载动态流，请重试。"
-        retry: "重试"
-        view_all: "查看全部动态"
-        load_more_feed: "加载更多动态"
+          relate: 对你的动态表示了同感
+          curious: 想进一步了解你的动态
+          open_to_chat: 表示愿意聊聊你的动态
+          support: 支持了你的动态
+        feed_eyebrow: 社区动态
+        feed_title: 推荐动态
+        feed_description: 看看其他成员最近分享的近况。轻回应不公开人数，也不会影响推荐排序。
+        feed_empty: 暂时还没有其他成员的动态，先分享一条自己的近况吧。
+        feed_load_error: 暂时无法加载动态流，请重试。
+        retry: 重试
+        view_all: 查看全部动态
+        load_more_feed: 加载更多动态
       practice_invitations:
-        eyebrow: "一对一实践"
-        form_title: "邀请 @%{username}"
-        one_to_one_notice: "邀请和接受后创建的私信都只包含你与这位成员。"
-        interest: "共同兴趣"
-        proposed_time: "建议时间（选填）"
-        proposed_time_value: "建议时间：%{time}"
-        note: "备注（选填，最多 500 字）"
-        preset_message: "邀请 @%{username} 围绕「%{interest}」进行一次一对一实践。"
-        safety_section_title: "实践安全与边界共识"
-        safety_section_desc: "勾选你在本次交流中承诺遵守的安全原则（接受后将写入双方私信）："
-        safety_badges_title: "发件人承诺的安全共识："
+        eyebrow: 一对一实践
+        form_title: 邀请 @%{username}
+        one_to_one_notice: 邀请和接受后创建的私信都只包含你与这位成员。
+        interest: 共同兴趣
+        proposed_time: 建议时间（选填）
+        proposed_time_value: 建议时间：%{time}
+        note: 备注（选填，最多 500 字）
+        preset_message: 邀请 @%{username} 围绕「%{interest}」进行一次一对一实践。
+        safety_section_title: 实践安全与边界共识
+        safety_section_desc: 勾选你在本次交流中承诺遵守的安全原则（接受后将写入双方私信）：
+        safety_badges_title: 发件人承诺的安全共识：
         safety_items:
-          ssc_consensus: "遵守 SSC（安全、理智、知情同意）原则，绝不违背意愿"
-          pure_practice: "承诺纯粹 SP 交流，严禁任何非约定越界行为"
-          safeword_mechanism: "支持并严格遵守安全词（红黄绿灯），喊停立即中止"
-          body_safety: "避开危险部位（头部、颈部、脊柱、肾脏等）"
-          aftercare: "包含事后安抚、沟通复盘与必要照护 (Aftercare)"
-          public_first_meet: "初次沟通建议在白天公共场所进行"
+          ssc_consensus: 遵守 SSC（安全、理智、知情同意）原则，绝不违背意愿
+          pure_practice: 承诺纯粹 SP 交流，严禁任何非约定越界行为
+          safeword_mechanism: 支持并严格遵守安全词（红黄绿灯），喊停立即中止
+          body_safety: 避开危险部位（头部、颈部、脊柱、肾脏等）
+          aftercare: 包含事后安抚、沟通复盘与必要照护 (Aftercare)
+          public_first_meet: 初次沟通建议在白天公共场所进行
         safety_items_short:
-          ssc_consensus: "SSC原则"
-          pure_practice: "纯实践承诺"
-          safeword_mechanism: "安全词机制"
-          body_safety: "避开危险部位"
-          aftercare: "事后照护"
-          public_first_meet: "白天公共初见"
-        send: "发送邀请"
-        cancel: "取消"
-        sent: "实践邀请已发送"
-        invite: "邀请一起实践"
-        incoming: "发给你的实践邀请"
-        outgoing: "你发出的邀请"
-        accept: "接受并打开私信"
-        decline: "拒绝"
-        ignore: "忽略"
-        open_pm: "打开私信会话"
-        accept_setting: "允许有共同兴趣的成员向我发送一对一实践邀请"
-        notification_title: "新的一对一实践邀请"
-        notification_message: "发送了实践邀请"
+          ssc_consensus: SSC原则
+          pure_practice: 纯实践承诺
+          safeword_mechanism: 安全词机制
+          body_safety: 避开危险部位
+          aftercare: 事后照护
+          public_first_meet: 白天公共初见
+        send: 发送邀请
+        cancel: 取消
+        sent: 实践邀请已发送
+        invite: 邀请一起实践
+        incoming: 发给你的实践邀请
+        outgoing: 你发出的邀请
+        accept: 接受并打开私信
+        decline: 拒绝
+        ignore: 忽略
+        open_pm: 打开私信会话
+        accept_setting: 允许有共同兴趣的成员向我发送一对一实践邀请
+        notification_title: 新的一对一实践邀请
+        notification_message: 发送了实践邀请
         status:
-          pending: "待处理"
-          accepted: "已接受"
-          declined: "已拒绝"
-          ignored: "已忽略"
-          cancelled: "已取消"
+          pending: 待处理
+          accepted: 已接受
+          declined: 已拒绝
+          ignored: 已忽略
+          cancelled: 已取消
       legacy_practice_bookmarks:
-        eyebrow: "迁移接管"
-        title: "确认你以前的实践意向"
-        description: "近 90 天的旧意向已转成仅自己可见的书签。除非你之后主动创建新邀请，否则不会向任何人发送内容。"
-        mutual_history: "曾经互选 · 仅作历史记录"
-        no_auto_invite: "重新确认只会保留这条书签，不会通知对方，也不会自动发送邀请。"
-        reconfirm: "保留这条意向"
-        dismiss: "不再保留"
+        eyebrow: 迁移接管
+        title: 确认你以前的实践意向
+        description: 近 90 天的旧意向已转成仅自己可见的书签。除非你之后主动创建新邀请，否则不会向任何人发送内容。
+        mutual_history: 曾经互选 · 仅作历史记录
+        no_auto_invite: 重新确认只会保留这条书签，不会通知对方，也不会自动发送邀请。
+        reconfirm: 保留这条意向
+        dismiss: 不再保留
         status:
-          reconfirmed: "已重新确认"
-          dismissed: "已移除"
+          reconfirmed: 已重新确认
+          dismissed: 已移除
       user_tags:
-        eyebrow: "印象标签"
-        title: "我的印象标签"
-        description: "成员可以给你提议印象标签，只有你批准后才会对其他成员可见；你也可以赞同别人公开的标签。"
-        loading: "正在加载印象标签……"
-        load_error: "暂时无法加载印象标签，请稍后重试。"
-        accepting_toggle: "允许其他成员向我提议印象标签"
-        pending_title: "待你确认的标签"
-        pending_empty: "暂时没有待确认的标签。"
-        managed_title: "已处理的标签"
-        managed_empty: "还没有已处理的标签。"
-        proposed_by: "由 @%{username} 提议"
-        approve: "批准"
-        reject: "拒绝"
-        remove: "移除"
+        eyebrow: 印象标签
+        title: 我的印象标签
+        description: 成员可以给你提议印象标签，只有你批准后才会对其他成员可见；你也可以赞同别人公开的标签。
+        loading: 正在加载印象标签……
+        load_error: 暂时无法加载印象标签，请稍后重试。
+        accepting_toggle: 允许其他成员向我提议印象标签
+        pending_title: 待你确认的标签
+        pending_empty: 暂时没有待确认的标签。
+        managed_title: 已处理的标签
+        managed_empty: 还没有已处理的标签。
+        proposed_by: 由 @%{username} 提议
+        approve: 批准
+        reject: 拒绝
+        remove: 移除
         status:
-          approved: "已公开"
-          rejected: "已拒绝"
-          removed: "已移除"
-        propose: "添加标签"
-        propose_title: "给 @%{username} 添加印象标签"
-        propose_description: "标签会在 @%{username} 批准后对其他成员公开。"
-        propose_placeholder: "例如：热心肠、聊得来、靠谱"
-        preset_title: "常用推荐标签（点击快速填入）："
+          approved: 已公开
+          rejected: 已拒绝
+          removed: 已移除
+        propose: 添加标签
+        propose_title: 给 @%{username} 添加印象标签
+        propose_description: 标签会在 @%{username} 批准后对其他成员公开。
+        propose_placeholder: 例如：热心肠、聊得来、靠谱
+        preset_title: 常用推荐标签（点击快速填入）：
         preset_groups:
-          practice: "实践风格"
-          personality: "性格特质"
-          community: "社区特质"
-        character_count: "%{count} / %{max}"
-        cancel: "取消"
-        endorse_count: "%{count} 人赞同"
-        notification_title: "你收到了一条印象标签"
-        notification_message: "为你添加了印象标签"
+          practice: 实践风格
+          personality: 性格特质
+          community: 社区特质
+          practice_tags: 手法温和,严格守信,注重沟通,Aftercare细致,情绪稳定
+          personality_tags: 温柔体贴,谈吐文雅,靠谱真诚,幽默风趣,善于倾听
+          community_tags: 小说大触,棋力高超,干货满满,理论扎实,安全意识高
+        character_count: '%{count} / %{max}'
+        cancel: 取消
+        endorse_count: '%{count} 人赞同'
+        notification_title: 你收到了一条印象标签
+        notification_message: 为你添加了印象标签
         errors:
-          generic: "暂时无法完成操作，请稍后重试。"
+          generic: 暂时无法完成操作，请稍后重试。
       notification:
-        title: "同城朋友"
-        member_joined: "加入了同城发现"
-        monthly_digest: "上个月有 %{count} 位新成员加入了你附近"
-        nearby_weekly: "本周附近城市有新成员加入"
-        profile_location_invite: "你知道 %{city} 有 %{count} 位论坛成员吗？加入同城发现！"
-        licensed_import_halted: "英文精选任务需要管理员处理"
+        title: 同城朋友
+        member_joined: 加入了同城发现
+        monthly_digest: 上个月有 %{count} 位新成员加入了你附近
+        nearby_weekly: 本周附近城市有新成员加入
+        profile_location_invite: 你知道 %{city} 有 %{count} 位论坛成员吗？加入同城发现！
+        licensed_import_halted: 英文精选任务需要管理员处理
       admin:
         ai_providers:
-          title: "AI 供应商"
-          nav_description: "配置翻译模型网关"
-          description: "添加用于分类、翻译与复核的模型网关。必须测试当前完整配置后才能激活；任何配置变更都会暂停英文精选任务。"
-          import_running: "英文精选任务当前已启用；修改任何供应商配置都会立即暂停任务。"
-          key_configured: "密钥已配置"
-          key_missing: "缺少密钥"
-          active: "正在使用"
-          verified: "测试已通过"
-          not_verified: "需要测试"
-          edit: "编辑"
-          test: "测试"
-          activate: "激活"
-          delete: "删除"
-          delete_confirm: "确定删除供应商 %{name} 吗？英文精选任务将保持暂停。"
-          add_title: "添加供应商"
-          edit_title: "编辑供应商"
-          name: "显示名称"
-          generation: "分类、翻译与复核"
-          protocol: "协议"
-          protocol_responses: "Responses API (响应 API)"
-          protocol_chat_completions: "Chat Completions (对话补全)"
-          structured_output_mode: "结构化输出模式"
-          mode_json_schema: "严格 JSON Schema"
-          mode_json_object: "JSON 对象 + 本地校验"
-          base_url: "基础 URL (Base URL)"
-          base_url_placeholder: "https://gateway.example/v1"
-          model: "模型"
-          api_key: "API 密钥"
-          key_unchanged: "留空即保留当前密钥；已保存的密钥永远不会回传浏览器。"
-          save: "保存"
-          cancel: "取消"
-          saved: "供应商已保存；激活前请先测试。"
-          test_passed: "连接及结构化输出测试通过。"
-          activated: "供应商已激活；英文精选任务仍保持暂停，需由你明确开启。"
-          empty: "尚未配置 AI 供应商，请在下方添加。"
+          title: AI 供应商
+          nav_description: 配置翻译模型网关
+          description: 添加用于分类、翻译与复核的模型网关。必须测试当前完整配置后才能激活；任何配置变更都会暂停英文精选任务。
+          import_running: 英文精选任务当前已启用；修改任何供应商配置都会立即暂停任务。
+          key_configured: 密钥已配置
+          key_missing: 缺少密钥
+          active: 正在使用
+          verified: 测试已通过
+          not_verified: 需要测试
+          edit: 编辑
+          test: 测试
+          activate: 激活
+          delete: 删除
+          delete_confirm: 确定删除供应商 %{name} 吗？英文精选任务将保持暂停。
+          add_title: 添加供应商
+          edit_title: 编辑供应商
+          name: 显示名称
+          generation: 分类、翻译与复核
+          protocol: 协议
+          protocol_responses: Responses API (响应 API)
+          protocol_chat_completions: Chat Completions (对话补全)
+          structured_output_mode: 结构化输出模式
+          mode_json_schema: 严格 JSON Schema
+          mode_json_object: JSON 对象 + 本地校验
+          base_url: 基础 URL (Base URL)
+          base_url_placeholder: https://gateway.example/v1
+          model: 模型
+          api_key: API 密钥
+          key_unchanged: 留空即保留当前密钥；已保存的密钥永远不会回传浏览器。
+          save: 保存
+          cancel: 取消
+          saved: 供应商已保存；激活前请先测试。
+          test_passed: 连接及结构化输出测试通过。
+          activated: 供应商已激活；英文精选任务仍保持暂停，需由你明确开启。
+          empty: 尚未配置 AI 供应商，请在下方添加。
+      roles:
+        active:
+          label: 主
+          title: 角色：主
+        passive:
+          label: 被
+          title: 角色：被
+        switch:
+          label: 双
+          title: 角色：双

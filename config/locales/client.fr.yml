@@ -4,477 +4,615 @@ fr:
       logs:
         staff_actions:
           actions:
-            create_where_is_my_friends_ai_provider_profile: "Créer un fournisseur d'IA Local Friends"
-            update_where_is_my_friends_ai_provider_profile: "Mettre à jour le fournisseur d'IA Local Friends"
-            test_where_is_my_friends_ai_provider_profile: "Tester le fournisseur d'IA Local Friends"
-            activate_where_is_my_friends_ai_provider_profile: "Activer le fournisseur d'IA Local Friends"
-            delete_where_is_my_friends_ai_provider_profile: "Supprimer le fournisseur d'IA Local Friends"
+            create_where_is_my_friends_ai_provider_profile: Créer un fournisseur d'IA
+              Local Friends
+            update_where_is_my_friends_ai_provider_profile: Mettre à jour le fournisseur
+              d'IA Local Friends
+            test_where_is_my_friends_ai_provider_profile: Tester le fournisseur d'IA
+              Local Friends
+            activate_where_is_my_friends_ai_provider_profile: Activer le fournisseur
+              d'IA Local Friends
+            delete_where_is_my_friends_ai_provider_profile: Supprimer le fournisseur
+              d'IA Local Friends
   js:
     where_is_my_friends:
-      title: "Recherche Locale de Spanking"
-      eyebrow: "Connexions Locales Privées"
-      description: "Trouvez des partenaires de spanking locaux de manière privée et sécurisée — découvrez des membres Top, Bottom et Switch vérifiés dans votre région."
+      title: Recherche Locale de Spanking
+      eyebrow: Connexions Locales Privées
+      description: Trouvez des partenaires de spanking locaux de manière privée et
+        sécurisée — découvrez des membres Top, Bottom et Switch vérifiés dans votre
+        région.
       first_connection:
-        eyebrow: "Que pouvez-vous faire aujourd'hui ?"
-        loading: "Chargement de l'action suggérée du jour"
-        dismiss: "Masquer l'action suggérée du jour pendant sept jours"
-        more: "Voir plus de recommandations"
-        more_people: "Voir plus de membres"
+        eyebrow: Que pouvez-vous faire aujourd'hui ?
+        loading: Chargement de l'action suggérée du jour
+        dismiss: Masquer l'action suggérée du jour pendant sept jours
+        more: Voir plus de recommandations
+        more_people: Voir plus de membres
         onboarding:
-          title: "Trouvez des sujets et des membres qui vous correspondent"
-          description: "Choisissez d'abord trois centres d'intérêt, et nous vous suggérerons immédiatement une opportunité de communauté à rejoindre."
-          cta: "Choisir les centres d'intérêt"
+          title: Trouvez des sujets et des membres qui vous correspondent
+          description: Choisissez d'abord trois centres d'intérêt, et nous vous suggérerons
+            immédiatement une opportunité de communauté à rejoindre.
+          cta: Choisir les centres d'intérêt
         incoming_invitation:
-          title: "Vous avez reçu une invitation de connexion"
-          description: "Examinez votre intérêt commun, puis choisissez d'accepter, de décliner ou de l'ignorer."
-          cta: "Voir l'invitation"
+          title: Vous avez reçu une invitation de connexion
+          description: Examinez votre intérêt commun, puis choisissez d'accepter,
+            de décliner ou de l'ignorer.
+          cta: Voir l'invitation
         continue_conversation:
-          title: "Continuez la conversation que vous venez de commencer"
-          description: "Votre invitation a été acceptée. Vous pouvez commencer par l'intérêt que vous partagez."
-          cta: "Continuer la conversation"
+          title: Continuez la conversation que vous venez de commencer
+          description: Votre invitation a été acceptée. Vous pouvez commencer par
+            l'intérêt que vous partagez.
+          cta: Continuer la conversation
         topic:
-          title: "Commencez par une discussion facile à rejoindre"
-          description: "Cette discussion correspond à vos centres d'intérêt et constitue un bon point de départ pour participer dès maintenant."
-          cta: "Rejoindre la discussion"
+          title: Commencez par une discussion facile à rejoindre
+          description: Cette discussion correspond à vos centres d'intérêt et constitue
+            un bon point de départ pour participer dès maintenant.
+          cta: Rejoindre la discussion
         person:
-          title: "Rencontrez un membre avec qui vous aimerez discuter"
-          description: "Vous partagez une direction d'intérêt, vous pouvez donc commencer par leurs contributions publiques."
-          topic_cta: "Commencer à partir d'un sujet commun"
-          profile_cta: "Voir le profil"
+          title: Rencontrez un membre avec qui vous aimerez discuter
+          description: Vous partagez une direction d'intérêt, vous pouvez donc commencer
+            par leurs contributions publiques.
+          topic_cta: Commencer à partir d'un sujet commun
+          profile_cta: Voir le profil
         dynamic:
-          title: "Découvrez ce qu'un membre de la communauté partage"
-          description: "Cette mise à jour récente est visible pour vous et offre un moyen facile de savoir ce qui se passe."
-          cta: "Voir la mise à jour"
+          title: Découvrez ce qu'un membre de la communauté partage
+          description: Cette mise à jour récente est visible pour vous et offre un
+            moyen facile de savoir ce qui se passe.
+          cta: Voir la mise à jour
         local_discovery:
-          title: "Découvrez les membres dans votre ville"
-          description: "Commencez par une ville — une localisation précise n'est pas requise — pour trouver des personnes dans la communauté locale."
-          cta: "Explorer les membres locaux"
+          title: Découvrez les membres dans votre ville
+          description: Commencez par une ville — une localisation précise n'est pas
+            requise — pour trouver des personnes dans la communauté locale.
+          cta: Explorer les membres locaux
         recommendations:
-          title: "Explorez vos recommandations de communauté"
-          description: "Parcourez le panneau de recommandations existant lorsqu'aucun résultat unique n'est prêt à être mis en avant."
-          cta: "Voir les recommandations"
+          title: Explorez vos recommandations de communauté
+          description: Parcourez le panneau de recommandations existant lorsqu'aucun
+            résultat unique n'est prêt à être mis en avant.
+          cta: Voir les recommandations
       flying_chess:
-        eyebrow: "Accomplissement vérifié par le serveur"
-        claim_title: "Sauvegarder cette partie de Flying Chess"
-        unavailable: "Les réclamations d'accomplissement de Flying Chess ne sont pas activées."
-        missing_claim: "Aucune réclamation d'achèvement n'a été trouvée. Ouvrez à nouveau cette page à partir de l'écran de fin de partie."
-        login_description: "Connectez-vous, puis choisissez si vous souhaitez sauvegarder cette partie anonyme sur votre compte du forum."
-        login: "Se connecter et continuer"
-        confirm_description: "Le serveur du salon a émis cette réclamation à la fin de la partie. Confirmez pour sauvegarder votre première partie terminée et recevoir le badge de Premier Décollage."
-        claim_privacy: "Le forum ne sauvegarde ni ne publie votre pseudo de jeu. Vous pouvez masquer la carte et le badge Flying Chess de votre profil à tout moment."
-        confirm: "Sauvegarder cet accomplissement"
-        claimed: "Sauvegardé. Cette place ne peut être réclamée que par un seul compte du forum."
-        claim_error: "Cette partie n'a pas pu être réclamée. Veuillez réessayer."
-        profile_update_error: "La visibilité de votre accomplissement n'a pas pu être mise à jour."
-        completed_games_one: "%{count} partie en ligne vérifiée par le serveur terminée"
-        completed_games_other: "%{count} parties en ligne vérifiées par le serveur terminées"
-        profile_eyebrow: "Flying Chess"
-        profile_title: "Accomplissements de jeux en ligne"
-        profile_public: "Cette carte est visible par les autres membres du forum."
-        profile_private: "Cette carte et ce badge ne sont visibles que par vous."
-        start_game: "Démarrer une partie de Flying Chess"
-        hide_profile: "Masquer la carte d'accomplissement"
-        show_profile: "Afficher la carte d'accomplissement"
-      callout_title: "Vous voulez trouver des partenaires de spanking près de chez vous ?"
-      callout_setup_description: "Définissez votre ville en privé — découvrez instantanément et en toute sécurité les membres locaux Dom/Sub et Top/Bottom."
-      callout_returning_description: "Votre communauté locale de spanking est active — venez négocier et vous connecter en toute sécurité."
-      callout_proof_count: "%{count} personnes ont rejoint — y en a-t-il près de chez vous ?"
-      callout_proof_generic: "Des personnes de votre région sont déjà là"
-      callout_set_city: "Trouver des personnes près de moi"
-      callout_view_members: "Voir qui est à proximité"
-      callout_dismiss: "Ignorer la suggestion de découverte locale"
-      setup_title: "Trouver des Partenaires par Ville"
-      setup_description: "La confidentialité avant tout : aucune localisation précise ou GPS n'est requise. Entrez une ville pour découvrir en toute sécurité des partenaires de spanking localement."
-      participant_proof_count: "%{count} membres ont rejoint la découverte locale"
-      participant_proof_generic: "Les membres du forum ont rejoint la découverte locale"
-      city: "Ville"
-      city_placeholder: "ex. Paris, Lyon, Marseille"
-      city_member_count: "%{count} membres à %{city}"
-      city_will_match_as: "Correspondra aux membres sous \"%{normalized}\""
-      active_cities: "Villes récemment actives"
-      growing_cities: "Villes gagnant des membres"
-      city_directory_counts: "%{active} actifs · %{joined} rejoints"
-      aggregate_counts_suppressed: "Les nombres exacts de membres sont masqués pour des raisons de confidentialité"
-      preview_city: "Aperçu du réseau à proximité"
-      preview_city_counts: "%{active} actifs au cours des 90 derniers jours · %{joined} rejoints"
-      preview_radius_summary: "%{radius} km · %{active} actifs · %{joined} rejoints"
-      preview_radius_counts_suppressed: "%{radius} km · nombres exacts masqués"
-      join_preview_city: "Rejoindre en tant que %{city}"
-      unverified_city_notice: "Cette ville ne figure pas encore dans le catalogue des distances. Vous pouvez toujours la rejoindre, mais la correspondance avec les villes voisines commencera après sa vérification."
-      recommended_activity_range: "Plage d'activité recommandée"
-      nearby_city_network: "Réseau de villes voisines"
-      nearby_city_counts: "environ %{distance} km · %{active} actifs · %{joined} rejoints"
-      nearby_city_counts_suppressed: "environ %{distance} km · nombres exacts masqués"
-      region_optional: "État / région (optionnel)"
-      add_region: "Ajouter état / région"
-      save_city: "Montrer les personnes près de moi"
-      city_privacy: "Seule votre ville est montrée aux autres membres. Vos coordonnées exactes ne sont pas collectées en mode ville."
-      your_city: "Votre ville de découverte"
-      update_city: "Mettre à jour la ville"
-      remove_location: "Supprimer l'emplacement"
-      location_settings: "Paramètres de localisation"
-      loading_results: "Recherche de membres locaux…"
-      generic_error: "Nous n'avons pas pu charger la découverte locale. Veuillez réessayer."
-      people_in_city: "Personnes dans votre ville"
-      results_count_one: "%{count} membre dans un rayon de %{radius} km de %{city}"
-      results_count_other: "%{count} membres dans un rayon de %{radius} km de %{city}"
-      discovery_radius: "Rayon de découverte"
-      discovery_radius_option: "%{radius} km"
-      filter_members: "Filtrer les membres"
-      filter_members_placeholder: "Rechercher par nom ou pseudo"
-      online_now: "En ligne maintenant"
-      seen_recently: "Vu ici il y a %{time}"
-      presence_privacy_note: "Le statut en ligne est approximatif. Les membres qui masquent leur présence ne sont jamais affichés comme étant en ligne."
-      view_profile: "Voir le profil"
-      view_profile_for: "Voir le profil de %{username}"
-      send_message: "Message"
-      start_chat: "Discuter"
-      message_user: "Envoyer un message à %{username}"
-      empty_title: "Soyez la première connexion à %{city}"
-      empty_description: "Il n'y a pas encore d'autres membres visibles. Rejoignez une conversation locale pendant que la communauté grandit."
-      browse_local_topics: "Parcourir les sujets locaux"
-      browse_topics_for: "Parcourir les sujets sur %{city}"
-      start_local_topic: "Démarrer un sujet local"
-      safety_title: "Directives de sécurité SSC & RACK"
-      safety_copy: "Vérifiez vos partenaires de manière approfondie, organisez d'abord une rencontre publique vanille (munch), négociez les limites dures/douces au préalable, et utilisez les outils de blocage/signalement pour toute violation de limite."
-      empty_invitation: "Vous connaissez quelqu'un localement ? Invitez-le à rejoindre cette conversation sur le forum."
-      copy_invite: "Copier le lien d'invitation"
-      invite_copied: "Lien d'invitation copié dans le presse-papiers"
-      invite_copy_failed: "Impossible de copier le lien d'invitation. Veuillez réessayer."
+        eyebrow: Accomplissement vérifié par le serveur
+        claim_title: Sauvegarder cette partie de Flying Chess
+        unavailable: Les réclamations d'accomplissement de Flying Chess ne sont pas
+          activées.
+        missing_claim: Aucune réclamation d'achèvement n'a été trouvée. Ouvrez à nouveau
+          cette page à partir de l'écran de fin de partie.
+        login_description: Connectez-vous, puis choisissez si vous souhaitez sauvegarder
+          cette partie anonyme sur votre compte du forum.
+        login: Se connecter et continuer
+        confirm_description: Le serveur du salon a émis cette réclamation à la fin
+          de la partie. Confirmez pour sauvegarder votre première partie terminée
+          et recevoir le badge de Premier Décollage.
+        claim_privacy: Le forum ne sauvegarde ni ne publie votre pseudo de jeu. Vous
+          pouvez masquer la carte et le badge Flying Chess de votre profil à tout
+          moment.
+        confirm: Sauvegarder cet accomplissement
+        claimed: Sauvegardé. Cette place ne peut être réclamée que par un seul compte
+          du forum.
+        claim_error: Cette partie n'a pas pu être réclamée. Veuillez réessayer.
+        profile_update_error: La visibilité de votre accomplissement n'a pas pu être
+          mise à jour.
+        completed_games_one: '%{count} partie en ligne vérifiée par le serveur terminée'
+        completed_games_other: '%{count} parties en ligne vérifiées par le serveur
+          terminées'
+        profile_eyebrow: Flying Chess
+        profile_title: Accomplissements de jeux en ligne
+        profile_public: Cette carte est visible par les autres membres du forum.
+        profile_private: Cette carte et ce badge ne sont visibles que par vous.
+        start_game: Démarrer une partie de Flying Chess
+        hide_profile: Masquer la carte d'accomplissement
+        show_profile: Afficher la carte d'accomplissement
+      callout_title: Vous voulez trouver des partenaires de spanking près de chez
+        vous ?
+      callout_setup_description: Définissez votre ville en privé — découvrez instantanément
+        et en toute sécurité les membres locaux Dom/Sub et Top/Bottom.
+      callout_returning_description: Votre communauté locale de spanking est active
+        — venez négocier et vous connecter en toute sécurité.
+      callout_proof_count: '%{count} personnes ont rejoint — y en a-t-il près de chez
+        vous ?'
+      callout_proof_generic: Des personnes de votre région sont déjà là
+      callout_set_city: Trouver des personnes près de moi
+      callout_view_members: Voir qui est à proximité
+      callout_dismiss: Ignorer la suggestion de découverte locale
+      setup_title: Trouver des Partenaires par Ville
+      setup_description: 'La confidentialité avant tout : aucune localisation précise
+        ou GPS n''est requise. Entrez une ville pour découvrir en toute sécurité des
+        partenaires de spanking localement.'
+      participant_proof_count: '%{count} membres ont rejoint la découverte locale'
+      participant_proof_generic: Les membres du forum ont rejoint la découverte locale
+      city: Ville
+      city_placeholder: ex. Paris, Lyon, Marseille
+      city_member_count: '%{count} membres à %{city}'
+      city_will_match_as: Correspondra aux membres sous "%{normalized}"
+      active_cities: Villes récemment actives
+      growing_cities: Villes gagnant des membres
+      city_directory_counts: '%{active} actifs · %{joined} rejoints'
+      aggregate_counts_suppressed: Les nombres exacts de membres sont masqués pour
+        des raisons de confidentialité
+      preview_city: Aperçu du réseau à proximité
+      preview_city_counts: '%{active} actifs au cours des 90 derniers jours · %{joined}
+        rejoints'
+      preview_radius_summary: '%{radius} km · %{active} actifs · %{joined} rejoints'
+      preview_radius_counts_suppressed: '%{radius} km · nombres exacts masqués'
+      join_preview_city: Rejoindre en tant que %{city}
+      unverified_city_notice: Cette ville ne figure pas encore dans le catalogue des
+        distances. Vous pouvez toujours la rejoindre, mais la correspondance avec
+        les villes voisines commencera après sa vérification.
+      recommended_activity_range: Plage d'activité recommandée
+      nearby_city_network: Réseau de villes voisines
+      nearby_city_counts: environ %{distance} km · %{active} actifs · %{joined} rejoints
+      nearby_city_counts_suppressed: environ %{distance} km · nombres exacts masqués
+      region_optional: État / région (optionnel)
+      add_region: Ajouter état / région
+      save_city: Montrer les personnes près de moi
+      city_privacy: Seule votre ville est montrée aux autres membres. Vos coordonnées
+        exactes ne sont pas collectées en mode ville.
+      your_city: Votre ville de découverte
+      update_city: Mettre à jour la ville
+      remove_location: Supprimer l'emplacement
+      location_settings: Paramètres de localisation
+      loading_results: Recherche de membres locaux…
+      generic_error: Nous n'avons pas pu charger la découverte locale. Veuillez réessayer.
+      people_in_city: Personnes dans votre ville
+      results_count_one: '%{count} membre dans un rayon de %{radius} km de %{city}'
+      results_count_other: '%{count} membres dans un rayon de %{radius} km de %{city}'
+      discovery_radius: Rayon de découverte
+      discovery_radius_option: '%{radius} km'
+      filter_members: Filtrer les membres
+      filter_members_placeholder: Rechercher par nom ou pseudo
+      online_now: En ligne maintenant
+      seen_recently: Vu ici il y a %{time}
+      presence_privacy_note: Le statut en ligne est approximatif. Les membres qui
+        masquent leur présence ne sont jamais affichés comme étant en ligne.
+      view_profile: Voir le profil
+      view_profile_for: Voir le profil de %{username}
+      send_message: Message
+      start_chat: Discuter
+      message_user: Envoyer un message à %{username}
+      empty_title: Soyez la première connexion à %{city}
+      empty_description: Il n'y a pas encore d'autres membres visibles. Rejoignez
+        une conversation locale pendant que la communauté grandit.
+      browse_local_topics: Parcourir les sujets locaux
+      browse_topics_for: Parcourir les sujets sur %{city}
+      start_local_topic: Démarrer un sujet local
+      safety_title: Directives de sécurité SSC & RACK
+      safety_copy: Vérifiez vos partenaires de manière approfondie, organisez d'abord
+        une rencontre publique vanille (munch), négociez les limites dures/douces
+        au préalable, et utilisez les outils de blocage/signalement pour toute violation
+        de limite.
+      empty_invitation: Vous connaissez quelqu'un localement ? Invitez-le à rejoindre
+        cette conversation sur le forum.
+      copy_invite: Copier le lien d'invitation
+      invite_copied: Lien d'invitation copié dans le presse-papiers
+      invite_copy_failed: Impossible de copier le lien d'invitation. Veuillez réessayer.
       distance_bands:
-        same_city: "même ville"
-        nearby: "ville voisine"
-        moderate: "pas loin"
-        far: "plus loin"
-        under_5: "à environ 5 km"
-        5_to_20: "à environ 5–20 km"
-        over_20: "à plus de 20 km"
-      advanced_location: "Ajouter des tranches de distance privées"
-      advanced_location_title: "Localisation précise facultative"
-      advanced_location_description: "Vos coordonnées restent sur le serveur et ne sont utilisées que pour placer d'autres membres dans de larges tranches de distance."
-      use_gps: "Utiliser la localisation de cet appareil"
-      use_gps_description: "Le serveur ajoute un décalage de confidentialité avant de stocker les coordonnées GPS."
-      choose_on_map: "Choisir sur une carte"
-      choose_on_map_description: "Choisissez un espace public au lieu de partager l'endroit où vous vous trouvez actuellement."
-      gps_city_fallback: "La localisation précise n'était pas disponible. La découverte par ville est toujours active."
-      select_virtual_location: "Choisir un emplacement approximatif"
-      virtual_location_instruction: "Cliquez sur la carte ou entrez les coordonnées d'un espace public. Aucune requête de géocodage inversé n'est envoyée."
-      map_aria_label: "Carte pour choisir un emplacement approximatif"
-      map_loading: "Chargement de la carte…"
-      map_init_failed: "La carte n'a pas pu être chargée. Vous pouvez toujours entrer les coordonnées ci-dessous."
-      latitude: "Latitude"
-      longitude: "Longitude"
-      invalid_coordinates: "Entrez des valeurs de latitude et de longitude valides."
-      confirm_selection: "Utiliser cet emplacement sur la carte"
-      new_member_badge: "NOUVEAU"
-      city_group_same: "Ville de %{city}"
-      city_group_nearby: "%{city} · environ %{distance} km"
-      city_group_counts: "%{active} actifs · %{joined} rejoints"
-      inactive_member: "Inactif pendant plus de 90 jours"
-      last_active: "Dernière activité"
-      empty_notify_prompt: "M'avertir lorsque quelqu'un rejoint %{city}"
-      empty_nearby_count: "%{count} membres de villes voisines ont déjà rejoint"
-      empty_nearby_count_suppressed: "Des membres des villes voisines ont déjà rejoint"
-      results_limited_title: "Certains profils n'ont pas pu être vérifiés"
-      results_limited: "D'autres profils correspondants peuvent exister, mais cette vue s'est arrêtée à sa limite d'analyse respectueuse de la vie privée. Affinez les filtres ou revérifiez plus tard."
-      join_notifications: "M'informer après que j'ai rejoint"
-      notify_city_members: "M'informer quand quelqu'un de nouveau rejoint ma ville"
-      notify_nearby_members: "Envoyer une notification hebdomadaire lorsque des membres rejoignent les villes voisines"
-      callout_city_placeholder: "Entrez votre ville"
-      callout_save_city: "Rejoindre"
-      callout_joined_title: "Vous y êtes !"
-      callout_joined_description: "Voir les membres locaux à %{city}"
-      callout_save_error: "Impossible de sauvegarder votre ville. Veuillez réessayer."
-      user_card_city_title: "Membre de la découverte locale à %{city}"
-      profile_location_suggestion: "Nous avons remarqué que vous êtes à %{city}. Rejoignez la découverte locale pour trouver des membres à proximité !"
-      callout_suggestion: "Nous avons remarqué que vous êtes à %{city} — rejoindre la découverte locale ?"
-      expanded_radius_notice: "Aucun membre dans un rayon de %{original_radius} km — élargi à %{expanded_radius} km"
-      global_stats: "%{count} membres à travers %{city_count} villes ont rejoint la découverte locale"
-      global_stats_pioneer: "Vous êtes le pionnier à %{city} !"
-      monthly_digest: "%{count} nouveaux membres vous ont rejoint le mois dernier"
-      auto_city_hint: "Ville pré-remplie en tant que \"%{city}\" — confirmez pour rejoindre"
-      category_callout_title: "Vous cherchez quelqu'un à proximité ?"
-      category_callout_description: "%{count} membres répartis dans %{city_count} villes utilisent Local Friends"
-      category_callout_cta: "Rejoignez maintenant pour voir tout le monde près de chez vous"
-      category_callout_stats: "%{count} membres dans %{city_count} villes"
-      composer_hint: "Envie de plus de visibilité ? Rejoignez Local Friends pour permettre aux membres de %{city} de vous trouver directement."
-      composer_hint_cta: "Rejoindre Local Friends"
-      composer_hint_no_city: "Astuce : Rejoignez Local Friends pour que d'autres puissent vous trouver plus facilement"
-      filter_all: "Tous"
-      no_results_with_filters: "Aucun membre ne correspond à vos filtres actuels. Essayez de sélectionner moins de critères."
-      sidebar_widget_title: "Local Friends"
-      sidebar_widget_new_members: "%{count} nouveaux membres près de chez vous"
-      sidebar_widget_view: "Voir tout"
-      sidebar_widget_no_new: "Votre communauté locale"
+        same_city: même ville
+        nearby: ville voisine
+        moderate: pas loin
+        far: plus loin
+        under_5: à environ 5 km
+        5_to_20: à environ 5–20 km
+        over_20: à plus de 20 km
+      advanced_location: Ajouter des tranches de distance privées
+      advanced_location_title: Localisation précise facultative
+      advanced_location_description: Vos coordonnées restent sur le serveur et ne
+        sont utilisées que pour placer d'autres membres dans de larges tranches de
+        distance.
+      use_gps: Utiliser la localisation de cet appareil
+      use_gps_description: Le serveur ajoute un décalage de confidentialité avant
+        de stocker les coordonnées GPS.
+      choose_on_map: Choisir sur une carte
+      choose_on_map_description: Choisissez un espace public au lieu de partager l'endroit
+        où vous vous trouvez actuellement.
+      gps_city_fallback: La localisation précise n'était pas disponible. La découverte
+        par ville est toujours active.
+      select_virtual_location: Choisir un emplacement approximatif
+      virtual_location_instruction: Cliquez sur la carte ou entrez les coordonnées
+        d'un espace public. Aucune requête de géocodage inversé n'est envoyée.
+      map_aria_label: Carte pour choisir un emplacement approximatif
+      map_loading: Chargement de la carte…
+      map_init_failed: La carte n'a pas pu être chargée. Vous pouvez toujours entrer
+        les coordonnées ci-dessous.
+      latitude: Latitude
+      longitude: Longitude
+      invalid_coordinates: Entrez des valeurs de latitude et de longitude valides.
+      confirm_selection: Utiliser cet emplacement sur la carte
+      new_member_badge: NOUVEAU
+      city_group_same: Ville de %{city}
+      city_group_nearby: '%{city} · environ %{distance} km'
+      city_group_counts: '%{active} actifs · %{joined} rejoints'
+      inactive_member: Inactif pendant plus de 90 jours
+      last_active: Dernière activité
+      empty_notify_prompt: M'avertir lorsque quelqu'un rejoint %{city}
+      empty_nearby_count: '%{count} membres de villes voisines ont déjà rejoint'
+      empty_nearby_count_suppressed: Des membres des villes voisines ont déjà rejoint
+      results_limited_title: Certains profils n'ont pas pu être vérifiés
+      results_limited: D'autres profils correspondants peuvent exister, mais cette
+        vue s'est arrêtée à sa limite d'analyse respectueuse de la vie privée. Affinez
+        les filtres ou revérifiez plus tard.
+      join_notifications: M'informer après que j'ai rejoint
+      notify_city_members: M'informer quand quelqu'un de nouveau rejoint ma ville
+      notify_nearby_members: Envoyer une notification hebdomadaire lorsque des membres
+        rejoignent les villes voisines
+      callout_city_placeholder: Entrez votre ville
+      callout_save_city: Rejoindre
+      callout_joined_title: Vous y êtes !
+      callout_joined_description: Voir les membres locaux à %{city}
+      callout_save_error: Impossible de sauvegarder votre ville. Veuillez réessayer.
+      user_card_city_title: Membre de la découverte locale à %{city}
+      profile_location_suggestion: Nous avons remarqué que vous êtes à %{city}. Rejoignez
+        la découverte locale pour trouver des membres à proximité !
+      callout_suggestion: Nous avons remarqué que vous êtes à %{city} — rejoindre
+        la découverte locale ?
+      expanded_radius_notice: Aucun membre dans un rayon de %{original_radius} km
+        — élargi à %{expanded_radius} km
+      global_stats: '%{count} membres à travers %{city_count} villes ont rejoint la
+        découverte locale'
+      global_stats_pioneer: Vous êtes le pionnier à %{city} !
+      monthly_digest: '%{count} nouveaux membres vous ont rejoint le mois dernier'
+      auto_city_hint: Ville pré-remplie en tant que "%{city}" — confirmez pour rejoindre
+      category_callout_title: Vous cherchez quelqu'un à proximité ?
+      category_callout_description: '%{count} membres répartis dans %{city_count}
+        villes utilisent Local Friends'
+      category_callout_cta: Rejoignez maintenant pour voir tout le monde près de chez
+        vous
+      category_callout_stats: '%{count} membres dans %{city_count} villes'
+      composer_hint: Envie de plus de visibilité ? Rejoignez Local Friends pour permettre
+        aux membres de %{city} de vous trouver directement.
+      composer_hint_cta: Rejoindre Local Friends
+      composer_hint_no_city: 'Astuce : Rejoignez Local Friends pour que d''autres
+        puissent vous trouver plus facilement'
+      filter_all: Tous
+      no_results_with_filters: Aucun membre ne correspond à vos filtres actuels. Essayez
+        de sélectionner moins de critères.
+      sidebar_widget_title: Local Friends
+      sidebar_widget_new_members: '%{count} nouveaux membres près de chez vous'
+      sidebar_widget_view: Voir tout
+      sidebar_widget_no_new: Votre communauté locale
       interests:
-        sidebar_title: "Découvrir pour moi"
-        eyebrow: "Découverte communautaire"
-        title: "Qu'est-ce qui vous amène ici ?"
-        description: "Choisissez les intérêts détaillés qui vous correspondent. Nous vous recommanderons des conversations pertinentes et des membres partageant les mêmes intérêts ou des intérêts voisins."
-        callout_title: "Rencontrez votre forum"
-        callout_description: "Choisissez quelques centres d'intérêt et découvrez des conversations liées et des membres partageant les mêmes idées."
-        callout_cta: "Personnaliser mon forum"
-        choose_interests: "Choisissez vos centres d'intérêt"
-        choose_interests_help: "Certains groupes sont à sélection unique (choisissez-en un), d'autres vous permettent d'en choisir plusieurs. Ceux-ci n'apparaîtront pas sur votre profil à moins que vous ne les rendiez explicitement publics."
-        single_select: "choisir un"
-        group_count: "%{count} / %{maximum}"
-        search_label: "Rechercher des intérêts"
-        search_placeholder: "Par exemple : jeux, léger, sécurité, histoires"
-        search_empty: "Aucun intérêt ne correspond à cette recherche. Essayez un autre terme."
-        community_group: "Balises de communauté existantes"
-        selection_count: "%{count} / %{maximum} sélectionnés"
-        choose_purpose: "Que voudriez-vous faire maintenant ?"
+        sidebar_title: Découvrir pour moi
+        eyebrow: Découverte communautaire
+        title: Qu'est-ce qui vous amène ici ?
+        description: Choisissez les intérêts détaillés qui vous correspondent. Nous
+          vous recommanderons des conversations pertinentes et des membres partageant
+          les mêmes intérêts ou des intérêts voisins.
+        callout_title: Rencontrez votre forum
+        callout_description: Choisissez quelques centres d'intérêt et découvrez des
+          conversations liées et des membres partageant les mêmes idées.
+        callout_cta: Personnaliser mon forum
+        choose_interests: Choisissez vos centres d'intérêt
+        choose_interests_help: Certains groupes sont à sélection unique (choisissez-en
+          un), d'autres vous permettent d'en choisir plusieurs. Ceux-ci n'apparaîtront
+          pas sur votre profil à moins que vous ne les rendiez explicitement publics.
+        single_select: choisir un
+        group_count: '%{count} / %{maximum}'
+        search_label: Rechercher des intérêts
+        search_placeholder: 'Par exemple : jeux, léger, sécurité, histoires'
+        search_empty: Aucun intérêt ne correspond à cette recherche. Essayez un autre
+          terme.
+        community_group: Balises de communauté existantes
+        selection_count: '%{count} / %{maximum} sélectionnés'
+        choose_purpose: Que voudriez-vous faire maintenant ?
         purposes:
-          learn: "Apprendre"
-          share: "Partager l'expérience"
-          connect: "Rencontrer des gens"
-          ask: "Demander de l'aide"
-          help: "Aider les autres"
-          browse: "Juste naviguer"
-        privacy_title: "Confidentialité et découverte"
-        recommendable: "Laisser les membres appropriés me découvrir dans leurs recommandations"
-        public_interests: "Afficher mes intérêts sélectionnés sur mon profil"
-        private_by_default: "Vos sélections et votre objectif sont privés par défaut. La similarité est uniquement destinée à la découverte et n'implique jamais un consentement à être contacté, une invitation ou une activité. Nous ne modifions jamais les paramètres de notification."
-        save: "Afficher mes recommandations"
-        skip: "Pas maintenant"
-        catalogue_empty: "Le catalogue des intérêts est temporairement indisponible. Demandez à un administrateur de vérifier les données du plugin."
-        dismissed_title: "La découverte personnalisée est désactivée"
-        dismissed_description: "Rien n'est personnalisé en fonction de vos intérêts. Vous pouvez l'activer quand vous le souhaitez."
-        enable: "Choisir des intérêts"
-        results_title: "Un point de départ pour votre forum"
-        results_description: "Ces suggestions proviennent uniquement de conversations auxquelles vous pouvez déjà accéder."
-        edit: "Modifier les intérêts"
-        recommended_topics: "Conversations par lesquelles commencer"
-        topic_reason: "En lien avec vos intérêts :"
-        recommended_people: "Membres à découvrir"
-        person_reason: "Vos intérêts vont dans des directions similaires :"
-        not_interested: "Pas intéressé"
-        empty_title: "Aucune forte correspondance pour le moment"
-        empty_description: "Vos préférences sont sauvegardées. Les suggestions s'amélioreront à mesure que les conversations visibles et les membres participants augmenteront."
-        settings: "Paramètres de personnalisation"
-        disable_description: "Désactiver la personnalisation et effacer vos intérêts et recommandations ignorées. Vos messages sur le forum et vos paramètres de notification restent intacts."
-        disable: "Désactiver et effacer mes données"
-        loading: "Mise à jour de vos recommandations…"
-        generic_error: "Nous n'avons pas pu mettre à jour vos recommandations. Veuillez réessayer."
-        public_profile_title: "Intéressé(e) par"
+          learn: Apprendre
+          share: Partager l'expérience
+          connect: Rencontrer des gens
+          ask: Demander de l'aide
+          help: Aider les autres
+          browse: Juste naviguer
+        privacy_title: Confidentialité et découverte
+        recommendable: Laisser les membres appropriés me découvrir dans leurs recommandations
+        public_interests: Afficher mes intérêts sélectionnés sur mon profil
+        private_by_default: Vos sélections et votre objectif sont privés par défaut.
+          La similarité est uniquement destinée à la découverte et n'implique jamais
+          un consentement à être contacté, une invitation ou une activité. Nous ne
+          modifions jamais les paramètres de notification.
+        save: Afficher mes recommandations
+        skip: Pas maintenant
+        catalogue_empty: Le catalogue des intérêts est temporairement indisponible.
+          Demandez à un administrateur de vérifier les données du plugin.
+        dismissed_title: La découverte personnalisée est désactivée
+        dismissed_description: Rien n'est personnalisé en fonction de vos intérêts.
+          Vous pouvez l'activer quand vous le souhaitez.
+        enable: Choisir des intérêts
+        results_title: Un point de départ pour votre forum
+        results_description: Ces suggestions proviennent uniquement de conversations
+          auxquelles vous pouvez déjà accéder.
+        edit: Modifier les intérêts
+        recommended_topics: Conversations par lesquelles commencer
+        topic_reason: 'En lien avec vos intérêts :'
+        recommended_people: Membres à découvrir
+        person_reason: 'Vos intérêts vont dans des directions similaires :'
+        not_interested: Pas intéressé
+        empty_title: Aucune forte correspondance pour le moment
+        empty_description: Vos préférences sont sauvegardées. Les suggestions s'amélioreront
+          à mesure que les conversations visibles et les membres participants augmenteront.
+        settings: Paramètres de personnalisation
+        disable_description: Désactiver la personnalisation et effacer vos intérêts
+          et recommandations ignorées. Vos messages sur le forum et vos paramètres
+          de notification restent intacts.
+        disable: Désactiver et effacer mes données
+        loading: Mise à jour de vos recommandations…
+        generic_error: Nous n'avons pas pu mettre à jour vos recommandations. Veuillez
+          réessayer.
+        public_profile_title: Intéressé(e) par
       community_discovery:
-        eyebrow: "Découverte communautaire"
-        title: "Découvrez quelque chose qui vaut la peine de participer"
-        description: "Des conversations fraîches, des personnes partageant un contexte commun et un pas au-delà de vos intérêts habituels."
-        compact_title: "Pour vous"
-        compact_description: "Découvrez des discussions, des membres et des intérêts dignes d'être rejoints."
-        expand: "Développer"
-        collapse: "Réduire"
-        groups_label: "Groupes de recommandations"
-        topics_group: "Discussions %{count}"
-        people_group: "Membres %{count}"
-        interests_group: "Intérêts %{count}"
-        dynamics_group: "Dynamiques %{count}"
-        loading: "Chargement des recommandations…"
-        refresh: "Actualiser"
-        retry: "Réessayer"
-        error: "La découverte de la communauté n'a pas pu être chargée."
-        empty: "Aucune forte recommandation pour le moment. Mettez à jour vos intérêts ou revenez plus tard."
-        topics_title: "À rejoindre maintenant"
-        people_title: "Personnes avec qui vous pourriez avoir des affinités"
-        interests_title: "Sujets à continuer d'explorer"
-        dynamics_title: "Dynamiques récentes des membres"
-        dynamics_empty: "Aucune dynamique récente pour le moment. Vous pouvez commencer par votre propre profil."
-        share_dynamic: "Partager une dynamique"
-        latest_dynamic: "Dynamique récente :"
-        why: "Pourquoi :"
-        topic_reason: "Lié à"
-        person_reason: "Vous partagez un contexte autour de"
-        interest_reason: "%{topicCount} discussions, %{newCount} nouvelles cette semaine, et %{memberCount} membres actifs."
-        interest_reason_private: "%{topicCount} discussions, %{newCount} nouvelles cette semaine ; le nombre de membres actifs reste privé jusqu'à ce que plus de personnes participent."
-        exploration_reason: "Un pas au-delà de %{from} : explorez %{to}."
-        join_discussion: "Ouvrir et répondre"
-        join_person_discussion: "Rejoindre leur discussion"
-        view_profile: "Voir le profil"
-        invite: "Inviter en tête-à-tête"
-        explore: "Explorer les discussions"
+        eyebrow: Découverte communautaire
+        title: Découvrez quelque chose qui vaut la peine de participer
+        description: Des conversations fraîches, des personnes partageant un contexte
+          commun et un pas au-delà de vos intérêts habituels.
+        compact_title: Pour vous
+        compact_description: Découvrez des discussions, des membres et des intérêts
+          dignes d'être rejoints.
+        expand: Développer
+        collapse: Réduire
+        groups_label: Groupes de recommandations
+        topics_group: Discussions %{count}
+        people_group: Membres %{count}
+        interests_group: Intérêts %{count}
+        dynamics_group: Dynamiques %{count}
+        loading: Chargement des recommandations…
+        refresh: Actualiser
+        retry: Réessayer
+        error: La découverte de la communauté n'a pas pu être chargée.
+        empty: Aucune forte recommandation pour le moment. Mettez à jour vos intérêts
+          ou revenez plus tard.
+        topics_title: À rejoindre maintenant
+        people_title: Personnes avec qui vous pourriez avoir des affinités
+        interests_title: Sujets à continuer d'explorer
+        dynamics_title: Dynamiques récentes des membres
+        dynamics_empty: Aucune dynamique récente pour le moment. Vous pouvez commencer
+          par votre propre profil.
+        share_dynamic: Partager une dynamique
+        latest_dynamic: 'Dynamique récente :'
+        why: 'Pourquoi :'
+        topic_reason: Lié à
+        person_reason: Vous partagez un contexte autour de
+        interest_reason: '%{topicCount} discussions, %{newCount} nouvelles cette semaine,
+          et %{memberCount} membres actifs.'
+        interest_reason_private: '%{topicCount} discussions, %{newCount} nouvelles
+          cette semaine ; le nombre de membres actifs reste privé jusqu''à ce que
+          plus de personnes participent.'
+        exploration_reason: 'Un pas au-delà de %{from} : explorez %{to}.'
+        join_discussion: Ouvrir et répondre
+        join_person_discussion: Rejoindre leur discussion
+        view_profile: Voir le profil
+        invite: Inviter en tête-à-tête
+        explore: Explorer les discussions
         topic_state:
-          awaiting_response: "En attente d'une réponse"
-          unread: "Vous n'avez pas encore lu ceci"
-          participated: "Vous avez déjà rejoint cette discussion"
-          active: "La discussion est active"
+          awaiting_response: En attente d'une réponse
+          unread: Vous n'avez pas encore lu ceci
+          participated: Vous avez déjà rejoint cette discussion
+          active: La discussion est active
       dynamics:
-        tab: "Dynamiques"
-        title: "Dynamiques de @%{username}"
-        description: "Courtes mises à jour de ce membre, visibles uniquement par les membres connectés."
-        publisher_title: "Partager une mise à jour récente"
-        publisher_label: "Que se passe-t-il pour vous ?"
-        publisher_placeholder: "Par exemple : Je pratique l'anglais oral cette semaine et j'aimerais échanger des notes."
-        publisher_guidance: "8 à 500 caractères visibles. Les membres connectés peuvent voir cela et les réponses sont activées. Texte, emoji et liens ordinaires uniquement ; les images et les pièces jointes ne sont pas acceptées."
-        character_count: "%{count}/500"
-        publish: "Publier la dynamique"
-        published_notice: "Votre dynamique est désormais visible pour les membres connectés."
-        queued_notice: "Votre dynamique a été envoyée à la file d'attente d'examen normale."
-        publish_error: "Votre dynamique n'a pas pu être publiée. Veuillez la vérifier et réessayer."
-        load_error: "Les dynamiques n'ont pas pu être chargées. Veuillez réessayer."
-        loading: "Chargement des dynamiques…"
-        empty_self: "Vous n'avez pas encore partagé de dynamique."
-        empty_other: "Ce membre n'a pas encore partagé de dynamique."
-        load_older: "Voir les anciennes dynamiques"
+        tab: Dynamiques
+        title: Dynamiques de @%{username}
+        description: Courtes mises à jour de ce membre, visibles uniquement par les
+          membres connectés.
+        publisher_title: Partager une mise à jour récente
+        publisher_label: Que se passe-t-il pour vous ?
+        publisher_placeholder: 'Par exemple : Je pratique l''anglais oral cette semaine
+          et j''aimerais échanger des notes.'
+        publisher_guidance: 8 à 500 caractères visibles. Les membres connectés peuvent
+          voir cela et les réponses sont activées. Texte, emoji et liens ordinaires
+          uniquement ; les images et les pièces jointes ne sont pas acceptées.
+        character_count: '%{count}/500'
+        publish: Publier la dynamique
+        published_notice: Votre dynamique est désormais visible pour les membres connectés.
+        queued_notice: Votre dynamique a été envoyée à la file d'attente d'examen
+          normale.
+        publish_error: Votre dynamique n'a pas pu être publiée. Veuillez la vérifier
+          et réessayer.
+        load_error: Les dynamiques n'ont pas pu être chargées. Veuillez réessayer.
+        loading: Chargement des dynamiques…
+        empty_self: Vous n'avez pas encore partagé de dynamique.
+        empty_other: Ce membre n'a pas encore partagé de dynamique.
+        load_older: Voir les anciennes dynamiques
         reply_count:
-          one: "%{count} réponse"
-          other: "%{count} réponses"
-        open_and_reply: "Ouvrir et répondre"
-        reply_media_guidance: "Les réponses acceptent le texte, les émojis et les liens ordinaires uniquement. Les images et pièces jointes ne sont pas encore disponibles."
-        emoji_picker: "Ajouter un emoji"
-        reactions_label: "Envoyer une réponse rapide"
-        reaction_error: "Votre réponse n'a pas pu être sauvegardée. Veuillez réessayer."
+          one: '%{count} réponse'
+          other: '%{count} réponses'
+        open_and_reply: Ouvrir et répondre
+        reply_media_guidance: Les réponses acceptent le texte, les émojis et les liens
+          ordinaires uniquement. Les images et pièces jointes ne sont pas encore disponibles.
+        emoji_picker: Ajouter un emoji
+        reactions_label: Envoyer une réponse rapide
+        reaction_error: Votre réponse n'a pas pu être sauvegardée. Veuillez réessayer.
         reactions:
-          relate: "Je compatis"
-          curious: "Dis-m'en plus"
-          open_to_chat: "Ouvert(e) à la discussion"
-          support: "Soutien"
-        reaction_notification_title: "Une réponse rapide à votre dynamique"
+          relate: Je compatis
+          curious: Dis-m'en plus
+          open_to_chat: Ouvert(e) à la discussion
+          support: Soutien
+        reaction_notification_title: Une réponse rapide à votre dynamique
         reaction_notifications:
-          relate: "s'est reconnu(e) dans votre dynamique"
-          curious: "aimerait en savoir plus sur votre dynamique"
-          open_to_chat: "est ouvert(e) à la discussion sur votre dynamique"
-          support: "a apporté son soutien à votre dynamique"
-        feed_eyebrow: "Dynamiques de la communauté"
-        feed_title: "Dynamiques recommandées"
-        feed_description: "Voir les mises à jour récentes d'autres membres. Les réponses rapides n'ont pas de compte public et n'affectent jamais le classement."
-        feed_empty: "Aucune autre dynamique de membre n'est encore disponible. Commencez par votre propre mise à jour."
-        feed_load_error: "Nous n'avons pas pu charger le flux de dynamiques. Veuillez réessayer."
-        retry: "Réessayer"
-        view_all: "Voir toutes les dynamiques"
-        load_more_feed: "Charger plus de dynamiques"
+          relate: s'est reconnu(e) dans votre dynamique
+          curious: aimerait en savoir plus sur votre dynamique
+          open_to_chat: est ouvert(e) à la discussion sur votre dynamique
+          support: a apporté son soutien à votre dynamique
+        feed_eyebrow: Dynamiques de la communauté
+        feed_title: Dynamiques recommandées
+        feed_description: Voir les mises à jour récentes d'autres membres. Les réponses
+          rapides n'ont pas de compte public et n'affectent jamais le classement.
+        feed_empty: Aucune autre dynamique de membre n'est encore disponible. Commencez
+          par votre propre mise à jour.
+        feed_load_error: Nous n'avons pas pu charger le flux de dynamiques. Veuillez
+          réessayer.
+        retry: Réessayer
+        view_all: Voir toutes les dynamiques
+        load_more_feed: Charger plus de dynamiques
       practice_invitations:
-        eyebrow: "Invitation à une scène en tête-à-tête"
-        form_title: "Inviter @%{username}"
-        one_to_one_notice: "Cette invitation et tout message personnel accepté ne concernent que vous et ce membre pour des raisons de confidentialité."
-        interest: "Intérêt partagé"
-        proposed_time: "Heure suggérée (facultatif)"
-        proposed_time_value: "Heure suggérée : %{time}"
-        note: "Note (facultatif, maximum 500 caractères)"
-        preset_message: "Inviter @%{username} à une scène de spanking ou une discussion en tête-à-tête sur %{interest}."
-        safety_section_title: "Protocole de sécurité et des limites de pratique"
-        safety_section_desc: "Sélectionnez les principes de sécurité que vous vous engagez à respecter pour cette session (seront inclus dans le message personnel lors de l'acceptation) :"
-        safety_badges_title: "Engagements de sécurité de l'expéditeur :"
+        eyebrow: Invitation à une scène en tête-à-tête
+        form_title: Inviter @%{username}
+        one_to_one_notice: Cette invitation et tout message personnel accepté ne concernent
+          que vous et ce membre pour des raisons de confidentialité.
+        interest: Intérêt partagé
+        proposed_time: Heure suggérée (facultatif)
+        proposed_time_value: 'Heure suggérée : %{time}'
+        note: Note (facultatif, maximum 500 caractères)
+        preset_message: Inviter @%{username} à une scène de spanking ou une discussion
+          en tête-à-tête sur %{interest}.
+        safety_section_title: Protocole de sécurité et des limites de pratique
+        safety_section_desc: 'Sélectionnez les principes de sécurité que vous vous
+          engagez à respecter pour cette session (seront inclus dans le message personnel
+          lors de l''acceptation) :'
+        safety_badges_title: 'Engagements de sécurité de l''expéditeur :'
         safety_items:
-          ssc_consensus: "Respecter les principes SSC (Sain, Sauf, Consensuel) / RACK, en respectant strictement les limites dures et douces"
-          pure_practice: "S'engager dans une dynamique SP consensuelle, en interdisant strictement les violations de limites"
-          safeword_mechanism: "Établir et honorer strictement les mots de sécurité (ex. Rouge/Jaune/Vert), en s'arrêtant immédiatement à l'appel"
-          body_safety: "Éviter les zones physiques à haut risque (tête, cou, colonne vertébrale, reins) et respecter les préférences cibles"
-          aftercare: "Fournir un suivi approprié, une vérification physique et un débriefing émotionnel après la scène"
-          public_first_meet: "S'engager à une première rencontre publique vanille avant toute scène privée"
+          ssc_consensus: Respecter les principes SSC (Sain, Sauf, Consensuel) / RACK,
+            en respectant strictement les limites dures et douces
+          pure_practice: S'engager dans une dynamique SP consensuelle, en interdisant
+            strictement les violations de limites
+          safeword_mechanism: Établir et honorer strictement les mots de sécurité
+            (ex. Rouge/Jaune/Vert), en s'arrêtant immédiatement à l'appel
+          body_safety: Éviter les zones physiques à haut risque (tête, cou, colonne
+            vertébrale, reins) et respecter les préférences cibles
+          aftercare: Fournir un suivi approprié, une vérification physique et un débriefing
+            émotionnel après la scène
+          public_first_meet: S'engager à une première rencontre publique vanille avant
+            toute scène privée
         safety_items_short:
-          ssc_consensus: "Protocole SSC"
-          pure_practice: "Pratique Pure"
-          safeword_mechanism: "Mots de sécurité"
-          body_safety: "Zones sûres"
-          aftercare: "Suivi (Aftercare)"
-          public_first_meet: "Première Rencontre Publique"
-        send: "Envoyer l'invitation"
-        cancel: "Annuler"
-        sent: "Invitation à la pratique envoyée."
-        invite: "Inviter à pratiquer"
-        incoming: "Invitations de pratique pour vous"
-        outgoing: "Invitations que vous avez envoyées"
-        accept: "Accepter et ouvrir le MP"
-        decline: "Décliner"
-        ignore: "Ignorer"
-        open_pm: "Ouvrir la conversation privée"
-        accept_setting: "Autoriser les membres partageant un intérêt à m'envoyer des invitations de pratique en tête-à-tête"
-        notification_title: "Nouvelle invitation de pratique en tête-à-tête"
-        notification_message: "a envoyé une invitation de pratique"
+          ssc_consensus: Protocole SSC
+          pure_practice: Pratique Pure
+          safeword_mechanism: Mots de sécurité
+          body_safety: Zones sûres
+          aftercare: Suivi (Aftercare)
+          public_first_meet: Première Rencontre Publique
+        send: Envoyer l'invitation
+        cancel: Annuler
+        sent: Invitation à la pratique envoyée.
+        invite: Inviter à pratiquer
+        incoming: Invitations de pratique pour vous
+        outgoing: Invitations que vous avez envoyées
+        accept: Accepter et ouvrir le MP
+        decline: Décliner
+        ignore: Ignorer
+        open_pm: Ouvrir la conversation privée
+        accept_setting: Autoriser les membres partageant un intérêt à m'envoyer des
+          invitations de pratique en tête-à-tête
+        notification_title: Nouvelle invitation de pratique en tête-à-tête
+        notification_message: a envoyé une invitation de pratique
         status:
-          pending: "En attente"
-          accepted: "Accepté"
-          declined: "Décliné"
-          ignored: "Ignoré"
-          cancelled: "Annulé"
+          pending: En attente
+          accepted: Accepté
+          declined: Décliné
+          ignored: Ignoré
+          cancelled: Annulé
       legacy_practice_bookmarks:
-        eyebrow: "Migration"
-        title: "Passez en revue vos précédents intérêts de pratique"
-        description: "Les intérêts des 90 derniers jours sont des signets privés. Rien n'est envoyé à moins que vous ne choisissiez ultérieurement de créer une nouvelle invitation."
-        mutual_history: "Correspondance mutuelle précédente · historique uniquement"
-        no_auto_invite: "Reconfirmer conserve ce signet ; cela n'avertit pas ce membre ni n'envoie d'invitation."
-        reconfirm: "Garder comme intérêt"
-        dismiss: "Ignorer"
+        eyebrow: Migration
+        title: Passez en revue vos précédents intérêts de pratique
+        description: Les intérêts des 90 derniers jours sont des signets privés. Rien
+          n'est envoyé à moins que vous ne choisissiez ultérieurement de créer une
+          nouvelle invitation.
+        mutual_history: Correspondance mutuelle précédente · historique uniquement
+        no_auto_invite: Reconfirmer conserve ce signet ; cela n'avertit pas ce membre
+          ni n'envoie d'invitation.
+        reconfirm: Garder comme intérêt
+        dismiss: Ignorer
         status:
-          reconfirmed: "Reconfirmé"
-          dismissed: "Ignoré"
+          reconfirmed: Reconfirmé
+          dismissed: Ignoré
       user_tags:
-        eyebrow: "Balises d'impression"
-        title: "Mes balises d'impression"
-        description: "Les membres peuvent proposer des balises d'impression à votre sujet. Une balise ne devient visible pour les autres qu'après l'avoir approuvée, et vous pouvez approuver les balises que d'autres membres ont publiées."
-        loading: "Chargement des balises d'impression…"
-        load_error: "Les balises d'impression n'ont pas pu être chargées. Veuillez réessayer."
-        accepting_toggle: "Autoriser les membres à proposer des balises d'impression sur moi"
-        pending_title: "Balises en attente de votre confirmation"
-        pending_empty: "Aucune balise n'attend votre confirmation."
-        managed_title: "Balises traitées"
-        managed_empty: "Aucune balise traitée pour le moment."
-        proposed_by: "proposé par @%{username}"
-        approve: "Approuver"
-        reject: "Rejeter"
-        remove: "Supprimer"
+        eyebrow: Balises d'impression
+        title: Mes balises d'impression
+        description: Les membres peuvent proposer des balises d'impression à votre
+          sujet. Une balise ne devient visible pour les autres qu'après l'avoir approuvée,
+          et vous pouvez approuver les balises que d'autres membres ont publiées.
+        loading: Chargement des balises d'impression…
+        load_error: Les balises d'impression n'ont pas pu être chargées. Veuillez
+          réessayer.
+        accepting_toggle: Autoriser les membres à proposer des balises d'impression
+          sur moi
+        pending_title: Balises en attente de votre confirmation
+        pending_empty: Aucune balise n'attend votre confirmation.
+        managed_title: Balises traitées
+        managed_empty: Aucune balise traitée pour le moment.
+        proposed_by: proposé par @%{username}
+        approve: Approuver
+        reject: Rejeter
+        remove: Supprimer
         status:
-          approved: "Public"
-          rejected: "Rejeté"
-          removed: "Supprimé"
-        propose: "Ajouter une balise"
-        propose_title: "Ajouter une balise d'impression pour @%{username}"
-        propose_description: "La balise devient visible pour les autres membres après que @%{username} l'ait approuvée."
-        propose_placeholder: "ex. amical, facile à parler, digne de confiance"
-        preset_title: "Balises recommandées populaires (cliquez pour remplir) :"
+          approved: Public
+          rejected: Rejeté
+          removed: Supprimé
+        propose: Ajouter une balise
+        propose_title: Ajouter une balise d'impression pour @%{username}
+        propose_description: La balise devient visible pour les autres membres après
+          que @%{username} l'ait approuvée.
+        propose_placeholder: ex. amical, facile à parler, digne de confiance
+        preset_title: 'Balises recommandées populaires (cliquez pour remplir) :'
         preset_groups:
-          practice: "Style de pratique"
-          personality: "Personnalité"
-          community: "Points forts de la communauté"
-        character_count: "%{count} / %{max}"
-        cancel: "Annuler"
-        endorse_count: "%{count} approuvé(s)"
-        notification_title: "Vous avez reçu une balise d'impression"
-        notification_message: "a proposé une balise d'impression"
+          practice: Style de pratique
+          personality: Personnalité
+          community: Points forts de la communauté
+          practice_tags: Gentle,Trustworthy,Communicative,Attentive Aftercare,Stable
+            Emotion
+          personality_tags: Caring,Elegant,Reliable,Humorous,Good Listener
+          community_tags: Great Writer,Chess Master,Insightful,Solid Theory,High Safety
+            Awareness
+        character_count: '%{count} / %{max}'
+        cancel: Annuler
+        endorse_count: '%{count} approuvé(s)'
+        notification_title: Vous avez reçu une balise d'impression
+        notification_message: a proposé une balise d'impression
         errors:
-          generic: "Quelque chose s'est mal passé. Veuillez réessayer."
+          generic: Quelque chose s'est mal passé. Veuillez réessayer.
       notification:
-        title: "Local Friends"
-        member_joined: "a rejoint la découverte locale"
-        monthly_digest: "%{count} nouveaux membres ont rejoint près de chez vous le mois dernier"
-        nearby_weekly: "de nouveaux membres ont rejoint les villes voisines cette semaine"
-        profile_location_invite: "Saviez-vous que %{count} membres sont à %{city} ? Rejoignez la découverte locale !"
-        licensed_import_halted: "les importations sous licence anglaise nécessitent l'attention de l'administrateur"
+        title: Local Friends
+        member_joined: a rejoint la découverte locale
+        monthly_digest: '%{count} nouveaux membres ont rejoint près de chez vous le
+          mois dernier'
+        nearby_weekly: de nouveaux membres ont rejoint les villes voisines cette semaine
+        profile_location_invite: Saviez-vous que %{count} membres sont à %{city} ?
+          Rejoignez la découverte locale !
+        licensed_import_halted: les importations sous licence anglaise nécessitent
+          l'attention de l'administrateur
       admin:
         ai_providers:
-          title: "Fournisseurs d'IA"
-          nav_description: "Configurer la passerelle du modèle de traduction"
-          description: "Ajoutez la passerelle de modèle utilisée pour la classification, la traduction et la révision. Testez la configuration exacte avant de l'activer. La modification d'une configuration met en pause les importations sous licence."
-          import_running: "Les importations sous licence sont actuellement activées. Tout changement de fournisseur les mettra en pause."
-          key_configured: "Configuré"
-          key_missing: "Clé manquante"
-          active: "Actif"
-          verified: "Test réussi"
-          not_verified: "Test requis"
-          edit: "Modifier"
-          test: "Tester"
-          activate: "Activer"
-          delete: "Supprimer"
-          delete_confirm: "Supprimer le fournisseur %{name} ? Les importations sous licence seront mises en pause."
-          add_title: "Ajouter un fournisseur"
-          edit_title: "Modifier le fournisseur"
-          name: "Nom d'affichage"
-          generation: "Génération, traduction et révision"
-          protocol: "Protocole"
-          protocol_responses: "API des réponses"
-          protocol_chat_completions: "Chat Completions"
-          structured_output_mode: "Mode de sortie structurée"
-          mode_json_schema: "Schéma JSON strict"
-          mode_json_object: "Objet JSON + validation locale"
-          base_url: "URL de base"
-          base_url_placeholder: "https://gateway.example/v1"
-          model: "Modèle"
-          api_key: "Clé API"
-          key_unchanged: "Laissez vide pour conserver la clé actuelle. La clé sauvegardée n'est jamais renvoyée au navigateur."
-          save: "Sauvegarder"
-          cancel: "Annuler"
-          saved: "Fournisseur sauvegardé. Testez-le avant l'activation."
-          test_passed: "Le test de connexion et de sortie structurée a réussi."
-          activated: "Fournisseur activé. Les importations sous licence restent en pause jusqu'à ce que vous les activiez explicitement."
-          empty: "Aucun fournisseur d'IA n'est encore configuré. Ajoutez-en un ci-dessous."
+          title: Fournisseurs d'IA
+          nav_description: Configurer la passerelle du modèle de traduction
+          description: Ajoutez la passerelle de modèle utilisée pour la classification,
+            la traduction et la révision. Testez la configuration exacte avant de
+            l'activer. La modification d'une configuration met en pause les importations
+            sous licence.
+          import_running: Les importations sous licence sont actuellement activées.
+            Tout changement de fournisseur les mettra en pause.
+          key_configured: Configuré
+          key_missing: Clé manquante
+          active: Actif
+          verified: Test réussi
+          not_verified: Test requis
+          edit: Modifier
+          test: Tester
+          activate: Activer
+          delete: Supprimer
+          delete_confirm: Supprimer le fournisseur %{name} ? Les importations sous
+            licence seront mises en pause.
+          add_title: Ajouter un fournisseur
+          edit_title: Modifier le fournisseur
+          name: Nom d'affichage
+          generation: Génération, traduction et révision
+          protocol: Protocole
+          protocol_responses: API des réponses
+          protocol_chat_completions: Chat Completions
+          structured_output_mode: Mode de sortie structurée
+          mode_json_schema: Schéma JSON strict
+          mode_json_object: Objet JSON + validation locale
+          base_url: URL de base
+          base_url_placeholder: https://gateway.example/v1
+          model: Modèle
+          api_key: Clé API
+          key_unchanged: Laissez vide pour conserver la clé actuelle. La clé sauvegardée
+            n'est jamais renvoyée au navigateur.
+          save: Sauvegarder
+          cancel: Annuler
+          saved: Fournisseur sauvegardé. Testez-le avant l'activation.
+          test_passed: Le test de connexion et de sortie structurée a réussi.
+          activated: Fournisseur activé. Les importations sous licence restent en
+            pause jusqu'à ce que vous les activiez explicitement.
+          empty: Aucun fournisseur d'IA n'est encore configuré. Ajoutez-en un ci-dessous.
+      roles:
+        active:
+          label: Dom
+          title: 'Role: Dom'
+        passive:
+          label: Sub
+          title: 'Role: Sub'
+        switch:
+          label: Switch
+          title: 'Role: Switch'
