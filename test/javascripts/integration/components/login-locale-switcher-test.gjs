@@ -4,8 +4,7 @@ import { setupRenderingTest } from "discourse/tests/helpers/component-test";
 import LoginLocaleSwitcher, {
   AVAILABLE_LOCALES,
 } from "discourse/plugins/where-is-my-friends/discourse/components/login-locale-switcher";
-import LoginBeforeModalBodySwitcher from "discourse/plugins/where-is-my-friends/discourse/connectors/login-before-modal-body/login-locale-switcher";
-import CreateAccountBeforeModalBodySwitcher from "discourse/plugins/where-is-my-friends/discourse/connectors/create-account-before-modal-body/login-locale-switcher";
+import AboveSiteHeaderSwitcher from "discourse/plugins/where-is-my-friends/discourse/connectors/above-site-header/login-locale-switcher";
 
 module("Integration | Component | login locale switcher", function (hooks) {
   setupRenderingTest(hooks);
@@ -31,7 +30,7 @@ module("Integration | Component | login locale switcher", function (hooks) {
     assert.true(values.includes("ja"), "includes ja");
   });
 
-  test("connector shouldRender only renders for anonymous users", function (assert) {
+  test("above-site-header connector shouldRender only renders for anonymous users", function (assert) {
     const anonContext = {
       currentUser: null,
       siteSettings: { where_is_my_friends_enabled: true },
@@ -46,25 +45,16 @@ module("Integration | Component | login locale switcher", function (hooks) {
     };
 
     assert.true(
-      LoginBeforeModalBodySwitcher.shouldRender({}, anonContext),
-      "login connector renders for anonymous visitor"
+      AboveSiteHeaderSwitcher.shouldRender({}, anonContext),
+      "connector renders for anonymous visitor"
     );
     assert.false(
-      LoginBeforeModalBodySwitcher.shouldRender({}, loggedInContext),
-      "login connector does not render for logged in user"
+      AboveSiteHeaderSwitcher.shouldRender({}, loggedInContext),
+      "connector does not render for logged in user"
     );
     assert.false(
-      LoginBeforeModalBodySwitcher.shouldRender({}, disabledContext),
-      "login connector does not render when plugin disabled"
-    );
-
-    assert.true(
-      CreateAccountBeforeModalBodySwitcher.shouldRender({}, anonContext),
-      "create account connector renders for anonymous visitor"
-    );
-    assert.false(
-      CreateAccountBeforeModalBodySwitcher.shouldRender({}, loggedInContext),
-      "create account connector does not render for logged in user"
+      AboveSiteHeaderSwitcher.shouldRender({}, disabledContext),
+      "connector does not render when plugin disabled"
     );
   });
 });

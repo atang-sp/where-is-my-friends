@@ -117,10 +117,9 @@ export default class LoginLocaleSwitcher extends Component {
 
   <template>
     <div class="login-locale-switcher" data-test-login-locale-switcher>
-      <label for="login-locale-select" class="login-locale-switcher__label">
+      <span class="login-locale-switcher__globe" aria-hidden="true">
         {{dIcon "globe"}}
-        <span class="login-locale-switcher__label-text">{{this.label}}</span>
-      </label>
+      </span>
       <select
         id="login-locale-select"
         class="login-locale-switcher__select"
