@@ -86,7 +86,7 @@
   &__dismiss {
     position: absolute;
     top: 0.45rem;
-    right: 0.45rem;
+    inset-inline-end: 0.45rem;
     min-width: 2.75rem;
     min-height: 2.75rem;
   }
@@ -278,7 +278,7 @@
       }
 
       ul {
-        padding-left: 1.15rem;
+        padding-inline-start: 1.15rem;
       }
 
       p span {
@@ -313,7 +313,7 @@
   &__dynamic-preview {
     display: block;
     padding: 0.55rem 0.65rem;
-    border-left: 3px solid var(--tertiary-low);
+    border-inline-start: 3px solid var(--tertiary-low);
     border-radius: 0.25rem;
     background: var(--tertiary-very-low);
     color: var(--primary-high);
@@ -581,7 +581,7 @@
     border-top: 1px solid var(--primary-low);
 
     a {
-      margin-left: auto;
+      margin-inline-start: auto;
       font-weight: 650;
     }
   }
@@ -871,7 +871,7 @@
 
   &__invitation-preview {
     padding: 0.8rem 1rem;
-    border-left: 0.25rem solid var(--tertiary);
+    border-inline-start: 0.25rem solid var(--tertiary);
     background: var(--tertiary-very-low);
     color: var(--primary-high);
   }
@@ -1119,7 +1119,7 @@
 
       ul {
         margin: 0;
-        padding-left: 1.25rem;
+        padding-inline-start: 1.25rem;
       }
 
       .btn {
@@ -1443,7 +1443,7 @@
   border-radius: 0.65rem;
   background: var(--secondary);
   color: var(--primary);
-  text-align: left;
+  text-align: start;
   text-decoration: none;
   cursor: pointer;
 
@@ -1592,12 +1592,12 @@
 }
 
 .where-is-my-friends__privacy {
-  padding-left: 1.5rem;
+  padding-inline-start: 1.5rem;
   font-size: var(--font-down-1);
 
   &::before {
-    float: left;
-    margin-left: -1.5rem;
+    float: inline-start;
+    margin-inline-start: -1.5rem;
     content: "●";
     color: var(--success);
   }
@@ -1943,7 +1943,7 @@
 
 .where-is-my-friends__new-badge {
   display: inline-block;
-  margin-left: 0.4rem;
+  margin-inline-start: 0.4rem;
   padding: 0.1rem 0.45rem;
   border-radius: 999px;
   background: var(--success-low);
@@ -1980,7 +1980,7 @@
 }
 
 .where-is-my-friends__empty {
-  text-align: left;
+  text-align: start;
 
   p {
     color: var(--primary-high);
@@ -2571,7 +2571,7 @@
     }
 
     .btn {
-      margin-left: 0.25rem;
+      margin-inline-start: 0.25rem;
     }
   }
 

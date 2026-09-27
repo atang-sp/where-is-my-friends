@@ -127,7 +127,7 @@ RSpec.describe WhereIsMyFriends::PracticeInvitationsController do
     topic = Topic.find(invitation.reload.pm_topic_id)
     expect(topic.first_post.raw).to include("Practice Safety & Boundaries Protocol")
     expect(topic.first_post.raw).to include("SSC")
-    expect(topic.first_post.raw).to include("Pure Exchange")
+    expect(topic.first_post.raw).to include("Consensual Dynamics")
   end
 
   it "rechecks communication blocks before accepting an invitation" do

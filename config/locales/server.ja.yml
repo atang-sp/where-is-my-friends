@@ -1,0 +1,244 @@
+ja:
+  where_is_my_friends:
+    invalid_location: "有効な都市および位置情報を提供してください。"
+    invalid_event: "このアクティビティは記録できません。"
+    invalid_interests: "現在表示されている興味・関心を3〜20個選択し、各カテゴリの上限を超えないようにしてください。"
+    invalid_purpose: "現在フォーラムを利用する主な目的を選択してください。"
+    invalid_recommendation: "このおすすめは現在ご利用いただけません。"
+    flying_chess:
+      invalid_claim: "このゲームの完了証明は無効または期限切れです。"
+      already_claimed: "このゲームの枠は既に受け取られているか、あなたのアカウントで既に受け取り済みです。"
+      claim_failed: "現在、このゲームの完了記録を保存できません。"
+      profile_update_failed: "現在、飛行棋のプロフィールの公開設定を更新できません。"
+    dynamics:
+      unavailable: "個人の近況（ダイナミクス）は現在ご利用いただけません。"
+      invalid_length: "近況は8〜500文字の表示可能な文字で入力してください。"
+      media_not_allowed: "個人の近況では、現在画像、音声、動画、または添付ファイルはサポートされていません。"
+      invalid_reaction: "現在、この気軽なリアクションを送信できません。"
+      reaction_rate_limit: "本日の気軽なリアクションの送信上限に達しました。後ほど再度お試しください。"
+      reaction_notification_title: "あなたの近況に気軽なリアクションがありました"
+      reaction_notifications:
+        relate: "あなたの近況に共感を示しました"
+        curious: "あなたの近況についてもっと知りたいと思っています"
+        open_to_chat: "あなたの近況について話したいと思っています"
+        support: "あなたの近況を応援しました"
+    licensed_import:
+      title_prefix: "[厳選英語記事・翻訳]"
+      deleted_source_user: "削除されたユーザー"
+      tags:
+        curated: "厳選記事"
+        safety: "安全と境界線"
+        sp_education: "SP知識"
+      redaction_placeholders:
+        contact: "[連絡先は削除されました]"
+        address: "[正確な住所は削除されました]"
+      redactions:
+        contact_information: "連絡先の削除"
+        exact_address: "正確な住所の削除"
+        image: "画像の削除"
+        long_quote: "独立した許可のない長文引用の削除"
+      modifications:
+        excerpted: "指定された章の抜粋"
+        translated: "日本語への翻訳"
+        separator: "；"
+      post:
+        disclosure: "このトピックは、英語厳選翻訳ボットによって自動生成され、許可、安全性、忠実度の確認が行われています。以下は日本語の翻訳です。「コミュニティの議論」は原作者によるものではありません。"
+        article_heading: "厳選翻訳記事"
+        question_heading: "質問"
+        answer_heading: "良質な回答"
+        discussion_heading: "コミュニティの議論"
+        attribution_heading: "出典、帰属、および許可"
+        question_attribution: "- 質問：%{author} · [原文](%{url}) · %{license}"
+        answer_attribution: "- 回答：%{author} · [原文](%{url}) · %{license}"
+        article_attribution: "- 出典：%{author} · [固定バージョン](%{revision_url}) · %{license}"
+        modification_notice: "- 変更内容：%{modification}。変更されていない部分は同じライセンスの下で転載されます。"
+        gfdl_title_page_heading: "タイトルページ"
+        gfdl_original_title: "- 元のタイトル：%{title}"
+        gfdl_authors: "- 元の作者：%{authors}（完全な貢献者リストはページの履歴を参照）"
+        gfdl_source_links: "- バージョンと履歴：[元のページ](%{source_url}) · [固定アーカイブバージョン](%{archive_url}) · [元のサイトの永続バージョン](%{revision_url}) · [完全な貢献履歴](%{history_url})"
+        gfdl_original_publisher: "- 元のバージョン発行者：Spanking Art Wiki"
+        gfdl_modifier: "- 変更者：Where Is My Friends 英語厳選翻訳ボット"
+        gfdl_modified_publisher: "- 変更されたバージョンの発行者：https://atang-sp.run.place"
+        gfdl_modification_copyright: "- 変更されたバージョンの著作権表示：Copyright © %{year} Where Is My Friends（日本語翻訳および編集のみ）"
+        gfdl_modification_notice: "- 変更内容：%{modification}。未選択の章、画像、テンプレートナビゲーション、外部リンクは省略されています。翻訳版のタイトルは原文と異なります。"
+        gfdl_license_selection: "- ライセンス：元のサイトはGFDLを宣言していますが、バージョンは指定されていません。GFDL第10節に従って %{license} が選択されており、この変更されたバージョンは引き続き同じライセンスを使用します。"
+        gfdl_no_invariants: "- 元のページには不変のセクション、フロントカバーテキスト、バックカバーテキストは宣言されていません。このバージョンにも不変のセクション、フロントカバーテキスト、バックカバーテキストはありません。"
+        gfdl_history_heading: "変更履歴 (History)"
+        gfdl_original_history: "- 元のバージョン《%{title}》：[元のサイトの改訂版](%{revision_url})、[完全な履歴](%{history_url})。今回採用された[固定アーカイブ](%{archive_url})の時間は %{archived_at} です。"
+        gfdl_modified_history: "- 日本語修正版：%{date} に Where Is My Friends 英語厳選翻訳ボットにより翻訳、抜粋、編集されて公開されました。"
+        gfdl_full_license_notice: "以下は、本トピックに適用される GNU Free Documentation License 1.3 の英語全文であり、変更を加えずにそのまま掲載しています。"
+      reasons:
+        missing_api_key: "選択したモデルのAPIキーがありません"
+        monthly_token_budget_exhausted: "月間のトークン予算を使い切りました"
+        dry_run_ready_for_review: "3つのドライランプレビューが人間のレビューを待っています"
+        pilot_without_human_reply: "5つの成熟したパイロット翻訳に、7日間人間の返信がありません"
+        thirty_day_insufficient_mature_sample: "30日間のレビュー時点で、成熟したパイロット翻訳が5つ未満です"
+        thirty_day_reply_rate_below_half: "30日間の7日間人間返信率が50%を下回っています"
+        human_original_topics_declined: "人間によるオリジナルトピックの数が減少しました"
+        copyright_complaint: "著作権に関する申し立てが確認されました"
+        serious_safety_miss: "重大な安全性の見落としが確認されました"
+        attribution_error: "誤った帰属が確認されました"
+        source_sync_failure: "ソースの同期に失敗しました"
+        source_error: "英語のソースAPIが失敗しました"
+        ai_error: "AIプロバイダーAPIが失敗しました"
+        publication_category_missing: "メンバーが閲覧できる英語厳選の公開カテゴリが設定されていません"
+        unexpected_failure: "予期しないタスクの失敗"
+    interest_catalogue:
+      groups:
+        sp_psychology:
+          name: "SP心理タイプ"
+          description: "SP（スパンキング）において求める核となる体験は何ですか？最も当てはまるものを1〜2個選んでください。"
+        interaction_role:
+          name: "役割（S/M・Dom/Sub・攻め/受け）"
+          description: "役割は関係や状況に応じて変わるものであり、固定のアイデンティティを意味しません。"
+        interaction_style:
+          name: "プレイの傾向"
+          description: "興味のあるプレイの枠組みや全体的な雰囲気を選択してください。"
+        intensity:
+          name: "強度の好み（ソフト〜ハード）"
+          description: "許容できる強度を幅広くお選びください。具体的な境界線は個別のコミュニケーションで決めてください。"
+        emotional_experience:
+          name: "感情的な体験"
+          description: "語り合いたい心理的体験を教えてください。"
+        scene_type:
+          name: "シチュエーション（場面設定）"
+          description: "興味のあるロールプレイや場面設定を選択してください。"
+        position:
+          name: "体位・ポーズの好み"
+          description: "お好みのプレイスタイル・体位。"
+        tools:
+          name: "道具（お仕置き道具など）"
+          description: "興味の発見のために使用されます。実際の使用は、成人していること、合意、および安全なコミュニケーションに基づいている必要があります。"
+        focus_area:
+          name: "重点部位"
+          description: "関連する経験を見つけるのに役立ちますが、具体的な行為への同意を意味するものではありません。"
+        additional_elements:
+          name: "追加要素"
+          description: "より細分化された経験や創作に関する議論を見つけることができます。"
+        aftercare:
+          name: "アフターケア"
+          description: "プレイ後のケアについて、どのような方法を希望しますか？"
+        content_interest:
+          name: "コンテンツの関心"
+          description: "フォーラムで読みたい、または参加したいコンテンツを選んでください。"
+        communication_style:
+          name: "交流スタイル"
+          description: "コミュニティにどのように参加したいかを表すものであり、自動的に連絡や招待が行われることはありません。"
+        practice_frequency:
+          name: "実践（プレイ）の頻度・意欲"
+          description: "現在のプレイに対する姿勢であり、興味のマッチングには影響しません。"
+        community:
+          name: "コミュニティの既存タグ"
+          description: "管理者が追加したタグ、または以前に選択したフォーラムのタグ。"
+    practice_invitations:
+      preset_message: "@%{username} さんを、「%{interest}」を中心とした1対1の実践（プレイ）にお誘いします。"
+      accepted_message: "@%{username} さん、「%{interest}」を中心とした1対1のプレイの招待をお受けしました。こちらで引き続き詳細をお話ししましょう。"
+      proposed_time: "希望日時：%{time}"
+      original_note: "招待のメモ：\n\n> %{note}"
+      safety_agreement_header: "### 🛡️ 双方の安全性とプレイに関する合意"
+      safety_items:
+        ssc_consensus: "**基本原則**：SSC（安全・正気・合意）を遵守し、意に反する行為は絶対にしません。"
+        pure_practice: "**純粋な交流**：スパンキング（厳しい躾）のみの交流を約束し、合意のない越権行為を固く禁じます。"
+        safeword_mechanism: "**セーフワード機能**：セーフワード（赤・黄・緑）を支持・遵守し、ストップがかかれば即座に中止します。"
+        body_safety: "**身体の安全**：危険部位（頭部、頸部、脊椎、腎臓など）を避けます。"
+        aftercare: "**アフターケア**：事後の精神的フォローアップ、対話、そして必要なケア（アフターケア）を行います。"
+        public_first_meet: "**初回の顔合わせ**：初回はお茶（顔合わせ）として、昼間の公共の場を推奨します。"
+      safety_tips: "コミュニティからの温かいお願い：良好なプレイは十分なコミュニケーションと相互の信頼に基づいて成り立ちます。初めての顔合わせの前には、好みや境界線についてオンラインで詳しく話し合うことをお勧めします。身バレ防止（プライバシー保護）と安全第一を常に心がけ、嫌がらせや強制的な行為があった場合は、直ちにフォーラムの運営チームにご連絡ください。"
+      pm_title: "一緒に実践（プレイ）：%{interest}"
+      notification_title: "新しい1対1のプレイの招待"
+      notification_message: "where_is_my_friends.practice_invitations.notification_message"
+      errors:
+        trust_level: "あなたの現在のトラストレベルでは、プレイの招待を送信できません。"
+        unavailable: "このメンバーまたは共通の興味は、現在招待に利用できません。"
+        daily_limit: "本日送信できるプレイの招待の上限に達しました。"
+        duplicate: "この2人のメンバー間には、既に処理待ちの招待があります。"
+        invalid: "プレイの招待が無効です。"
+        invalid_state: "この招待は既に処理されています。"
+        private_messages_unavailable: "現在、この2人のメンバー間でプライベートメッセージのスレッドを作成できません。"
+    user_tags:
+      notification_title: "印象タグを受け取りました"
+      notification_message: "where_is_my_friends.user_tags.notification_message"
+      errors:
+        self_tag: "自分自身に印象タグを追加することはできません。"
+        unavailable: "このメンバーには現在印象タグを追加できません。"
+        opted_out: "このメンバーは印象タグの受け取りをオフにしています。"
+        daily_limit: "本日提案できる印象タグの上限に達しました。"
+        duplicate: "このメンバーには既に同じタグを提案しています。"
+        invalid: "印象タグが無効です。"
+        invalid_state: "この印象タグは既に処理されています。"
+        invalid_endorsement: "このタグは現在賛同できません。"
+        already_endorsed: "あなたは既にこのタグに賛同しています。"
+    legacy_practice_bookmarks:
+      already_handled: "この過去のプレイの意向は既に処理されています。"
+    invite_pm_title: "近くのコミュニティメンバーを見つけましょう"
+    invite_pm_cta: "今すぐ「ご近所の友達」に参加する"
+    announcement:
+      title: "ご近所の友達 —— 近くのメンバーをワンクリックで見つけよう"
+      body: |
+        **ご近所の友達** は、フォーラム内で同じ都市や近くにいるメンバーを見つけるお手伝いをします。
+
+        **使い方：**
+        1. あなたの都市を入力します（GPS不要、正確な位置情報や身バレの心配はありません）。
+        2. すぐに近くにいるメンバー全員が表示されます。
+        3. メッセージを送ったり、お茶（顔合わせ）に誘ったりしましょう。安全第一でご交流ください。
+
+        現在、すでに **%{count} 人のメンバー** が **%{city_count} の都市** でこの機能を利用しています。
+
+        :point_right: **[今すぐ参加する](%{link})** —— わずか10秒で完了します。
+
+        他のメンバーには都市名のみが表示され、プライバシー保護（身バレ防止）が最優先されています。
+      category_title: "「ご近所の友達」で近くのメンバーをワンクリックで確認"
+      category_body: |
+        近くのメンバーを探していますか？毎回投稿する必要はありません。**ご近所の友達** を試して、一度都市を設定するだけで、いつでも近くのすべてのメンバーを確認できます。
+
+        すでに **%{count} 人** が **%{city_count} の都市** で利用しています。
+
+        :point_right: **[今すぐ参加する](%{link})** —— 一度設定すれば、ずっと表示されます。
+
+        もちろん、ここで引き続きメンバー募集の投稿をすることも可能です。しかし、「ご近所の友達」を使えば、常にオンラインのローカルディレクトリを手に入れることができます。
+    notification:
+      member_joined_description: "も %{city} のご近所の友達に参加しました"
+      profile_location_invite: "プロフィールによると、あなたは %{city} にいるようです —— 近くに %{count} 人のフォーラムメンバーがいることをご存知ですか？「ご近所の友達」に参加して、繋がりを持ちましょう！"
+      profile_location_invite_suppressed: "プロフィールによると、あなたは %{city} にいるようです —— 近くのフォーラムメンバーがすでに「ご近所の友達」に参加しています。参加して、彼らと繋がりましょう！"
+      profile_location_invite_empty: "プロフィールによると、あなたは %{city} にいるようです。「ご近所の友達」に参加して、近くのメンバーがお互いを見つけられるように協力しましょう！"
+      monthly_digest: "先月、%{count} 人の新しいメンバーがあなたのご近所の友達に参加しました"
+      weekly_nearby_digest: "今週、近くの都市で %{count} 人のメンバーが新しく参加しました"
+      weekly_nearby_digest_suppressed: "今週、近くの都市で新しいメンバーが参加しました"
+      licensed_import_reason: "英語厳選タスクが一時停止しました：%{reason}"
+  site_settings:
+    where_is_my_friends_enabled: "都市優先のローカルメンバー発見機能を有効にする"
+    where_is_my_friends_flying_chess_achievements_enabled: "飛行棋（フライングチェス）のサーバー側の完了記録の受け取りとプロフィールへの表示を有効にする"
+    where_is_my_friends_flying_chess_claim_secret: "飛行棋のルームサーバーの完了証明を検証するための共有シークレット（最低32バイト）"
+    where_is_my_friends_flying_chess_game_url: "フォーラムのプロフィールカードにある飛行棋へのリンク"
+    where_is_my_friends_interest_onboarding_enabled: "初回の興味のオンボーディングとパーソナライズされたおすすめ機能を有効にする"
+    where_is_my_friends_first_connection_enabled: "ホームページにステージ認識型の「今日のアクション」エントリを表示する"
+    where_is_my_friends_interest_tags: "プラグインに組み込まれている細分化された興味カタログ以外に補充されるフォーラムタグ（最大20個）"
+    where_is_my_friends_dynamics_enabled: "ログインメンバーのみが閲覧できる「個人の近況（ダイナミクス）」を有効にする"
+    where_is_my_friends_dynamics_homepage_enabled: "ホームページのコミュニティ発見パネルでダイナミクスグループを有効にする"
+    where_is_my_friends_dynamics_feed_enabled: "ホームページに個人の近況のおすすめフィードとすべての近況へのリンクを表示する"
+    where_is_my_friends_dynamics_member_preview_enabled: "メンバーのおすすめカードに最近の近況の要約を表示する"
+    where_is_my_friends_dynamics_category_id: "ログインメンバーのみが閲覧でき、デフォルトでミュートされている個人の近況用カテゴリ"
+    where_is_my_friends_practice_invitations_enabled: "厳密な1対1のプレイの招待を有効にする"
+    where_is_my_friends_practice_invitation_min_trust_level: "プレイの招待を送信できる最低トラストレベル"
+    where_is_my_friends_practice_invitation_daily_limit: "各メンバーが1日に送信できるプレイの招待の最大数"
+    where_is_my_friends_enable_virtual_location: "オプションのGPSおよび地図による距離範囲を許可する"
+    where_is_my_friends_map_provider: "オプションの地図位置情報で使用する地図サービス"
+    where_is_my_friends_amap_api_key: "フォーラムのドメインに制限されたAmap（高徳地図）ブラウザキー"
+    where_is_my_friends_baidu_api_key: "フォーラムのドメインに制限されたBaidu（百度地図）ブラウザキー"
+    where_is_my_friends_max_users_display: "ローカルユーザーリストの最大表示数"
+    where_is_my_friends_aggregate_privacy_threshold: "正確な集計人数を表示するために必要な最小参加者数"
+    where_is_my_friends_seed_cities: "おすすめの都市リストを補完します。パイプ(|)で区切ってください（例：上海|北京|東京|New York）"
+    where_is_my_friends_default_discovery_radius_km: "デフォルトの発見半径（キロメートル）。ユーザーは50/100/200から選択できます。"
+    where_is_my_friends_target_category_slug: "同城（ご近所）関連のカテゴリのスラッグ。このカテゴリでは、より強力なオンボーディングコンポーネントが表示されます。"
+    where_is_my_friends_target_category_id: "プレイや交友トピックがあるカテゴリ。古いスラッグ設定よりも優先されます。"
+    where_is_my_friends_filterable_user_fields: "検索結果のフィルタリングを許可するカスタムユーザーフィールド名（ドロップダウンタイプのみ）、パイプ(|)で区切ります"
+    licensed_import_enabled: "明確な許可を得た英語厳選翻訳タスクを有効にする"
+    licensed_import_dry_run: "管理者のプレビューのみを生成し、公開トピックは作成しない"
+    licensed_import_category_id: "英語厳選の公開トピックを公開するカテゴリ"
+    licensed_import_interval_hours: "英語厳選タスクの間の最短時間（時間）"
+    licensed_import_publish_hour: "英語厳選タスクの公開時間（北京時間）"
+    licensed_import_monthly_token_budget: "英語厳選タスクが1ヶ月に使用できる生成トークンの最大数"
+    licensed_import_max_per_day: "1日に作成される英語厳選記事の最大数（1に固定）"
+    where_is_my_friends_avatar_frames_enabled: "コミュニティレベルのアバターフレームと装飾システムを有効にする"
+    where_is_my_friends_avatar_frames_animated: "アニメーション付きの光るアバターフレームエフェクトを有効にする"
+    where_is_my_friends_avatar_frames_show_pill: "アバターの下にレベル番号のミニカプセルを表示する"

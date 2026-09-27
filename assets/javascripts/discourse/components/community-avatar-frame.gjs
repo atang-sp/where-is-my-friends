@@ -1,19 +1,68 @@
 import Component from "@glimmer/component";
 import { service } from "@ember/service";
+import { i18n } from "discourse-i18n";
 
 const ROLE_MAP = {
-  active: { label: "主", key: "active_role", title: "角色：主" },
-  active_role: { label: "主", key: "active_role", title: "角色：主" },
-  主动: { label: "主", key: "active_role", title: "角色：主" },
-  主: { label: "主", key: "active_role", title: "角色：主" },
-  passive: { label: "被", key: "passive_role", title: "角色：被" },
-  passive_role: { label: "被", key: "passive_role", title: "角色：被" },
-  被动: { label: "被", key: "passive_role", title: "角色：被" },
-  被: { label: "被", key: "passive_role", title: "角色：被" },
-  switch: { label: "双", key: "switch_role", title: "角色：双" },
-  switch_role: { label: "双", key: "switch_role", title: "角色：双" },
-  双向: { label: "双", key: "switch_role", title: "角色：双" },
-  双: { label: "双", key: "switch_role", title: "角色：双" },
+  active: {
+    labelKey: "where_is_my_friends.roles.active.label",
+    titleKey: "where_is_my_friends.roles.active.title",
+    key: "active_role",
+  },
+  active_role: {
+    labelKey: "where_is_my_friends.roles.active.label",
+    titleKey: "where_is_my_friends.roles.active.title",
+    key: "active_role",
+  },
+  主动: {
+    labelKey: "where_is_my_friends.roles.active.label",
+    titleKey: "where_is_my_friends.roles.active.title",
+    key: "active_role",
+  },
+  主: {
+    labelKey: "where_is_my_friends.roles.active.label",
+    titleKey: "where_is_my_friends.roles.active.title",
+    key: "active_role",
+  },
+  passive: {
+    labelKey: "where_is_my_friends.roles.passive.label",
+    titleKey: "where_is_my_friends.roles.passive.title",
+    key: "passive_role",
+  },
+  passive_role: {
+    labelKey: "where_is_my_friends.roles.passive.label",
+    titleKey: "where_is_my_friends.roles.passive.title",
+    key: "passive_role",
+  },
+  被动: {
+    labelKey: "where_is_my_friends.roles.passive.label",
+    titleKey: "where_is_my_friends.roles.passive.title",
+    key: "passive_role",
+  },
+  被: {
+    labelKey: "where_is_my_friends.roles.passive.label",
+    titleKey: "where_is_my_friends.roles.passive.title",
+    key: "passive_role",
+  },
+  switch: {
+    labelKey: "where_is_my_friends.roles.switch.label",
+    titleKey: "where_is_my_friends.roles.switch.title",
+    key: "switch_role",
+  },
+  switch_role: {
+    labelKey: "where_is_my_friends.roles.switch.label",
+    titleKey: "where_is_my_friends.roles.switch.title",
+    key: "switch_role",
+  },
+  双向: {
+    labelKey: "where_is_my_friends.roles.switch.label",
+    titleKey: "where_is_my_friends.roles.switch.title",
+    key: "switch_role",
+  },
+  双: {
+    labelKey: "where_is_my_friends.roles.switch.label",
+    titleKey: "where_is_my_friends.roles.switch.title",
+    key: "switch_role",
+  },
 };
 
 export default class CommunityAvatarFrame extends Component {
@@ -140,9 +189,9 @@ export default class CommunityAvatarFrame extends Component {
         {{#if this.roleInfo}}
           <span
             class="community-avatar-frame__role role-{{this.roleInfo.key}}"
-            title={{this.roleInfo.title}}
+            title={{i18n this.roleInfo.titleKey}}
           >
-            {{this.roleInfo.label}}
+            {{i18n this.roleInfo.labelKey}}
           </span>
         {{/if}}
       </div>

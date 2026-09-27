@@ -10,28 +10,36 @@ import DButton from "discourse/ui-kit/d-button";
 import DModal from "discourse/ui-kit/d-modal";
 import { i18n } from "discourse-i18n";
 
-const PRESET_GROUPS = Object.freeze([
-  {
-    key: "practice",
-    titleKey: "where_is_my_friends.user_tags.preset_groups.practice",
-    tags: ["手法温和", "严格守信", "注重沟通", "Aftercare细致", "情绪稳定"],
-  },
-  {
-    key: "personality",
-    titleKey: "where_is_my_friends.user_tags.preset_groups.personality",
-    tags: ["温柔体贴", "谈吐文雅", "靠谱真诚", "幽默风趣", "善于倾听"],
-  },
-  {
-    key: "community",
-    titleKey: "where_is_my_friends.user_tags.preset_groups.community",
-    tags: ["小说大触", "棋力高超", "干货满满", "理论扎实", "安全意识高"],
-  },
-]);
-
 export default class UserTagProposeDialog extends Component {
   @service siteSettings;
 
-  presetGroups = PRESET_GROUPS;
+  get presetGroups() {
+    return [
+      {
+        key: "practice",
+        titleKey: "where_is_my_friends.user_tags.preset_groups.practice",
+        tags: i18n("where_is_my_friends.user_tags.preset_groups.practice_tags")
+          .split(",")
+          .map((t) => t.trim()),
+      },
+      {
+        key: "personality",
+        titleKey: "where_is_my_friends.user_tags.preset_groups.personality",
+        tags: i18n(
+          "where_is_my_friends.user_tags.preset_groups.personality_tags"
+        )
+          .split(",")
+          .map((t) => t.trim()),
+      },
+      {
+        key: "community",
+        titleKey: "where_is_my_friends.user_tags.preset_groups.community",
+        tags: i18n("where_is_my_friends.user_tags.preset_groups.community_tags")
+          .split(",")
+          .map((t) => t.trim()),
+      },
+    ];
+  }
 
   @tracked label = "";
   @tracked submitting = false;

@@ -1,0 +1,244 @@
+ar:
+  where_is_my_friends:
+    invalid_location: "يرجى تقديم مدينة وموقع صالحين."
+    invalid_event: "لا يمكن تسجيل هذا النشاط."
+    invalid_interests: "اختر من 3 إلى 20 اهتمامًا مرئيًا حاليًا دون تجاوز أي حد للمجموعة."
+    invalid_purpose: "اختر سببك الحالي لاستخدام المجتمع."
+    invalid_recommendation: "هذه التوصية لم تعد متاحة."
+    flying_chess:
+      invalid_claim: "مطالبة إكمال اللعبة هذه غير صالحة أو منتهية الصلاحية."
+      already_claimed: "تمت المطالبة بهذا المقعد بالفعل، أو طالب حسابك بهذه اللعبة مسبقًا."
+      claim_failed: "تعذر حفظ إكمال هذه اللعبة."
+      profile_update_failed: "تعذر تحديث إعداد ملف تعريف الشطرنج الطائر."
+    dynamics:
+      unavailable: "التحديثات الشخصية غير متاحة."
+      invalid_length: "يجب أن تحتوي التحديثات على 8 إلى 500 حرف مرئي."
+      media_not_allowed: "الصور والصوت والفيديو والمرفقات غير متوفرة في التحديثات حتى الآن."
+      invalid_reaction: "هذا الرد الخفيف غير متاح."
+      reaction_rate_limit: "لقد أرسلت الكثير من الردود الخفيفة اليوم. يرجى المحاولة مرة أخرى لاحقًا."
+      reaction_notification_title: "رد خفيف على تحديثك"
+      reaction_notifications:
+        relate: "متعلق بتحديثك"
+        curious: "يود معرفة المزيد عن تحديثك"
+        open_to_chat: "منفتح للدردشة حول تحديثك"
+        support: "أرسل دعمًا لتحديثك"
+    licensed_import:
+      title_prefix: "[اختيار اللغة الإنجليزية · ترجمة]"
+      deleted_source_user: "مستخدم محذوف"
+      tags:
+        curated: "اختيار اللغة الإنجليزية"
+        safety: "السلامة والحدود"
+        sp_education: "تعليم SP"
+      redaction_placeholders:
+        contact: "[تمت إزالة معلومات الاتصال]"
+        address: "[تمت إزالة العنوان الدقيق]"
+      redactions:
+        contact_information: "إزالة معلومات الاتصال"
+        exact_address: "إزالة عنوان دقيق"
+        image: "إزالة الصور"
+        long_quote: "إزالة الاقتباسات الطويلة بدون ترخيص مستقل"
+      modifications:
+        excerpted: "مقتطفات من الأقسام المحددة"
+        translated: "مترجم إلى الصينية المبسطة"
+        separator: "؛ "
+      post:
+        disclosure: "تم إنشاء هذا الموضوع بواسطة روبوت الترجمة المرخص بعد التحقق من الترخيص والسلامة والدقة. النص أدناه هو ترجمة صينية؛ موجه مناقشة المجتمع ليس محتوى المؤلف الأصلي."
+        article_heading: "الترجمة المحددة"
+        question_heading: "سؤال"
+        answer_heading: "الإجابة المحددة"
+        discussion_heading: "مناقشة المجتمع"
+        attribution_heading: "المصدر والإسناد والترخيص"
+        question_attribution: "- سؤال: %{author} · [المصدر](%{url}) · %{license}"
+        answer_attribution: "- إجابة: %{author} · [المصدر](%{url}) · %{license}"
+        article_attribution: "- المصدر: %{author} · [مراجعة دائمة](%{revision_url}) · %{license}"
+        modification_notice: "- التعديلات: %{modification}. يُعاد استخدام الأجزاء غير المعدلة بموجب نفس الترخيص."
+        gfdl_title_page_heading: "صفحة عنوان الإصدار"
+        gfdl_original_title: "- العنوان الأصلي: %{title}"
+        gfdl_authors: "- المؤلفون الأصليون: %{authors} (راجع سجل الصفحة لسجل المساهمين الكامل)"
+        gfdl_source_links: "- الإصدار والسجل: [الصفحة الأصلية](%{source_url}) · [الأرشيف الثابت](%{archive_url}) · [المراجعة الدائمة الأصلية](%{revision_url}) · [سجل المساهمة الكامل](%{history_url})"
+        gfdl_original_publisher: "- ناشر الإصدار الأصلي: Spanking Art Wiki"
+        gfdl_modifier: "- المعدّل: روبوت الترجمة المرخص لأين أصدقائي"
+        gfdl_modified_publisher: "- ناشر الإصدار المعدل: https://atang-sp.run.place"
+        gfdl_modification_copyright: "- إشعار حقوق النشر للإصدار المعدل: حقوق الطبع والنشر © %{year} أين أصدقائي (الترجمة الصينية والترتيب فقط)"
+        gfdl_modification_notice: "- التعديلات: %{modification}؛ تم حذف الأقسام غير المحددة والصور وقوالب التنقل والروابط الخارجية. العنوان المترجم يختلف عن الأصلي."
+        gfdl_license_selection: "- الترخيص: يعلن المصدر عن GFDL بدون إصدار؛ بموجب القسم 10 من GFDL، يختار هذا الإصدار المعدل ويظل تحت %{license}."
+        gfdl_no_invariants: "- لا يعلن المصدر عن أي أقسام ثابتة أو نصوص غلاف أمامي أو نصوص غلاف خلفي؛ هذا الإصدار ليس لديه أي منها."
+        gfdl_history_heading: "السجل"
+        gfdl_original_history: "- الإصدار الأصلي، '%{title}': [مراجعة المصدر](%{revision_url}) و [السجل الكامل](%{history_url})؛ الأرشيف الثابت [المستخدم هنا](%{archive_url}) مؤرخ بـ %{archived_at}."
+        gfdl_modified_history: "- الإصدار الصيني المعدل: تمت ترجمته واقتباسه وترتيبه ونشره بواسطة روبوت الترجمة المرخص لأين أصدقائي في %{date}."
+        gfdl_full_license_notice: "النص الإنجليزي الكامل غير المعدل لرخصة جنو للوثائق الحرة 1.3 المستخدم في هذا الموضوع كالتالي."
+      reasons:
+        missing_api_key: "مفتاح API الخاص بالنموذج المحدد مفقود"
+        monthly_token_budget_exhausted: "استنفدت ميزانية الرمز الشهري"
+        dry_run_ready_for_review: "ثلاثة معاينات تجريبية جاهزة للمراجعة البشرية"
+        pilot_without_human_reply: "لم تتلق كل الترجمات التجريبية الناضجة الخمس أي رد بشري في غضون سبعة أيام"
+        thirty_day_insufficient_mature_sample: "المراجعة على مدار 30 يومًا تحتوي على أقل من خمس ترجمات تجريبية ناضجة"
+        thirty_day_reply_rate_below_half: "معدل الرد البشري لمدة سبعة أيام على مدار 30 يومًا أقل من 50٪"
+        human_original_topics_declined: "المواضيع الأصلية التي كتبها الإنسان انخفضت"
+        copyright_complaint: "تم تأكيد شكوى حقوق النشر"
+        serious_safety_miss: "تم تأكيد خطأ أمني خطير"
+        attribution_error: "تم تأكيد خطأ في الإسناد"
+        source_sync_failure: "فشلت مزامنة المصدر"
+        source_error: "فشلت واجهة برمجة تطبيقات المصدر الإنجليزية"
+        ai_error: "فشلت واجهة برمجة تطبيقات مزود الذكاء الاصطناعي"
+        publication_category_missing: "لم يتم تكوين فئة استيراد مرخصة قابلة للقراءة بواسطة الأعضاء"
+        unexpected_failure: "فشلت وظيفة الاستيراد بشكل غير متوقع"
+    interest_catalogue:
+      groups:
+        sp_psychology:
+          name: "الدوافع والديناميات الأساسية"
+          description: "ما هي التجربة الأساسية التي تحرك اهتمامك؟ (مثل: الحوكمة الصارمة، الانضباط، العاطفة)"
+        interaction_role:
+          name: "الأدوار (Top/Bottom/Switch/Dom/Sub)"
+          description: "الدور الديناميكي المفضل لديك. يمكن أن يكون هذا مرنًا ويعتمد على المشهد."
+        interaction_style:
+          name: "أساليب وأنواع الممارسة"
+          description: "الأطر المفضلة (مثل: الضرب التقليدي، الانضباط المنزلي، الضرب الإنجليزي)."
+        intensity:
+          name: "الشدة والحدود"
+          description: "الشدة البدنية المفضلة لديك (حسية إلى شديدة). يجب أن تظل الحدود الصعبة قابلة للتفاوض بشكل خاص."
+        emotional_experience:
+          name: "الخبرة"
+          description: "صف المواضيع التي ترغب في مناقشتها دون وضع علامة على أي شخص."
+        scene_type:
+          name: "نوع المشهد"
+          description: "سيناريوهات لعب الأدوار والإعدادات التي تهمك."
+        position:
+          name: "تفضيلات الموقف"
+          description: "مواقف الممارسة المفضلة."
+        tools:
+          name: "تفضيلات الأدوات"
+          description: "للاكتشاف فقط. أي استخدام يتطلب بالغين وموافقة وتواصل للسلامة."
+        focus_area:
+          name: "منطقة التركيز"
+          description: "ابحث عن تجارب ذات صلة دون الإشارة إلى الموافقة على أي نشاط."
+        additional_elements:
+          name: "عناصر إضافية"
+          description: "ابحث عن تجربة أكثر تفصيلاً ومناقشات إبداعية."
+        aftercare:
+          name: "رعاية ما بعد"
+          description: "الرعاية المفضلة لديك بعد الممارسة."
+        content_interest:
+          name: "اهتمامات المحتوى"
+          description: "اختر ما ترغب في قراءته أو مناقشته في المنتدى."
+        communication_style:
+          name: "التواصل"
+          description: "صف كيف تريد المشاركة؛ هذا لا يبدأ أبدًا الاتصال أو دعوة."
+        practice_frequency:
+          name: "نية الممارسة"
+          description: "موقفك الحالي تجاه الممارسة؛ لا يؤثر على مطابقة الاهتمامات."
+        community:
+          name: "علامات المجتمع الحالية"
+          description: "العلامات التي أضافها المسؤول أو تم الاحتفاظ بها من اختياراتك السابقة."
+    practice_invitations:
+      preset_message: "دعوة @%{username} لمشهد ضرب أو مناقشة حول %{interest} بشكل فردي."
+      accepted_message: "مرحباً @%{username}، لقد قبلت دعوتك الفردية لـ %{interest}. لنتفاوض على الحدود والتفاصيل هنا."
+      proposed_time: "الوقت المقترح: %{time}"
+      original_note: "ملاحظة الدعوة:\n\n> %{note}"
+      safety_agreement_header: "### 🛡️ بروتوكول سلامة الممارسة والحدود"
+      safety_items:
+        ssc_consensus: "**المبادئ الأساسية**: الالتزام بمبادئ SSC (آمن وعاقل وبالتراضي) / RACK، مع احترام الحدود الصارمة واللينة تمامًا"
+        pure_practice: "**الديناميكيات التوافقية**: الالتزام بديناميكيات SP التوافقية، وحظر انتهاكات الحدود تمامًا"
+        safeword_mechanism: "**آلية كلمة الأمان**: إنشاء وتكريم كلمات الأمان بصرامة (مثل: أحمر/أصفر/أخضر)، والتوقف فورًا عند استدعائها"
+        body_safety: "**السلامة الجسدية**: تجنب المناطق الجسدية عالية المخاطر (الرأس، الرقبة، العمود الفقري، الكلى) واحترام تفضيلات الهدف"
+        aftercare: "**رعاية ما بعد**: توفير رعاية ما بعد مناسبة، والتحقق الجسدي، واستخلاص المعلومات العاطفية بعد المشهد"
+        public_first_meet: "**اللقاء الأولي**: الالتزام بلقاء عادي عام قبل أي مشاهد خاصة"
+      safety_tips: "نصيحة أمان المجتمع: تُبنى الممارسة الصحية على التواصل المفتوح والثقة المتبادلة. ننصح بمناقشة التفضيلات والحدود بدقة عبر الإنترنت أولاً. إذا واجهت أي تحرش أو انتهاكات للحدود، يرجى الإبلاغ عن ذلك لإدارة المنتدى على الفور."
+      pm_title: "الممارسة معًا: %{interest}"
+      notification_title: "دعوة ممارسة فردية جديدة"
+      notification_message: "أرسل دعوة ممارسة"
+      errors:
+        trust_level: "مستوى ثقتك ليس مرتفعًا بما يكفي لإرسال دعوات الممارسة."
+        unavailable: "هذا العضو أو الاهتمام المشترك غير متاح لدعوة."
+        daily_limit: "لقد وصلت إلى حد دعوات الممارسة اليوم."
+        duplicate: "توجد بالفعل دعوة معلقة بين هذين العضوين."
+        invalid: "دعوة الممارسة غير صالحة."
+        invalid_state: "تمت معالجة هذه الدعوة بالفعل."
+        private_messages_unavailable: "لا يمكن إنشاء محادثة خاصة لهؤلاء الأعضاء."
+    user_tags:
+      notification_title: "لقد تلقيت علامة انطباع"
+      notification_message: "اقترح علامة انطباع"
+      errors:
+        self_tag: "لا يمكنك إضافة علامة انطباع لنفسك."
+        unavailable: "هذا العضو غير متاح لعلامات الانطباع الآن."
+        opted_out: "قام هذا العضو بإيقاف تشغيل علامات الانطباع الواردة."
+        daily_limit: "لقد وصلت إلى حد اقتراح علامات الانطباع اليوم."
+        duplicate: "لقد اقترحت بالفعل هذه العلامة على هذا العضو."
+        invalid: "علامة الانطباع غير صالحة."
+        invalid_state: "تمت معالجة علامة الانطباع هذه بالفعل."
+        invalid_endorsement: "لا يمكن تأييد هذه العلامة الآن."
+        already_endorsed: "لقد أيدت هذه العلامة بالفعل."
+    legacy_practice_bookmarks:
+      already_handled: "تمت معالجة هذا الاهتمام المرجعي للممارسة السابقة بالفعل."
+    invite_pm_title: "اكتشف أعضاء المجتمع المحلي بالقرب منك"
+    invite_pm_cta: "انضم إلى الأصدقاء المحليين الآن"
+    announcement:
+      title: "الأصدقاء المحليون — ابحث عن أشخاص بالقرب منك بنقرة واحدة"
+      body: |
+        **الأصدقاء المحليون** يساعدك على اكتشاف أعضاء المنتدى في مدينتك والمناطق القريبة.
+
+        **كيف يعمل:**
+        1. حدد مدينتك (لا حاجة لنظام GPS، ولا تتم مشاركة الموقع الدقيق)
+        2. شاهد الجميع في الجوار على الفور
+        3. راسلهم أو رتب لقاءات
+
+        حاليًا **%{count} عضو** عبر **%{city_count} مدينة** يشاركون بالفعل.
+
+        :point_right: **[انضم إلى الأصدقاء المحليين الآن](%{link})** — يستغرق الأمر 10 ثوانٍ.
+
+        مدينتك هي الشيء الوحيد الذي يظهر للأعضاء الآخرين. الخصوصية أولاً دائمًا.
+      category_title: "استخدم الأصدقاء المحليين للعثور على أشخاص في مدينتك"
+      category_body: |
+        هل تبحث عن شخص قريب؟ بدلاً من النشر في كل مرة، جرب **الأصدقاء المحليين** — حدد مدينتك مرة واحدة وشاهد جميع الأعضاء القريبين منك على الفور.
+
+        **%{count} عضو** في **%{city_count} مدينة** يستخدمونه بالفعل.
+
+        :point_right: **[انضم الآن](%{link})** — بنقرة واحدة، مرئي للأعضاء القريبين دائمًا.
+
+        هل ما زلت تفضل النشر هنا؟ لا بأس بذلك! لكن الأصدقاء المحليين يمنحك دليلاً دائماً مُحدّثاً باستمرار.
+    notification:
+      member_joined_description: "انضم أيضًا إلى الاكتشاف المحلي في %{city}"
+      profile_location_invite: "يُظهر ملفك الشخصي أنك في %{city} — هل تعلم أن %{count} أعضاء منتدى قريبون؟ انضم إلى الأصدقاء المحليين للتواصل معهم!"
+      profile_location_invite_suppressed: "يُظهر ملفك الشخصي أنك في %{city} — انضم أعضاء المنتدى القريبون إلى الأصدقاء المحليين. انضم للتواصل معهم!"
+      profile_location_invite_empty: "يُظهر ملفك الشخصي أنك في %{city}. انضم إلى الأصدقاء المحليين لمساعدة الأشخاص القريبين في العثور على بعضهم البعض!"
+      monthly_digest: "انضم %{count} أعضاء جدد بالقرب منك الشهر الماضي"
+      weekly_nearby_digest: "انضم %{count} أعضاء إلى المدن المجاورة هذا الأسبوع"
+      weekly_nearby_digest_suppressed: "أعضاء جدد انضموا إلى المدن المجاورة هذا الأسبوع"
+      licensed_import_reason: "توقف استيراد اللغة الإنجليزية المرخص: %{reason}"
+  site_settings:
+    where_is_my_friends_enabled: "تمكين اكتشاف الأعضاء المحليين بناءً على المدينة أولاً"
+    where_is_my_friends_flying_chess_achievements_enabled: "تمكين مطالبات إكمال لعبة الشطرنج الطائر وإنجازات الملف الشخصي التي تم التحقق منها من الخادم"
+    where_is_my_friends_flying_chess_claim_secret: "السر المشترك المستخدم للتحقق من مطالبات إكمال خادم الغرفة (على الأقل 32 بايت)"
+    where_is_my_friends_flying_chess_game_url: "نقطة دخول الشطرنج الطائر المعروضة في ملفات تعريف المنتدى"
+    where_is_my_friends_interest_onboarding_enabled: "تمكين الإعدادات الأولية للاهتمامات والتوصيات المخصصة"
+    where_is_my_friends_first_connection_enabled: "إظهار إجراء مقترح واحد مدرك للمرحلة في الصفحة الرئيسية"
+    where_is_my_friends_interest_tags: "ما يصل إلى 20 علامة منتدى للإضافة إلى جانب كتالوج الاهتمامات التفصيلي المدمج بالملحق"
+    where_is_my_friends_dynamics_enabled: "تمكين التحديثات الشخصية للأعضاء فقط"
+    where_is_my_friends_dynamics_homepage_enabled: "تمكين مجموعة التحديثات في اكتشاف مجتمع الصفحة الرئيسية"
+    where_is_my_friends_dynamics_feed_enabled: "عرض موجز تحديثات شخصية وإدخال تصفح الكل في الصفحة الرئيسية"
+    where_is_my_friends_dynamics_member_preview_enabled: "عرض معاينة تحديث حديث على بطاقات توصية الأعضاء"
+    where_is_my_friends_dynamics_category_id: "فئة مكتومة افتراضيًا للأعضاء فقط للتحديثات الشخصية"
+    where_is_my_friends_practice_invitations_enabled: "تمكين دعوات الممارسة الفردية بشكل صارم"
+    where_is_my_friends_practice_invitation_min_trust_level: "الحد الأدنى لمستوى الثقة المطلوب لإرسال دعوات الممارسة"
+    where_is_my_friends_practice_invitation_daily_limit: "الحد الأقصى لدعوات الممارسة التي يمكن لكل عضو إرسالها يوميًا"
+    where_is_my_friends_enable_virtual_location: "السماح بنطاقات مسافة نظام تحديد المواقع العالمي (GPS) والخريطة الاختيارية"
+    where_is_my_friends_map_provider: "مزود الخريطة لاختيار الخريطة الاختياري"
+    where_is_my_friends_amap_api_key: "مفتاح متصفح Amap مقيد بنطاق المنتدى هذا"
+    where_is_my_friends_baidu_api_key: "مفتاح متصفح Baidu مقيد بنطاق المنتدى هذا"
+    where_is_my_friends_max_users_display: "الحد الأقصى لعدد المستخدمين لعرضه في القائمة المحلية"
+    where_is_my_friends_aggregate_privacy_threshold: "الحد الأدنى من المشاركين قبل إظهار عدد إجمالي دقيق"
+    where_is_my_friends_seed_cities: "المدن المقترحة للإكمال التلقائي، مفصولة بـ | (مثل: شنغهاي|بكين|نيويورك|طوكيو)"
+    where_is_my_friends_default_discovery_radius_km: "نصف قطر الاكتشاف الافتراضي بالكيلومترات. يمكن للأعضاء اختيار 50/100/200."
+    where_is_my_friends_target_category_slug: "معرف فئة اللقاء المحلي. يُظهر تنبيهًا أقوى في هذه الفئة."
+    where_is_my_friends_target_category_id: "الفئة التي تحتوي على مواضيع لقاء الممارسة. مفضل على إعداد معرف الفئة القديم."
+    where_is_my_friends_filterable_user_fields: "أسماء حقول المستخدمين المخصصة لتمكينها كمرشحات اكتشاف (نوع القائمة المنسدلة فقط)، مفصولة بـ |"
+    licensed_import_enabled: "تمكين واردات الترجمة الإنجليزية المرخصة"
+    licensed_import_dry_run: "إنشاء معاينات للمسؤول دون نشر مواضيع عامة"
+    licensed_import_category_id: "فئة الترجمات الإنجليزية المرخصة المنشورة"
+    licensed_import_interval_hours: "الحد الأدنى للساعات بين عمليات الاستيراد المرخصة"
+    licensed_import_publish_hour: "ساعة النشر بتوقيت بكين لعمليات الاستيراد المرخصة"
+    licensed_import_monthly_token_budget: "الحد الأقصى للرموز الشهرية المنشأة للاستيراد المرخص"
+    licensed_import_max_per_day: "الحد الأقصى للواردات المرخصة في اليوم (ثابت عند 1)"
+    where_is_my_friends_avatar_frames_enabled: "تمكين إطارات الصور الرمزية لمستوى المجتمع ونظام التزيين"
+    where_is_my_friends_avatar_frames_animated: "تمكين تأثيرات التوهج المتحركة على إطارات الصور الرمزية"
+    where_is_my_friends_avatar_frames_show_pill: "إظهار شارة حبة مصغرة للمستوى تحت الصورة الرمزية"

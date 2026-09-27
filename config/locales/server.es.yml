@@ -1,0 +1,244 @@
+es:
+  where_is_my_friends:
+    invalid_location: "Por favor proporciona una ciudad y ubicación válidas."
+    invalid_event: "Esta actividad no puede ser registrada."
+    invalid_interests: "Elige entre 3 y 20 intereses visibles actualmente sin exceder ningún límite de grupo."
+    invalid_purpose: "Elige tu razón actual para usar la comunidad."
+    invalid_recommendation: "Esa recomendación ya no está disponible."
+    flying_chess:
+      invalid_claim: "Esta reclamación de finalización del juego es inválida o expiró."
+      already_claimed: "Este asiento ya ha sido reclamado, o tu cuenta ya reclamó esta partida."
+      claim_failed: "La finalización de esta partida no se pudo guardar."
+      profile_update_failed: "No se pudo actualizar tu configuración de perfil de Flying Chess."
+    dynamics:
+      unavailable: "Las actualizaciones personales no están disponibles."
+      invalid_length: "Las actualizaciones deben contener de 8 a 500 caracteres visibles."
+      media_not_allowed: "Las imágenes, audio, video y archivos adjuntos aún no están disponibles en las actualizaciones."
+      invalid_reaction: "Esta respuesta rápida no está disponible."
+      reaction_rate_limit: "Has enviado demasiadas respuestas rápidas hoy. Por favor, inténtalo de nuevo más tarde."
+      reaction_notification_title: "Una respuesta rápida a tu dinámica"
+      reaction_notifications:
+        relate: "se identificó con tu dinámica"
+        curious: "quisiera saber más sobre tu dinámica"
+        open_to_chat: "está abierto a charlar sobre tu dinámica"
+        support: "envió apoyo para tu dinámica"
+    licensed_import:
+      title_prefix: "[Selección en inglés · traducción]"
+      deleted_source_user: "usuario eliminado"
+      tags:
+        curated: "Selección en inglés"
+        safety: "Seguridad y límites"
+        sp_education: "Educación SP"
+      redaction_placeholders:
+        contact: "[información de contacto eliminada]"
+        address: "[dirección exacta eliminada]"
+      redactions:
+        contact_information: "información de contacto eliminada"
+        exact_address: "dirección exacta eliminada"
+        image: "imágenes eliminadas"
+        long_quote: "citas largas eliminadas sin licencia independiente"
+      modifications:
+        excerpted: "secciones seleccionadas extraídas"
+        translated: "traducido al español"
+        separator: "; "
+      post:
+        disclosure: "Este tema fue generado por el bot de traducción licenciada después de verificaciones de licencia, seguridad y fidelidad. El texto a continuación es una traducción al español; el aviso de discusión de la comunidad no es el contenido del autor original."
+        article_heading: "Traducción seleccionada"
+        question_heading: "Pregunta"
+        answer_heading: "Respuesta seleccionada"
+        discussion_heading: "Discusión comunitaria"
+        attribution_heading: "Fuente, atribución y licencia"
+        question_attribution: "- Pregunta: %{author} · [fuente](%{url}) · %{license}"
+        answer_attribution: "- Respuesta: %{author} · [fuente](%{url}) · %{license}"
+        article_attribution: "- Fuente: %{author} · [revisión permanente](%{revision_url}) · %{license}"
+        modification_notice: "- Modificaciones: %{modification}. Las partes sin cambios se reutilizan bajo la misma licencia."
+        gfdl_title_page_heading: "Página de título de la versión"
+        gfdl_original_title: "- Título original: %{title}"
+        gfdl_authors: "- Autores originales: %{authors} (ver el historial de la página para el registro completo de colaboradores)"
+        gfdl_source_links: "- Versión e historial: [página original](%{source_url}) · [archivo corregido](%{archive_url}) · [revisión permanente original](%{revision_url}) · [historial de contribuciones completo](%{history_url})"
+        gfdl_original_publisher: "- Editor de la versión original: Spanking Art Wiki"
+        gfdl_modifier: "- Modificador: bot de traducción licenciada Where Is My Friends"
+        gfdl_modified_publisher: "- Editor de la versión modificada: https://atang-sp.run.place"
+        gfdl_modification_copyright: "- Aviso de derechos de autor de la versión modificada: Copyright © %{year} Where Is My Friends (solo traducción y adaptación)"
+        gfdl_modification_notice: "- Modificaciones: %{modification}; las secciones no seleccionadas, imágenes, plantillas de navegación y enlaces externos fueron omitidos. El título traducido es distinto del original."
+        gfdl_license_selection: "- Licencia: la fuente declara GFDL sin una versión; bajo la sección 10 de GFDL esta versión modificada selecciona y permanece bajo %{license}."
+        gfdl_no_invariants: "- La fuente declara que no hay Secciones Invariantes, Textos de Cubierta Frontal o Textos de Cubierta Trasera; esta versión no tiene ninguno."
+        gfdl_history_heading: "Historial"
+        gfdl_original_history: "- Versión original, ‘%{title}’: [revisión de fuente](%{revision_url}) e [historial completo](%{history_url}); el [archivo corregido](%{archive_url}) usado aquí está fechado %{archived_at}."
+        gfdl_modified_history: "- Versión modificada: traducida, extraída, adaptada y publicada por el bot de traducción licenciada Where Is My Friends el %{date}."
+        gfdl_full_license_notice: "El texto completo sin modificaciones en inglés de la Licencia de Documentación Libre GNU 1.3 usada por este tema sigue a continuación."
+      reasons:
+        missing_api_key: "la clave API del modelo seleccionado falta"
+        monthly_token_budget_exhausted: "el presupuesto mensual de tokens se ha agotado"
+        dry_run_ready_for_review: "tres vistas previas de prueba están listas para revisión humana"
+        pilot_without_human_reply: "las cinco traducciones piloto maduras no recibieron respuesta humana en siete días"
+        thirty_day_insufficient_mature_sample: "la revisión de 30 días tiene menos de cinco traducciones piloto maduras"
+        thirty_day_reply_rate_below_half: "la tasa de respuesta humana de siete días de 30 días está por debajo del 50%"
+        human_original_topics_declined: "los temas originales creados por humanos han disminuido"
+        copyright_complaint: "se confirmó una queja de derechos de autor"
+        serious_safety_miss: "se confirmó un error grave de seguridad"
+        attribution_error: "se confirmó un error de atribución"
+        source_sync_failure: "la sincronización de la fuente falló"
+        source_error: "la API de fuente en inglés falló"
+        ai_error: "la API de un proveedor de IA falló"
+        publication_category_missing: "ninguna categoría de importación licenciada legible para miembros está configurada"
+        unexpected_failure: "el trabajo de importación falló inesperadamente"
+    interest_catalogue:
+      groups:
+        sp_psychology:
+          name: "Motivaciones y Dinámicas Centrales"
+          description: "¿Qué experiencia central impulsa tu interés? (ej., Gobernanza Estricta, Disciplina, Afectivo)"
+        interaction_role:
+          name: "Roles (Top/Bottom/Switch/Dom/Sub)"
+          description: "Tu rol de dinámica preferido. Esto puede ser fluido y dependiente de la escena."
+        interaction_style:
+          name: "Estilos de Práctica y Géneros"
+          description: "Marcos preferidos (ej., Spanking Tradicional, Disciplina Doméstica, Spanking Inglés)."
+        intensity:
+          name: "Intensidad y Límites"
+          description: "Tu intensidad física preferida (De Sensual a Severo). Los límites duros aún deben negociarse en privado."
+        emotional_experience:
+          name: "Experiencia"
+          description: "Describe temas que deseas discutir sin etiquetar a nadie."
+        scene_type:
+          name: "Tipo de escena"
+          description: "Escenarios de juego de roles y configuraciones que te interesan."
+        position:
+          name: "Preferencias de posición"
+          description: "Posiciones de práctica preferidas."
+        tools:
+          name: "Preferencias de herramientas"
+          description: "Solo para descubrimiento. Cualquier uso requiere adultos, consentimiento y comunicación de seguridad."
+        focus_area:
+          name: "Área de enfoque"
+          description: "Encuentra experiencias relevantes sin implicar consentimiento para ninguna actividad."
+        additional_elements:
+          name: "Elementos adicionales"
+          description: "Encuentra experiencias más detalladas y discusiones creativas."
+        aftercare:
+          name: "Cuidado posterior"
+          description: "Tu cuidado preferido después de la práctica."
+        content_interest:
+          name: "Intereses de contenido"
+          description: "Elige lo que te gustaría leer o discutir en el foro."
+        communication_style:
+          name: "Comunicación"
+          description: "Describe cómo quieres participar; esto nunca inicia contacto o una invitación."
+        practice_frequency:
+          name: "Intención de práctica"
+          description: "Tu actitud actual hacia la práctica; no afecta la coincidencia de intereses."
+        community:
+          name: "Etiquetas comunitarias existentes"
+          description: "Etiquetas añadidas por un administrador o preservadas de tus selecciones anteriores."
+    practice_invitations:
+      preset_message: "Invitar a @%{username} a una escena o discusión 1 a 1 sobre %{interest}."
+      accepted_message: "Hola @%{username}, acepté tu invitación uno a uno para %{interest}. Negociemos límites y detalles aquí."
+      proposed_time: "Hora sugerida: %{time}"
+      original_note: "Nota de invitación:\n\n> %{note}"
+      safety_agreement_header: "### 🛡️ Protocolo de Seguridad y Límites en la Práctica"
+      safety_items:
+        ssc_consensus: "**Principios Centrales**: Cumplir con los principios SSC (Seguro, Sensato, Consensuado) / RACK, respetando estrictamente los límites duros y suaves"
+        pure_practice: "**Dinámicas Consensuadas**: Comprometerse a dinámicas SP consensuadas, prohibiendo estrictamente las violaciones de límites"
+        safeword_mechanism: "**Mecanismo de Palabras de Seguridad**: Establecer y honrar estrictamente palabras de seguridad (ej. Rojo/Amarillo/Verde), deteniéndose inmediatamente cuando se invoquen"
+        body_safety: "**Seguridad Física**: Evitar áreas físicas de alto riesgo (cabeza, cuello, columna, riñones) y respetar las preferencias del objetivo"
+        aftercare: "**Cuidado Posterior**: Proporcionar un cuidado posterior adecuado, revisión física y retroalimentación emocional post-escena"
+        public_first_meet: "**Encuentro Inicial**: Comprometerse a un encuentro vainilla público antes de cualquier escena privada"
+      safety_tips: "Consejo de Seguridad de la Comunidad: Una práctica saludable se basa en comunicación abierta y confianza mutua. Aconsejamos discutir preferencias y límites detalladamente en línea primero. Si experimentas algún acoso o violación de límites, por favor repórtalo a la moderación del foro inmediatamente."
+      pm_title: "Practicar juntos: %{interest}"
+      notification_title: "Nueva invitación de práctica uno a uno"
+      notification_message: "where_is_my_friends.practice_invitations.notification_message"
+      errors:
+        trust_level: "Tu nivel de confianza no es lo suficientemente alto para enviar invitaciones de práctica."
+        unavailable: "Este miembro o el interés compartido no están disponibles para una invitación."
+        daily_limit: "Has alcanzado el límite de invitaciones de práctica de hoy."
+        duplicate: "Ya hay una invitación pendiente entre estos dos miembros."
+        invalid: "La invitación de práctica es inválida."
+        invalid_state: "Esta invitación ya ha sido gestionada."
+        private_messages_unavailable: "No se puede crear una conversación privada para estos miembros."
+    user_tags:
+      notification_title: "Recibiste una etiqueta de impresión"
+      notification_message: "where_is_my_friends.user_tags.notification_message"
+      errors:
+        self_tag: "No puedes añadirte una etiqueta de impresión a ti mismo."
+        unavailable: "Este miembro no está disponible para etiquetas de impresión en este momento."
+        opted_out: "Este miembro ha desactivado las etiquetas de impresión entrantes."
+        daily_limit: "Has alcanzado el límite de propuestas de etiquetas de impresión de hoy."
+        duplicate: "Ya le has propuesto esta etiqueta a este miembro."
+        invalid: "La etiqueta de impresión es inválida."
+        invalid_state: "Esta etiqueta de impresión ya ha sido gestionada."
+        invalid_endorsement: "Esta etiqueta no puede ser respaldada en este momento."
+        already_endorsed: "Ya has respaldado esta etiqueta."
+    legacy_practice_bookmarks:
+      already_handled: "Este interés de práctica anterior ya ha sido gestionado."
+    invite_pm_title: "Descubre miembros de la comunidad local cerca de ti"
+    invite_pm_cta: "Únete a Local Friends ahora"
+    announcement:
+      title: "Local Friends — Encuentra personas cerca de ti en un clic"
+      body: |
+        **Local Friends** te ayuda a descubrir miembros del foro en tu ciudad y áreas cercanas.
+
+        **Cómo funciona:**
+        1. Establece tu ciudad (sin necesidad de GPS, no se comparte ubicación precisa)
+        2. Ve instantáneamente a todos los que están cerca
+        3. Envíales mensajes u organiza encuentros
+
+        Actualmente **%{count} miembros** en **%{city_count} ciudades** ya están participando.
+
+        :point_right: **[Únete a Local Friends ahora](%{link})** — tarda 10 segundos.
+
+        Tu ciudad es lo único que se muestra a otros miembros. Privacidad ante todo, siempre.
+      category_title: "Usa Local Friends para encontrar personas en tu ciudad"
+      category_body: |
+        ¿Buscas a alguien cerca? En lugar de publicar cada vez, prueba **Local Friends** — establece tu ciudad una vez y ve a todos los miembros cercanos al instante.
+
+        **%{count} miembros** en **%{city_count} ciudades** ya lo están usando.
+
+        :point_right: **[Únete ahora](%{link})** — un clic, visible para siempre para los miembros cercanos.
+
+        ¿Aún prefieres publicar aquí? ¡Totalmente bien! Pero Local Friends te da un directorio permanente que siempre está actualizado.
+    notification:
+      member_joined_description: "también se unió al descubrimiento local en %{city}"
+      profile_location_invite: "Tu perfil indica que estás en %{city} — ¿sabías que %{count} miembros del foro están cerca? ¡Únete a Local Friends para conectar con ellos!"
+      profile_location_invite_suppressed: "Tu perfil indica que estás en %{city} — los miembros del foro cercanos se han unido a Local Friends. ¡Únete para conectar con ellos!"
+      profile_location_invite_empty: "Tu perfil indica que estás en %{city}. ¡Únete a Local Friends para ayudar a que la gente cercana se encuentre!"
+      monthly_digest: "%{count} nuevos miembros se unieron cerca de ti el mes pasado"
+      weekly_nearby_digest: "%{count} miembros se unieron a ciudades cercanas esta semana"
+      weekly_nearby_digest_suppressed: "Nuevos miembros se unieron a ciudades cercanas esta semana"
+      licensed_import_reason: "Importación licenciada en inglés pausada: %{reason}"
+  site_settings:
+    where_is_my_friends_enabled: "Habilitar el descubrimiento de miembros locales primero por ciudad"
+    where_is_my_friends_flying_chess_achievements_enabled: "Habilitar reclamaciones verificadas por el servidor de Flying Chess y logros de perfil"
+    where_is_my_friends_flying_chess_claim_secret: "Secreto compartido usado para verificar reclamaciones de finalización del servidor de la sala (al menos 32 bytes)"
+    where_is_my_friends_flying_chess_game_url: "Punto de entrada a Flying Chess mostrado en los perfiles del foro"
+    where_is_my_friends_interest_onboarding_enabled: "Habilitar incorporación de intereses de primer uso y recomendaciones personalizadas"
+    where_is_my_friends_first_connection_enabled: "Mostrar una acción sugerida adaptada a la etapa en la página de inicio"
+    where_is_my_friends_interest_tags: "Hasta 20 etiquetas de foro para añadir junto al catálogo de intereses detallado incorporado en el plugin"
+    where_is_my_friends_dynamics_enabled: "Habilitar actualizaciones personales solo para miembros"
+    where_is_my_friends_dynamics_homepage_enabled: "Habilitar el grupo de actualizaciones en el descubrimiento de la comunidad de la página de inicio"
+    where_is_my_friends_dynamics_feed_enabled: "Mostrar un feed de actualizaciones personales y una entrada para buscar todos en la página de inicio"
+    where_is_my_friends_dynamics_member_preview_enabled: "Mostrar una vista previa de la actualización reciente en las tarjetas de recomendación de miembros"
+    where_is_my_friends_dynamics_category_id: "Categoría silenciada por defecto solo para miembros para actualizaciones personales"
+    where_is_my_friends_practice_invitations_enabled: "Habilitar invitaciones de práctica estrictamente uno a uno"
+    where_is_my_friends_practice_invitation_min_trust_level: "Nivel de confianza mínimo requerido para enviar invitaciones de práctica"
+    where_is_my_friends_practice_invitation_daily_limit: "Máximas invitaciones de práctica que cada miembro puede enviar al día"
+    where_is_my_friends_enable_virtual_location: "Permitir GPS opcional y bandas de distancia en mapa"
+    where_is_my_friends_map_provider: "Proveedor de mapas para la selección de mapas opcional"
+    where_is_my_friends_amap_api_key: "Clave de navegador Amap restringida a este dominio de foro"
+    where_is_my_friends_baidu_api_key: "Clave de navegador Baidu restringida a este dominio de foro"
+    where_is_my_friends_max_users_display: "Número máximo de usuarios a mostrar en la lista local"
+    where_is_my_friends_aggregate_privacy_threshold: "Participantes mínimos antes de mostrar un recuento agregado exacto"
+    where_is_my_friends_seed_cities: "Ciudades sugeridas para el autocompletado, separadas por | (ej. Madrid|Barcelona|Valencia|Sevilla)"
+    where_is_my_friends_default_discovery_radius_km: "Radio de descubrimiento predeterminado en kilómetros. Los miembros pueden elegir 50/100/200."
+    where_is_my_friends_target_category_slug: "Slug de la categoría de encuentros locales. Muestra un anuncio más fuerte en esta categoría."
+    where_is_my_friends_target_category_id: "Categoría que contiene temas de encuentros de práctica. Preferida sobre la configuración heredada de slug."
+    where_is_my_friends_filterable_user_fields: "Nombres de campos de usuario personalizados para habilitar como filtros de descubrimiento (solo tipo desplegable), separados por |"
+    licensed_import_enabled: "Habilitar importaciones licenciadas de traducciones en inglés"
+    licensed_import_dry_run: "Generar vistas previas para administradores sin publicar temas públicos"
+    licensed_import_category_id: "Categoría para traducciones licenciadas de inglés publicadas"
+    licensed_import_interval_hours: "Mínimo de horas entre ejecuciones de importaciones licenciadas"
+    licensed_import_publish_hour: "Hora (hora de Pekín) para ejecuciones de importaciones licenciadas"
+    licensed_import_monthly_token_budget: "Máximos tokens de generación mensuales para importaciones licenciadas"
+    licensed_import_max_per_day: "Máximas importaciones licenciadas por día (fijado en 1)"
+    where_is_my_friends_avatar_frames_enabled: "Habilitar sistema de marcos de avatar y decoraciones por nivel de comunidad"
+    where_is_my_friends_avatar_frames_animated: "Habilitar efectos de brillo animado en los marcos de avatar"
+    where_is_my_friends_avatar_frames_show_pill: "Mostrar mini píldora de nivel debajo del avatar"

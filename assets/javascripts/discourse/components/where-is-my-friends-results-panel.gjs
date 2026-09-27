@@ -45,9 +45,21 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
       return null;
     }
     const map = {
-      active_role: { label: "主", key: "active_role", title: "角色：主" },
-      passive_role: { label: "被", key: "passive_role", title: "角色：被" },
-      switch_role: { label: "双", key: "switch_role", title: "角色：双" },
+      active_role: {
+        labelKey: "where_is_my_friends.roles.active.label",
+        titleKey: "where_is_my_friends.roles.active.title",
+        key: "active_role",
+      },
+      passive_role: {
+        labelKey: "where_is_my_friends.roles.passive.label",
+        titleKey: "where_is_my_friends.roles.passive.title",
+        key: "passive_role",
+      },
+      switch_role: {
+        labelKey: "where_is_my_friends.roles.switch.label",
+        titleKey: "where_is_my_friends.roles.switch.title",
+        key: "switch_role",
+      },
     };
     return map[key] || null;
   };
@@ -62,11 +74,13 @@ export default class WhereIsMyFriendsResultsPanel extends Component {
   };
 
   roleBadgeLabel = (user) => {
-    return this.roleBadge(user)?.label || "";
+    const key = this.roleBadge(user)?.labelKey;
+    return key ? i18n(key) : "";
   };
 
   roleBadgeTitle = (user) => {
-    return this.roleBadge(user)?.title || "";
+    const key = this.roleBadge(user)?.titleKey;
+    return key ? i18n(key) : "";
   };
 
   <template>
