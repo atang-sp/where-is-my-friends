@@ -20,11 +20,40 @@ register_svg_icon "plug"
 register_svg_icon "floppy-disk"
 register_svg_icon "plane"
 register_svg_icon "tag"
+register_svg_icon "globe"
 
 require_relative "lib/where_is_my_friends/engine"
 
 after_initialize do
   SiteSetting.set_locale_from_accept_language_header = true
+  SiteSetting.allow_user_locale = true
+  SiteSetting.set_locale_from_cookie = true
+  SiteSetting.set_locale_from_param = true
+
+  if Discourse.respond_to?(:anonymous_locale)
+    module AnonymousLocaleSupport
+      def anonymous_locale(request)
+        locale = super
+        return locale if locale.present?
+
+        if SiteSetting.set_locale_from_param
+          param_val =
+            request.params["tl"] || request.params["locale"] ||
+              request.params["lang"]
+          return HttpLanguageParser.parse(param_val) if param_val.present?
+        end
+
+        if SiteSetting.set_locale_from_cookie
+          cookie_val = request.cookies["locale"]
+          return HttpLanguageParser.parse(cookie_val) if cookie_val.present?
+        end
+
+        nil
+      end
+    end
+
+    Discourse.singleton_class.prepend(AnonymousLocaleSupport)
+  end
 
   SeedFu.fixture_paths << Rails
     .root

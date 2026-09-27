@@ -16,6 +16,9 @@ de:
               löschen
   js:
     where_is_my_friends:
+      locale_switcher:
+        label: Sprache
+        switch_language: Sprache wechseln
       title: Lokale Spanking-Suche
       eyebrow: Private lokale Verbindungen
       description: Finde lokal Spanking-Partner privat und sicher — entdecke geprüfte

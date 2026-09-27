@@ -15,6 +15,9 @@ en:
               provider
   js:
     where_is_my_friends:
+      locale_switcher:
+        label: Language
+        switch_language: Change language
       title: Local Spanking Finder
       eyebrow: Private Local Connections
       description: Find local spanking partners privately and safely — discover vetted
