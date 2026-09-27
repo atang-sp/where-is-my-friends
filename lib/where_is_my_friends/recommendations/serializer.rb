@@ -198,7 +198,7 @@ module WhereIsMyFriends
         topics = candidates.map(&:first).uniq(&:id)
         active_member_count = active_contributor_count(topics)
         protected_count =
-          AggregatePrivacy.protect_counts(
+          WhereIsMyFriends::AggregatePrivacy.protect_counts(
             { active_member_count: active_member_count },
             :active_member_count
           )
