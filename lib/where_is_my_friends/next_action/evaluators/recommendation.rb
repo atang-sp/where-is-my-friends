@@ -15,13 +15,13 @@ module WhereIsMyFriends
             return person_action(person) if person
 
             topic = recommended_topic(profile)
-            return topic_action(topic) if topic
+            topic_action(topic) if topic
           else
             topic = recommended_topic(profile)
             return topic_action(topic) if topic
 
             person = recommended_person(profile)
-            return person_action(person) if person
+            person_action(person) if person
           end
         end
 

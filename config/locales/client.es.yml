@@ -16,6 +16,9 @@ es:
               IA de Local Friends
   js:
     where_is_my_friends:
+      locale_switcher:
+        label: Idioma
+        switch_language: Cambiar idioma
       title: Buscador Local de Spanking
       eyebrow: Conexiones Locales Privadas
       description: Encuentra compañeros locales de spanking de manera privada y segura

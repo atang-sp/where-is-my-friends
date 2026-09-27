@@ -16,6 +16,9 @@ ar:
               للأصدقاء المحليين
   js:
     where_is_my_friends:
+      locale_switcher:
+        label: اللغة
+        switch_language: تغيير اللغة
       title: مكتشف الضرب المحلي
       eyebrow: اتصالات محلية خاصة
       description: ابحث عن شركاء ضرب محليين بخصوصية وأمان — اكتشف الأعضاء Top و Bottom

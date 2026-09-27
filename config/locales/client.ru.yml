@@ -16,6 +16,9 @@ ru:
               ИИ Local Friends
   js:
     where_is_my_friends:
+      locale_switcher:
+        label: Язык
+        switch_language: Сменить язык
       title: Локальный поиск для порки
       eyebrow: Частные локальные связи
       description: Найдите местных партнеров для порки приватно и безопасно — откройте

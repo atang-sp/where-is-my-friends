@@ -11,6 +11,9 @@ zh_CN:
             delete_where_is_my_friends_ai_provider_profile: 删除同城朋友 AI 供应商
   js:
     where_is_my_friends:
+      locale_switcher:
+        label: 语言
+        switch_language: 切换语言
       title: 同城朋友
       eyebrow: 本地社区
       description: 找到你身边的同好，把线上的熟悉ID变成线下的真实连接。

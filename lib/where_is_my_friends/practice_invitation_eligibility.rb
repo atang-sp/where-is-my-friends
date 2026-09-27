@@ -13,66 +13,8 @@ module WhereIsMyFriends
     end
 
     def self.bulk_common_interests(sender:, recipients:)
-      return {} if recipients.empty?
-      
-      sender_guardian = Guardian.new(sender)
-      sender_profile = WhereIsMyFriendsInterestProfile.find_by(user_id: sender.id)
-      return {} unless sender_profile
-      
-      sender_interest_ids = sender_profile.interests.pluck(:tag_id)
-      return {} if sender_interest_ids.empty?
-
-      visible_sender_interests = DiscourseTagging.visible_tags(sender_guardian).where(id: sender_interest_ids).order(:name).to_a
-      return {} if visible_sender_interests.empty?
-
-      # Preload profiles for recipients
-      profiles = WhereIsMyFriendsInterestProfile.where(user_id: recipients.map(&:id)).includes(:interests).index_by(&:user_id)
-      
-      # Preload posts for contribution check
-      topic_names = visible_sender_interests.map(&:name)
-      visible_topics = topic_names.empty? ? [] : TopicQuery.new(sender, per_page: CONTRIBUTION_WINDOW, tags: topic_names).list_latest.topics
-      topic_ids = visible_topics.map(&:id)
-      
-      contributed_topic_ids_by_user = {}
-      if topic_ids.present?
-        Post.where(
-          user_id: recipients.map(&:id),
-          topic_id: topic_ids,
-          post_type: Post.types[:regular],
-          deleted_at: nil,
-          hidden: false
-        ).pluck(:user_id, :topic_id).each do |user_id, topic_id|
-          contributed_topic_ids_by_user[user_id] ||= Set.new
-          contributed_topic_ids_by_user[user_id] << topic_id
-        end
-      end
-
-      # We still need to do relationship checks (muted/ignored), but those are fast or cached.
-      # To keep it simple, we initialize the instance but inject the cached data if we wanted to.
-      # Since `bulk_common_interests` returns just the tags, we can just do the logic inline for speed.
-      member_selection = ViewerAwareMemberSelection.new(viewer: sender, guardian: sender_guardian)
-      
       recipients.each_with_object({}) do |recipient, hash|
-        # Fast availability check (skip trust level etc. as this is for recommendations where basic visibility is checked)
-        # We rely on the recommendation engine to have already filtered out blocked users.
-        profile = profiles[recipient.id]
-        
-        common_tag_ids = Set.new
-        
-        # Public common interests
-        if profile&.state == "complete" && profile.show_interests_publicly?
-          recipient_interest_ids = profile.interests.map(&:tag_id)
-          common_tag_ids.merge(sender_interest_ids & recipient_interest_ids)
-        end
-        
-        # Contribution interests
-        if profile&.state == "complete" && profile.recommendable? && contributed_topic_ids_by_user[recipient.id]
-          contributed_topics = visible_topics.select { |t| contributed_topic_ids_by_user[recipient.id].include?(t.id) }
-          contribution_tags = contributed_topics.flat_map(&:tags).map(&:id).uniq & sender_interest_ids
-          common_tag_ids.merge(contribution_tags)
-        end
-        
-        hash[recipient.id] = visible_sender_interests.select { |tag| common_tag_ids.include?(tag.id) }
+        hash[recipient.id] = new(sender: sender, recipient: recipient).common_interests
       end
     end
 

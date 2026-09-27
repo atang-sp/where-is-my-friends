@@ -16,6 +16,9 @@ pt:
               do Local Friends
   js:
     where_is_my_friends:
+      locale_switcher:
+        label: Idioma
+        switch_language: Mudar idioma
       title: Local Spanking Finder
       eyebrow: Conexões Locais Privadas
       description: Encontre parceiros locais de spanking de forma privada e segura

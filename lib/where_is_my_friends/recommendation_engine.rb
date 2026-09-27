@@ -176,13 +176,15 @@ module WhereIsMyFriends
     end
 
     def recommended_interests(profile)
-      @interest_engine.call(profile: profile).each_with_index.map do |entry, index|
+      @interest_engine.call(profile: profile).each_with_index.filter_map do |entry, index|
         serialized = @serializer.serialize_interest_entrance(
           entry[:tag],
           entry[:candidates],
           candidate_source: entry[:candidate_source],
           reason_tag: entry[:reason_tag]
         )
+        next if serialized.nil?
+
         serialized.merge(rank: index + 1, rank_bucket: @serializer.send(:rank_bucket, index + 1))
       end
     end

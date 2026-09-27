@@ -11,6 +11,9 @@ ja:
             delete_where_is_my_friends_ai_provider_profile: ご近所の友達 AIプロバイダーを削除
   js:
     where_is_my_friends:
+      locale_switcher:
+        label: 言語
+        switch_language: 言語を切り替える
       title: ご近所の友達
       eyebrow: ローカルコミュニティ
       description: 近くにいる同じ趣味（S/M・スパンキング）の仲間を見つけ、オンラインのつながりをオフラインの安全な出会いへと広げましょう。

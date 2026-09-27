@@ -2713,3 +2713,51 @@
     }
   }
 }
+
+.login-locale-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  padding: 0.4rem 0.65rem;
+  background: var(--primary-very-low);
+  border: 1px solid var(--primary-low);
+  border-radius: var(--d-border-radius);
+  font-size: var(--font-down-1);
+
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    color: var(--primary-medium);
+    cursor: pointer;
+    font-size: var(--font-down-1);
+    white-space: nowrap;
+
+    .d-icon {
+      color: var(--primary-medium);
+      font-size: var(--font-down-1);
+    }
+  }
+
+  &__select {
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    height: auto;
+    font-size: var(--font-down-1);
+    background: var(--secondary);
+    color: var(--primary);
+    border: 1px solid var(--primary-low-mid);
+    border-radius: var(--d-border-radius);
+    cursor: pointer;
+    outline: none;
+    max-width: 11rem;
+
+    &:hover,
+    &:focus {
+      border-color: var(--tertiary);
+    }
+  }
+}
