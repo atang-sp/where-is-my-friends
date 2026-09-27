@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.30.1 — 2026-09-27
+
+- Relocate guest locale switcher from login and registration modal bodies to a sleek, compact capsule pill fixed at the top-right corner of the viewport (`above-site-header`).
+- Polish locale switcher styling with subtle capsule elevation, hover highlights, dark/light theme native CSS properties, and RTL chevron alignment.
+
 ## 1.30.0 — 2026-09-27
 
 - Add guest locale switcher component for login modal, signup modal, and static login pages with 9 supported languages (zh_CN, en, ja, de, es, fr, pt, ru, ar).
