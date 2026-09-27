@@ -10,7 +10,10 @@ import { eq } from "discourse/truth-helpers";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import { createClientTelemetry } from "discourse/plugins/where-is-my-friends/discourse/lib/client-telemetry";
-import UserTagChips from "./user-tag-chips";
+import CommunityDiscoveryTopics from "./community-discovery-topics";
+import CommunityDiscoveryDynamics from "./community-discovery-dynamics";
+import CommunityDiscoveryPeople from "./community-discovery-people";
+import CommunityDiscoveryInterests from "./community-discovery-interests";
 
 export default class CommunityDiscoveryPanel extends Component {
   @service currentUser;
@@ -427,326 +430,42 @@ export default class CommunityDiscoveryPanel extends Component {
             </nav>
             {{#if (eq this.activeGroup "topics")}}
               {{#if this.topics.length}}
-                <section class="community-discovery__section">
-                  <h3>{{i18n
-                      "where_is_my_friends.community_discovery.topics_title"
-                    }}</h3>
-                  <div class="community-discovery__grid">
-                    {{#each this.topics as |topic|}}
-                      <article data-test-community-topic={{topic.id}}>
-                        <a
-                          href={{topic.url}}
-                          data-test-community-topic-action
-                          {{on
-                            "click"
-                            (fn this.trackOpen "recommended_topic_opened" topic)
-                          }}
-                        >
-                          <h4>{{topic.fancy_title}}</h4>
-                        </a>
-                        <p data-test-community-topic-reason>
-                          <strong>{{i18n
-                              "where_is_my_friends.community_discovery.why"
-                            }}</strong>
-                          {{i18n
-                            "where_is_my_friends.community_discovery.topic_reason"
-                          }}
-                          {{#each topic.matching_interests as |interest|}}
-                            <span>{{interest.name}}</span>
-                          {{/each}}
-                        </p>
-                        <p class="community-discovery__signal">
-                          {{i18n
-                            (concat
-                              "where_is_my_friends.community_discovery.topic_state."
-                              topic.participation_state
-                            )
-                          }}
-                        </p>
-                        <div class="community-discovery__actions">
-                          <a
-                            class="btn btn-primary"
-                            href={{topic.url}}
-                            {{on
-                              "click"
-                              (fn
-                                this.trackOpen "recommended_topic_opened" topic
-                              )
-                            }}
-                          >{{i18n
-                              "where_is_my_friends.community_discovery.join_discussion"
-                            }}</a>
-                          <DButton
-                            @action={{fn this.dismiss "topic" topic}}
-                            @label="where_is_my_friends.interests.not_interested"
-                            @disabled={{this.loading}}
-                            class="btn-flat"
-                            data-test-community-dismiss
-                          />
-                        </div>
-                      </article>
-                    {{/each}}
-                  </div>
-                </section>
+                <CommunityDiscoveryTopics
+                  @topics={{this.topics}}
+                  @trackOpen={{this.trackOpen}}
+                  @dismiss={{this.dismiss}}
+                  @loading={{this.loading}}
+                />
               {{/if}}
             {{/if}}
 
             {{#if (eq this.activeGroup "dynamics")}}
-              {{#if this.recentDynamics.length}}
-                <section class="community-discovery__section">
-                  <h3>{{i18n
-                      "where_is_my_friends.community_discovery.dynamics_title"
-                    }}</h3>
-                  <div class="community-discovery__grid">
-                    {{#each this.recentDynamics as |dynamic|}}
-                      <article data-test-community-dynamic={{dynamic.id}}>
-                        <div class="community-discovery__person-heading">
-                          <h4>{{if
-                              dynamic.author.name
-                              dynamic.author.name
-                              dynamic.author.username
-                            }}</h4>
-                          <span>@{{dynamic.author.username}}</span>
-                        </div>
-                        <p>{{dynamic.excerpt}}</p>
-                        <div class="community-discovery__actions">
-                          <a
-                            class="btn btn-primary"
-                            href={{dynamic.url}}
-                            data-test-community-dynamic-open
-                            {{on
-                              "click"
-                              (fn
-                                this.trackDynamicOpen "dynamic_opened" dynamic
-                              )
-                            }}
-                          >{{i18n
-                              "where_is_my_friends.dynamics.open_and_reply"
-                            }}</a>
-                        </div>
-                      </article>
-                    {{/each}}
-                  </div>
-                </section>
-              {{else}}
-                <div
-                  class="community-discovery__empty"
-                  data-test-community-dynamics-empty
-                >
-                  <span>{{i18n
-                      "where_is_my_friends.community_discovery.dynamics_empty"
-                    }}</span>
-                  <a class="btn btn-flat" href={{this.ownDynamicsUrl}}>{{i18n
-                      "where_is_my_friends.community_discovery.share_dynamic"
-                    }}</a>
-                </div>
-              {{/if}}
+              <CommunityDiscoveryDynamics
+                @dynamics={{this.recentDynamics}}
+                @trackDynamicOpen={{this.trackDynamicOpen}}
+                @ownDynamicsUrl={{this.ownDynamicsUrl}}
+              />
             {{/if}}
 
             {{#if (eq this.activeGroup "people")}}
               {{#if this.people.length}}
-                <section class="community-discovery__section">
-                  <h3>{{i18n
-                      "where_is_my_friends.community_discovery.people_title"
-                    }}</h3>
-                  <div class="community-discovery__grid">
-                    {{#each this.people as |person|}}
-                      <article data-test-community-person={{person.username}}>
-                        <div class="community-discovery__person-heading">
-                          <h4>{{if
-                              person.name
-                              person.name
-                              person.username
-                            }}</h4>
-                          <span>@{{person.username}}</span>
-                        </div>
-                        <p data-test-community-person-reason>
-                          <strong>{{i18n
-                              "where_is_my_friends.community_discovery.why"
-                            }}</strong>
-                          {{i18n
-                            "where_is_my_friends.community_discovery.person_reason"
-                          }}
-                          {{#each person.reason_interests as |interest|}}
-                            <span>{{interest.name}}</span>
-                          {{/each}}
-                        </p>
-                        <UserTagChips
-                          @username={{person.username}}
-                          @tags={{person.user_tags}}
-                        />
-                        {{#if person.latest_dynamic}}
-                          <a
-                            class="community-discovery__dynamic-preview"
-                            href={{person.latest_dynamic.url}}
-                            data-test-community-person-dynamic
-                            {{on
-                              "click"
-                              (fn
-                                this.trackOpen
-                                "recommended_user_dynamic_opened"
-                                person
-                              )
-                            }}
-                          >
-                            <strong>{{i18n
-                                "where_is_my_friends.community_discovery.latest_dynamic"
-                              }}</strong>
-                            {{person.latest_dynamic.excerpt}}
-                          </a>
-                        {{/if}}
-                        <div class="community-discovery__actions">
-                          {{#if person.primaryTopic}}
-                            <a
-                              class="btn btn-primary"
-                              href={{person.primaryTopic.url}}
-                              data-test-community-person-primary-action
-                              {{on
-                                "click"
-                                (fn
-                                  this.trackOpen
-                                  "recommended_user_related_topic_opened"
-                                  person
-                                )
-                              }}
-                            >
-                              {{i18n
-                                "where_is_my_friends.community_discovery.join_person_discussion"
-                              }}
-                            </a>
-                          {{/if}}
-                          <a
-                            class="btn btn-flat"
-                            href={{person.profile_url}}
-                            data-test-community-person-profile-action
-                            {{on
-                              "click"
-                              (fn
-                                this.trackOpen
-                                "recommended_user_profile_opened"
-                                person
-                              )
-                            }}
-                          >
-                            {{i18n
-                              "where_is_my_friends.community_discovery.view_profile"
-                            }}
-                          </a>
-                          {{#if person.invite_url}}
-                            <a
-                              class="btn btn-flat"
-                              href={{person.invite_url}}
-                              data-test-community-person-invite-action
-                              {{on
-                                "click"
-                                (fn
-                                  this.trackOpen
-                                  "recommended_user_invite_started"
-                                  person
-                                )
-                              }}
-                            >
-                              {{i18n
-                                "where_is_my_friends.community_discovery.invite"
-                              }}
-                            </a>
-                          {{/if}}
-                          <DButton
-                            @action={{fn this.dismiss "user" person}}
-                            @label="where_is_my_friends.interests.not_interested"
-                            @disabled={{this.loading}}
-                            class="btn-flat"
-                            data-test-community-dismiss
-                          />
-                        </div>
-                      </article>
-                    {{/each}}
-                  </div>
-                </section>
+                <CommunityDiscoveryPeople
+                  @people={{this.people}}
+                  @trackOpen={{this.trackOpen}}
+                  @dismiss={{this.dismiss}}
+                  @loading={{this.loading}}
+                />
               {{/if}}
             {{/if}}
 
             {{#if (eq this.activeGroup "interests")}}
               {{#if this.interests.length}}
-                <section class="community-discovery__section">
-                  <h3>{{i18n
-                      "where_is_my_friends.community_discovery.interests_title"
-                    }}</h3>
-                  <div
-                    class="community-discovery__grid community-discovery__grid--interests"
-                  >
-                    {{#each this.interests as |interest|}}
-                      <article data-test-community-interest={{interest.id}}>
-                        <a
-                          href={{interest.url}}
-                          data-test-community-interest-action
-                          {{on
-                            "click"
-                            (fn
-                              this.trackOpen
-                              "recommended_interest_opened"
-                              interest
-                            )
-                          }}
-                        >
-                          <h4>{{interest.name}}</h4>
-                        </a>
-                        <p data-test-community-interest-reason>
-                          <strong>{{i18n
-                              "where_is_my_friends.community_discovery.why"
-                            }}</strong>
-                          {{#if interest.reason_interest}}
-                            {{i18n
-                              "where_is_my_friends.community_discovery.exploration_reason"
-                              from=interest.reason_interest.name
-                              to=interest.name
-                            }}
-                          {{else}}
-                            {{#if interest.active_member_count_suppressed}}
-                              {{i18n
-                                "where_is_my_friends.community_discovery.interest_reason_private"
-                                topicCount=interest.topic_count
-                                newCount=interest.new_topic_count
-                              }}
-                            {{else}}
-                              {{i18n
-                                "where_is_my_friends.community_discovery.interest_reason"
-                                topicCount=interest.topic_count
-                                newCount=interest.new_topic_count
-                                memberCount=interest.active_member_count
-                              }}
-                            {{/if}}
-                          {{/if}}
-                        </p>
-                        <div class="community-discovery__actions">
-                          <a
-                            class="btn btn-primary"
-                            href={{interest.url}}
-                            {{on
-                              "click"
-                              (fn
-                                this.trackOpen
-                                "recommended_interest_opened"
-                                interest
-                              )
-                            }}
-                          >
-                            {{i18n
-                              "where_is_my_friends.community_discovery.explore"
-                            }}
-                          </a>
-                          <DButton
-                            @action={{fn this.dismiss "interest" interest}}
-                            @label="where_is_my_friends.interests.not_interested"
-                            @disabled={{this.loading}}
-                            class="btn-flat"
-                            data-test-community-dismiss
-                          />
-                        </div>
-                      </article>
-                    {{/each}}
-                  </div>
-                </section>
+                <CommunityDiscoveryInterests
+                  @interests={{this.interests}}
+                  @trackOpen={{this.trackOpen}}
+                  @dismiss={{this.dismiss}}
+                  @loading={{this.loading}}
+                />
               {{/if}}
             {{/if}}
             {{#unless (eq this.activeGroup "dynamics")}}

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.27.0 — 2026-09-27
+
+- Refactor `community-discovery-panel.gjs` into dedicated subcomponents for topics, dynamics, people, and interests to reduce complexity.
+- Add Playwright E2E test skeletons for user tags, interest onboarding, and flying chess achievements.
+
 ## 1.26.4 — 2026-09-06
 
 - Refactor avatar frame geometry with center-point transformation (`top: 50%; left: 50%; transform: translate(-50%, -50%)`) and strict 1:1 `aspect-ratio` to eliminate oval stretching and eccentric offset across viewports.
