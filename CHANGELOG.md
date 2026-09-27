@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.28.0 — 2026-09-27
+
+- Refactor `RecommendationEngine` God Object into smaller, cohesive domain engines (`TopicEngine`, `UserEngine`, `InterestEngine`, `Serializer`).
+- Fix N+1 queries during user candidate evaluation by implementing bulk preloading (`UserTagVisibility.bulk_public_tags_for` and `PracticeInvitationEligibility.bulk_common_interests`).
+
 ## 1.27.0 — 2026-09-27
 
 - Refactor `community-discovery-panel.gjs` into dedicated subcomponents for topics, dynamics, people, and interests to reduce complexity.
