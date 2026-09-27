@@ -86,17 +86,17 @@ en:
     interest_catalogue:
       groups:
         sp_psychology:
-          name: "SP psychology type"
-          description: "What core experience do you seek in SP? Pick 1–2 that fit you best."
+          name: "Core Motivations & Dynamics"
+          description: "What core experience drives your interest? (e.g., Strict Governance, Discipline, Affectionate)"
         interaction_role:
-          name: "Interaction role"
-          description: "Roles can change with a relationship or scene and do not define a fixed identity."
+          name: "Roles (Top/Bottom/Switch/Dom/Sub)"
+          description: "Your preferred dynamic role. This can be fluid and scene-dependent."
         interaction_style:
-          name: "Interaction style"
-          description: "The interaction framework and overall tone that interest you."
+          name: "Practice Styles & Genres"
+          description: "Preferred frameworks (e.g., Traditional Spanking, Domestic Discipline, English Spanking)."
         intensity:
-          name: "Intensity"
-          description: "Use broad ranges for discovery; specific boundaries still require a separate conversation."
+          name: "Intensity & Limits"
+          description: "Your preferred physical intensity (Sensual to Severe). Hard limits must still be negotiated privately."
         emotional_experience:
           name: "Experience"
           description: "Describe themes you want to discuss without labeling anyone."
@@ -131,18 +131,18 @@ en:
           name: "Existing community tags"
           description: "Tags added by an administrator or preserved from your earlier selections."
     practice_invitations:
-      preset_message: "Invite @%{username} to a one-to-one practice session about %{interest}."
-      accepted_message: "Hi @%{username}, I accepted your one-to-one practice invitation about %{interest}. Let's continue here."
+      preset_message: "Invite @%{username} to a one-to-one spanking scene or discussion about %{interest}."
+      accepted_message: "Hi @%{username}, I accepted your one-to-one invitation for %{interest}. Let's negotiate limits and details here."
       proposed_time: "Suggested time: %{time}"
       original_note: "Invitation note:\n\n> %{note}"
       safety_agreement_header: "### 🛡️ Practice Safety & Boundaries Protocol"
       safety_items:
-        ssc_consensus: "**Core Principles**: Abide by SSC (Safe, Sane, Consensual) principles, strictly respecting boundaries"
-        pure_practice: "**Pure Exchange**: Commit to pure SP exchange, strictly prohibiting non-consensual boundary violations"
-        safeword_mechanism: "**Safeword Mechanism**: Support and strictly honor safewords (red/yellow/green), halting immediately when called"
-        body_safety: "**Physical Safety**: Avoid high-risk body areas (head, neck, spine, kidneys, etc.)"
-        aftercare: "**Aftercare**: Include aftercare, verbal debrief, and appropriate post-session care"
-        public_first_meet: "**Initial Meetup**: Recommend initial communication in daytime public locations"
+        ssc_consensus: "**Core Principles**: Abide by SSC (Safe, Sane, Consensual) / RACK principles, strictly respecting hard and soft limits"
+        pure_practice: "**Consensual Dynamics**: Commit to consensual SP dynamics, strictly prohibiting boundary violations"
+        safeword_mechanism: "**Safeword Mechanism**: Establish and strictly honor safewords (e.g., Red/Yellow/Green), halting immediately when called"
+        body_safety: "**Physical Safety**: Avoid high-risk physical areas (head, neck, spine, kidneys) and respect target preferences"
+        aftercare: "**Aftercare**: Provide appropriate aftercare, physical checking, and emotional debrief post-scene"
+        public_first_meet: "**Initial Meetup**: Commit to a public vanilla meet before any private scenes"
       safety_tips: "Community Safety Tip: A healthy practice is built on open communication and mutual trust. We advise discussing preferences and boundaries thoroughly online first. If you experience any harassment or boundary violations, please report it to forum moderation immediately."
       pm_title: "Practice together: %{interest}"
       notification_title: "New one-to-one practice invitation"

@@ -24,6 +24,8 @@ register_svg_icon "tag"
 require_relative "lib/where_is_my_friends/engine"
 
 after_initialize do
+  SiteSetting.set_locale_from_accept_language_header = true
+
   SeedFu.fixture_paths << Rails
     .root
     .join("plugins/where-is-my-friends/db/fixtures")
