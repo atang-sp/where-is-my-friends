@@ -1,7 +1,14 @@
 # frozen_string_literal: true
 
 RSpec.describe "User login locale sync" do
-  fab!(:user) { Fabricate(:user, locale: "zh_CN") }
+  fab!(:user) do
+    Fabricate(:user, locale: "zh_CN").tap do |u|
+      u.password = "myawesomepassword"
+      u.save!
+      email_token = Fabricate(:email_token, user: u)
+      EmailToken.confirm(email_token.token)
+    end
+  end
 
   before do
     SiteSetting.where_is_my_friends_enabled = true
@@ -17,7 +24,7 @@ RSpec.describe "User login locale sync" do
       post "/session.json",
            params: {
              login: user.username,
-             password: user.password,
+             password: "myawesomepassword",
            }
 
       expect(response.status).to eq(200)
@@ -28,7 +35,7 @@ RSpec.describe "User login locale sync" do
       post "/session.json",
            params: {
              login: user.username,
-             password: user.password,
+             password: "myawesomepassword",
              tl: "ja",
            }
 
@@ -42,7 +49,7 @@ RSpec.describe "User login locale sync" do
       post "/session.json",
            params: {
              login: user.username,
-             password: user.password,
+             password: "myawesomepassword",
            }
 
       expect(response.status).to eq(200)
@@ -56,7 +63,7 @@ RSpec.describe "User login locale sync" do
       post "/session.json",
            params: {
              login: user.username,
-             password: user.password,
+             password: "myawesomepassword",
            }
 
       expect(response.status).to eq(200)
