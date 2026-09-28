@@ -5,6 +5,8 @@ RSpec.describe "User login locale sync" do
   let(:email_token) { Fabricate(:email_token, user: user) }
 
   before do
+    user.update_columns(locale: "zh_CN")
+    user.reload
     EmailToken.confirm(email_token.token)
     SiteSetting.where_is_my_friends_enabled = true
     SiteSetting.allow_user_locale = true
