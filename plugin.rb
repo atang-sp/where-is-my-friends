@@ -114,8 +114,12 @@ after_initialize do
       guest_locale = cookie_val.presence || param_val.presence
       return if guest_locale.blank?
 
-      target_locale = HttpLanguageParser.parse(guest_locale.to_s)
-      target_locale = guest_locale.to_s.tr("-", "_") if target_locale.blank?
+      require "http_accept_language" unless defined?(HttpAcceptLanguage)
+      available_locales =
+        I18n.available_locales.map { |locale| locale.to_s.tr("_", "-") }
+      parser = HttpAcceptLanguage::Parser.new(guest_locale.to_s.tr("_", "-"))
+      target_locale =
+        parser.language_region_compatible_from(available_locales)&.tr("-", "_")
 
       return if target_locale.blank?
       return unless I18n.locale_available?(target_locale)
