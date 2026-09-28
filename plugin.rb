@@ -55,6 +55,87 @@ after_initialize do
     Discourse.singleton_class.prepend(AnonymousLocaleSupport)
   end
 
+  module UserLoginLocaleSync
+    def log_on_user(user, *args, **kwargs)
+      sync_user_locale_from_guest_selection(user)
+      super
+    end
+
+    private
+
+    def sync_user_locale_from_guest_selection(user)
+      return if user.blank? || !SiteSetting.allow_user_locale
+
+      cookie_val = nil
+      if SiteSetting.set_locale_from_cookie
+        if respond_to?(:cookies, true)
+          cookie_val =
+            begin
+              cookies["locale"] || cookies[:locale]
+            rescue StandardError
+              nil
+            end
+        end
+        if cookie_val.blank? && respond_to?(:request) &&
+             request.respond_to?(:cookies)
+          cookie_val =
+            begin
+              request.cookies["locale"] || request.cookies[:locale]
+            rescue StandardError
+              nil
+            end
+        end
+      end
+
+      param_val = nil
+      if SiteSetting.set_locale_from_param
+        if respond_to?(:params, true)
+          param_val =
+            begin
+              params["locale"] || params[:locale] || params["tl"] ||
+                params[:tl] || params["lang"] || params[:lang]
+            rescue StandardError
+              nil
+            end
+        end
+        if param_val.blank? && respond_to?(:request) &&
+             request.respond_to?(:params)
+          param_val =
+            begin
+              request.params["locale"] || request.params[:locale] ||
+                request.params["tl"] || request.params[:tl] ||
+                request.params["lang"] || request.params[:lang]
+            rescue StandardError
+              nil
+            end
+        end
+      end
+
+      guest_locale = cookie_val.presence || param_val.presence
+      return if guest_locale.blank?
+
+      require "http_accept_language" unless defined?(HttpAcceptLanguage)
+      available_locales =
+        I18n.available_locales.map { |locale| locale.to_s.tr("_", "-") }
+      parser = HttpAcceptLanguage::Parser.new(guest_locale.to_s.tr("_", "-"))
+      target_locale =
+        parser.language_region_compatible_from(available_locales)&.tr("-", "_")
+
+      return if target_locale.blank?
+      return unless I18n.locale_available?(target_locale)
+      return if user.locale == target_locale
+
+      user.update_column(:locale, target_locale)
+      user.locale = target_locale
+    rescue => e
+      Rails.logger.warn("Failed to sync user locale on login: #{e.message}")
+    end
+  end
+
+  if CurrentUser.ancestors.exclude?(UserLoginLocaleSync)
+    CurrentUser.prepend(UserLoginLocaleSync)
+  end
+
   SeedFu.fixture_paths << Rails
     .root
     .join("plugins/where-is-my-friends/db/fixtures")
