@@ -64,5 +64,19 @@ RSpec.describe "User login locale sync" do
       expect(response.status).to eq(200)
       expect(user.reload.locale).to eq("zh_CN")
     end
+
+    it "does not update user locale from cookie when set_locale_from_cookie is disabled" do
+      SiteSetting.set_locale_from_cookie = false
+      cookies["locale"] = "en"
+
+      post "/session.json",
+           params: {
+             login: user.username,
+             password: "myawesomepassword",
+           }
+
+      expect(response.status).to eq(200)
+      expect(user.reload.locale).to eq("zh_CN")
+    end
   end
 end

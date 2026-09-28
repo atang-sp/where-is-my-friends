@@ -66,11 +66,52 @@ after_initialize do
     def sync_user_locale_from_guest_selection(user)
       return if user.blank? || !SiteSetting.allow_user_locale
 
-      cookie_jar = cookies if respond_to?(:cookies)
-      param_hash = params if respond_to?(:params)
-      guest_locale =
-        cookie_jar&.[](:locale) || param_hash&.[](:locale) ||
-          param_hash&.[](:tl) || param_hash&.[](:lang)
+      cookie_val = nil
+      if SiteSetting.set_locale_from_cookie
+        if respond_to?(:cookies, true)
+          cookie_val =
+            begin
+              cookies["locale"] || cookies[:locale]
+            rescue StandardError
+              nil
+            end
+        end
+        if cookie_val.blank? && respond_to?(:request) &&
+             request.respond_to?(:cookies)
+          cookie_val =
+            begin
+              request.cookies["locale"] || request.cookies[:locale]
+            rescue StandardError
+              nil
+            end
+        end
+      end
+
+      param_val = nil
+      if SiteSetting.set_locale_from_param
+        if respond_to?(:params, true)
+          param_val =
+            begin
+              params["locale"] || params[:locale] || params["tl"] ||
+                params[:tl] || params["lang"] || params[:lang]
+            rescue StandardError
+              nil
+            end
+        end
+        if param_val.blank? && respond_to?(:request) &&
+             request.respond_to?(:params)
+          param_val =
+            begin
+              request.params["locale"] || request.params[:locale] ||
+                request.params["tl"] || request.params[:tl] ||
+                request.params["lang"] || request.params[:lang]
+            rescue StandardError
+              nil
+            end
+        end
+      end
+
+      guest_locale = cookie_val.presence || param_val.presence
       return if guest_locale.blank?
 
       target_locale = HttpLanguageParser.parse(guest_locale.to_s)
