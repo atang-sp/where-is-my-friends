@@ -1,16 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe "User login locale sync" do
-  fab!(:user) do
-    Fabricate(:user, locale: "zh_CN").tap do |u|
-      u.password = "myawesomepassword"
-      u.save!
-      email_token = Fabricate(:email_token, user: u)
-      EmailToken.confirm(email_token.token)
-    end
-  end
+  fab!(:user) { Fabricate(:user, locale: "zh_CN") }
+  let(:email_token) { Fabricate(:email_token, user: user) }
 
   before do
+    EmailToken.confirm(email_token.token)
     SiteSetting.where_is_my_friends_enabled = true
     SiteSetting.allow_user_locale = true
     SiteSetting.set_locale_from_cookie = true
