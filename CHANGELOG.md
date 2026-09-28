@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.30.2 — 2026-09-28
+
+- Automatically synchronize authenticated user profile language (`user.locale`) with guest's selected locale on login when differing.
+- Enforce strict locale compatibility matching via `HttpAcceptLanguage::Parser` to avoid unwanted default locale fallbacks when an unparseable cookie or parameter is present.
+- Support locale extraction across ActionController private cookie jars and Rack request cookies.
+
 ## 1.30.1 — 2026-09-27
 
 - Relocate guest locale switcher from login and registration modal bodies to a sleek, compact capsule pill fixed at the top-right corner of the viewport (`above-site-header`).
