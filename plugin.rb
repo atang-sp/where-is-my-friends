@@ -55,6 +55,42 @@ after_initialize do
     Discourse.singleton_class.prepend(AnonymousLocaleSupport)
   end
 
+  module UserLoginLocaleSync
+    def log_on_user(user, *args, **kwargs)
+      sync_user_locale_from_guest_selection(user)
+      super
+    end
+
+    private
+
+    def sync_user_locale_from_guest_selection(user)
+      return if user.blank? || !SiteSetting.allow_user_locale
+
+      cookie_jar = cookies if respond_to?(:cookies)
+      param_hash = params if respond_to?(:params)
+      guest_locale =
+        cookie_jar&.[](:locale) || param_hash&.[](:locale) ||
+          param_hash&.[](:tl) || param_hash&.[](:lang)
+      return if guest_locale.blank?
+
+      target_locale = HttpLanguageParser.parse(guest_locale.to_s)
+      target_locale = guest_locale.to_s.tr("-", "_") if target_locale.blank?
+
+      return if target_locale.blank?
+      return unless I18n.locale_available?(target_locale)
+      return if user.locale == target_locale
+
+      user.update_column(:locale, target_locale)
+      user.locale = target_locale
+    rescue => e
+      Rails.logger.warn("Failed to sync user locale on login: #{e.message}")
+    end
+  end
+
+  if CurrentUser.ancestors.exclude?(UserLoginLocaleSync)
+    CurrentUser.prepend(UserLoginLocaleSync)
+  end
+
   SeedFu.fixture_paths << Rails
     .root
     .join("plugins/where-is-my-friends/db/fixtures")
